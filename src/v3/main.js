@@ -37,6 +37,8 @@ import { ScenarioEditor } from './ui/scenarioEditor.js';
 import { GameNav } from './ui/gameNav.js';
 import { NetUI, commandHooks } from './ui/netUI.js';
 import { execCommand } from './net/commands.js';
+import { GuideUI } from './ui/guide.js';
+import { RecapUI } from './ui/recap.js';
 
 const DEG = 180 / Math.PI;
 // vitesse des transitions de frontière (durée en secondes)
@@ -85,6 +87,8 @@ class App {
     this.borderEditor = new BorderEditorUI(this);
     this.worldViews = new WorldViews(this);
     this.netUI = new NetUI(this);
+    this.guide = new GuideUI(this);
+    this.recap = new RecapUI(this);
     this.cmdHooks = commandHooks(this);
     this.screen = 'menu';
     this.cellCountsDirty = true;
@@ -812,8 +816,11 @@ class App {
       if (this.borderEditor.active && this.borderEditor.key(e)) return;
       if (this.editor.active && k !== 'Escape' && !k.startsWith('Arrow') && k !== '+' && k !== '-' && this.editor.key(e)) return;
       const inSim = !!this.session.sim;
+      if (k === 'F1') { e.preventDefault(); if (this.guide.isOpen()) this.guide.close(); else this.guide.open(); return; }
       if (k === 'Escape') {
         e.preventDefault();
+        if (this.guide.isOpen()) { this.guide.close(); return; }
+        if (this.recap.isOpen()) { this.recap.close(); return; }
         for (const id of ['picker', 'saveWorldDialog', 'newCountry', 'worlds', 'loadGame', 'settings', 'edStart']) if (isShown(id)) { show(id, false); return; }
         if (isShown('warReport')) { this.warUI.closeReport(); return; }
         if (isShown('warsPanel')) { show('warsPanel', false); this.resumeAfterOverlay(); return; }

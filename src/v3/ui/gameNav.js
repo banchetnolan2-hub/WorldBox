@@ -29,6 +29,7 @@ const ITEMS = [
   ['crises', 'Crises', 'activity', 'Crises internationales, conférences et sanctions'],
   ['stats', 'Statistiques', 'activity', 'Évolution des grandes puissances'],
   ['rules', 'Règles', 'sliders-horizontal', 'Systèmes actifs dans cette partie'],
+  ['guide', 'Guide', 'circle-help', 'Aide et tutoriel (F1)'],
   ['save', 'Sauvegarde', 'save', 'Sauvegarder la partie'],
 ];
 const WTABS = [['countries', 'Pays'], ['rank', 'Classement'], ['cmp', 'Comparer'], ['diplo', 'Diplomatie'], ['coal', 'Coalitions'], ['crises', 'Crises'], ['maps', 'Cartes'], ['eco', 'Économie'], ['tech', 'Technologie'], ['mil', 'Militaire'], ['news', 'Actualités'], ['stats', 'Statistiques']];
@@ -63,6 +64,7 @@ export class GameNav {
     const nation = nui.active && sim.nv;
     if (k === 'map') { this.closePanel(); nui.closePanel(); app.selectEntity(-1); this.setActive('map'); return; }
     if (k === 'save') { app.saveGame(); return; }
+    if (k === 'guide') { app.guide.open(); return; }
     if (k === 'multi') { this.closePanel(); app.nationUI.closePanel(); if (app.netUI.isOpen()) app.netUI.closePanel(); else app.netUI.openPanel(); return; }
     if (k === 'borders') { this.closePanel(); app.nationUI.closePanel(); app.borderEditor.open(); return; }
     if (k === 'rules') { app.rulesUI.open({ mode: sim.cfg.mode || (sim.nv ? 'nation' : 'sandbox'), rules: sim.rules, readonly: true, title: 'Règles de cette partie' }); return; }

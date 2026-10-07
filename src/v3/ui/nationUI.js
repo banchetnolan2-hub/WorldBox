@@ -374,12 +374,14 @@ export class NationUI {
     const sd = sim.sides[sim.nv.player];
     setTimeout(() => { if (this.sim === sim && sd.capital >= 0) { this.app.session.setCamMode('libre'); this.app.hud.setCam('libre'); this.app.session.flyToCell(sd.capital, Math.min(2.2, 1.25 + Math.sqrt(sd.cells) * 0.004), 1.6); } }, 400);
     this.app.selectEntity(-1);
+    if (this.app.recap) this.app.recap.begin(sim);
+    if (this.app.guide) this.app.guide.maybeStartTutorial();
   }
   end() {
     if (!this.active) { this._restoreIdentity(); return; }
     this.active = false;
     document.body.classList.remove('nation-on');
-    for (const id of ['nationBar', 'nationPanel', 'nationGoals', 'diploDialog', 'nationDecision', 'nationOffers', 'scenarioEnd']) show(id, false);
+    for (const id of ['nationBar', 'nationPanel', 'nationGoals', 'diploDialog', 'nationDecision', 'nationOffers', 'scenarioEnd', 'recapDialog', 'tutoCard']) show(id, false);
     this.app.hud.setSpeedSet(null);
     this.app.hud.rankCollapsed = false;
     $('ranking').classList.remove('collapsed');
@@ -398,6 +400,8 @@ export class NationUI {
     const now = performance.now();
     if (isShown('nationPanel') && !this.busy && now - (this._panelAt || 0) > 1200) this._renderTab(true);
     if (now - (this._goalsAt || 0) > 1000) { this._goalsAt = now; this._goals(); }
+    if (this.app.guide) this.app.guide.update();
+    if (this.app.recap) this.app.recap.update(sim);
   }
 
   // ---------- barre nationale ----------
@@ -694,7 +698,7 @@ export class NationUI {
     const last = tl[tl.length - 1] || {};
     const marks = [];
     for (let y = Math.ceil((y0 + 1) / 10) * 10; y <= Math.max(last.year || y0, y0) + 10; y += 10) marks.push(y);
-    return `<div class="tl-marks">${[y0, 2030, ...marks].filter((v, i, a) => a.indexOf(v) === i && v >= y0).sort((a, b) => a - b).slice(0, 8).map((y) => `<span class="${(last.year || y0) >= y ? 'on' : ''}">${y}</span>`).join('<i></i>')}</div>
+    return `<div class="row" style="justify-content:flex-end"><button class="btn ghost sm" data-recap>${icon('calendar-check')}<span>Récapitulatifs annuels</span></button></div><div class="tl-marks">${[y0, 2030, ...marks].filter((v, i, a) => a.indexOf(v) === i && v >= y0).sort((a, b) => a - b).slice(0, 8).map((y) => `<span class="${(last.year || y0) >= y ? 'on' : ''}">${y}</span>`).join('<i></i>')}</div>
       <div class="tl-charts">${this._chart('tl-gdp', 90)}${this._chart('tl-pop', 90)}${this._chart('tl-tech', 90)}${this._chart('tl-mil', 90)}</div>
       ${tl.length > 1 ? `<table class="wr-table tl-table"><thead><tr><th>Année</th><th>PIB</th><th>Population</th><th>Technologie</th><th>Personnel</th><th>Stabilité</th><th>Rang (PIB)</th></tr></thead><tbody>${tl.slice().reverse().slice(0, 12).map((r) => `<tr><td>${r.year}</td><td>${fmtBn(r.gdp)}</td><td>${num(r.pop / 1e6)} M</td><td>${num(r.tech)}</td><td>${fmtInt(r.soldiers)}</td><td>${r.stability} %</td><td>${r.gdpRank}e</td></tr>`).join('')}</tbody></table>` : '<p class="hint">Le premier bilan annuel apparaîtra au 1er janvier.</p>'}
       <h4>Événements marquants</h4>
@@ -761,6 +765,8 @@ export class NationUI {
     if (bb) bb.addEventListener('click', () => this.app.borderEditor.open());
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
+    const rcb = body.querySelector('[data-recap]');
+    if (rcb) rcb.addEventListener('click', () => this.app.recap.open(null, true));
     body.querySelectorAll('[data-dbgo]').forEach((b) => b.addEventListener('click', () => this._dbGo(b.dataset.dbgo)));
     body.querySelectorAll('[data-chart]').forEach((cv) => this._drawChart(cv, cv.dataset.chart));
   }

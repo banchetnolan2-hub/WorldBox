@@ -18,6 +18,7 @@ const MAIN = [
   ['sandbox', 'Sandbox', 'globe'],
   ['create', 'Créer', 'pencil'],
   ['load', 'Charger', 'folder-open'],
+  ['guide', 'Guide', 'circle-help'],
   ['options', 'Options', 'settings'],
   ['credits', 'Crédits', 'award'],
   ['quit', 'Quitter', 'power'],
@@ -53,6 +54,7 @@ export class MenuUI {
     if (key === 'nation') { this.closeSub(); app.nationUI.openPick(); return; }
     if (key === 'multi') { this.closeSub(); app.netUI.openMenu('join'); return; }
     if (key === 'options') { app.openSettings(); return; }
+    if (key === 'guide') { this.closeSub(); app.guide.open(); return; }
     if (key === 'quit') { if (window.desktop) window.desktop.quit(); else notice('Fermez simplement l\'onglet du navigateur.'); return; }
     this.open(key);
   }
