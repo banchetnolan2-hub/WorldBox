@@ -1656,3 +1656,23 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 #tnName { width: 160px; }
 @media (max-width: 800px) { .tn-list { grid-template-columns: 1fr; } }
 .occ-contested { color: var(--bad) !important; } .occ-semi { color: var(--gold) !important; }
+
+/* ---- FORCES ARMÉES : composition, groupes, fiches flottantes ---- */
+.forces { margin-top: 6px; }
+.comp-row label span { display: inline-flex; align-items: center; gap: 6px; }
+.comp-row .hint { font-size: 11px; }
+.comp-fx { margin: 6px 0 8px; padding: 6px 10px; border-radius: var(--r); background: var(--panel-2); border: 1px solid var(--line); }
+.grp-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.grp-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 6px 8px; border-radius: var(--r); background: var(--panel-2); border: 1px solid var(--line); }
+.grp-row select { min-width: 150px; }
+.grp-row select[data-gtarget] { grid-column: 1 / -1; }
+#floatCard { position: fixed; z-index: 45; width: 280px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; border-left: 3px solid var(--c, var(--accent)); box-shadow: var(--shadow); animation: rise 0.2s var(--ease) both; }
+#floatCard .fc-x { position: absolute; top: 6px; right: 6px; }
+.fc-h { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; padding-right: 24px; }
+.fc-h b { flex: 1; }
+.fc-h small { color: var(--text-3); }
+.fc-acts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.fc-acts .btn { gap: 4px; }
+.fc-acts .btn.on { border-color: var(--accent); color: var(--accent); }
+#pickBanner { position: fixed; z-index: 46; top: 100px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid var(--accent); }
+#pickBanner > .ic { color: var(--accent); }

@@ -2,7 +2,7 @@
 // identité personnalisée, barre nationale, GESTION DU PAYS (économie, population, infrastructures,
 // technologie, défense, diplomatie, arbre de développement, chronologie, identité, objectifs),
 // dialogue diplomatique avec l'analyse de l'IA, propositions des IA, décisions, fin de scénario.
-import { $, show, isShown, esc, notice, fmtInt, flagImg } from './util.js';
+import { $, show, isShown, esc, notice, fmtInt, flagImg, fillRanges } from './util.js';
 import { icon } from './icons.js';
 import { participantProfile } from '../sim/worldSim.js';
 import { fmtBn, PERSONALITIES, ECONOMY_TYPES, UNIT_LABELS, realStatsOf, REAL_META } from '../sim/profile.js';
@@ -510,6 +510,7 @@ export class NationUI {
     if (refresh && (this.tab === 'id')) return;
     if (refresh && this.tab === 'diplo' && document.activeElement && document.activeElement.id === 'dpSearch') return;
     body.innerHTML = f.call(this, sim, sim.nv, sim.sides[sim.nv.player]);
+    fillRanges(body);                    // curseurs : partie remplie à jour après chaque rafraîchissement
     if (refresh) body.scrollTop = sc;
     this._bindTab(body);
   }
@@ -632,6 +633,7 @@ export class NationUI {
         ${this._kv('Fortifications', `+${Math.round((sd.devFort || 0) * 100)} %`)}${this._kv('Attaque / défense (technologies)', `${Math.round(((sd.techAtk || 1) - 1) * 100)} % / ${Math.round(((sd.techDef || 1) - 1) * 100)} %`)}${this._kv('Défense aérienne', `${Math.round((sd.airDef || 0) * 100)} %`)}${this._kv('Renseignement', `${Math.round((sd.intel || 0) * 100)} %`)}
         <button class="btn ghost xs" data-goto="dev" data-cat="mil">${icon('network')}<span>Arbre militaire</span></button>
       </div></div>
+      ${this.app.forcesUI.html(sim, n, sd)}
       <h4>Conflits</h4>${wars.length ? wars.map((w) => `<div class="war-row" data-war="${w.id}">${icon('swords')}<span>${esc(w.name)}</span><small>${fmtDate(w.start, sim.cfg.startDay, true)}</small><button class="btn ghost xs">Rapport</button></div>`).join('') : '<p class="hint">Aucune guerre en cours.</p>'}`;
   }
   _tDiplo(sim, n, sd) {
@@ -785,6 +787,7 @@ export class NationUI {
     body.querySelectorAll('[data-devbranch]').forEach((b) => b.addEventListener('click', () => { this.devBranch = b.dataset.devbranch; this._renderTab(false); }));
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
+    if (this.tab === 'def') this.app.forcesUI.bind(body);
     const rcb = body.querySelector('[data-recap]');
     if (rcb) rcb.addEventListener('click', () => this.app.recap.open(null, true));
     body.querySelectorAll('[data-dbgo]').forEach((b) => b.addEventListener('click', () => this._dbGo(b.dataset.dbgo)));

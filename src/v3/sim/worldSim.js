@@ -1395,6 +1395,7 @@ export class WorldSim {
       if (!a) break;
       sd.agents.splice(sd.agents.indexOf(a), 1);
     }
+    [...sd.agents].sort((x, y) => x.id - y.id).forEach((a, q) => { a.gid = q % plan.count; });   // numéro de groupe stable
   }
   addAgents(s, k) {
     const sd = this.sides[s];

@@ -40,6 +40,7 @@ import { execCommand } from './net/commands.js';
 import { GuideUI } from './ui/guide.js';
 import { RecapUI } from './ui/recap.js';
 import { TuningUI } from './ui/tuningUI.js';
+import { ForcesUI } from './ui/forcesUI.js';
 import { applyTheme, themePickerHtml, UI_SIZES } from './ui/themes.js';
 import { NOTIF_LEVELS, AUTO_PAUSE, defaultAutoPause } from './ui/notify.js';
 
@@ -93,6 +94,7 @@ class App {
     this.guide = new GuideUI(this);
     this.recap = new RecapUI(this);
     this.tuningUI = new TuningUI(this);
+    this.forcesUI = new ForcesUI(this);
     this.notice = notice;
     this.cmdHooks = commandHooks(this);
     this.screen = 'menu';
@@ -239,6 +241,7 @@ class App {
   hideAll() {
     for (const id of ['menu', 'creator', 'hud', 'results', 'pause', 'worlds', 'loadGame', 'settings', 'saveWorldDialog', 'picker', 'warEnded', 'warReport', 'warsPanel', 'worldHistoryPanel', 'nationPick', 'storyPick']) show(id, false);
     this.nationUI.end();
+    if (this.forcesUI) { this.forcesUI.cancelPick(); this.forcesUI.hideCard(); }
     if (this.gameNav) this.gameNav.showRail(false);
     for (const id of ['rulesDialog', 'scenarioEditor']) if ($(id)) show(id, false);
     this._overlayPaused = false;
@@ -655,7 +658,7 @@ class App {
       const parts = new Set(sim.sides.map((s) => s.e));
       const snap = this._snapAt && this.renderer.time - this._snapAt < 0.5 ? this._snap : (this._snapAt = this.renderer.time, this._snap = new Map(sim.snapshot().map((s) => [s.e, s.share])));
       this.labels.update(owner, parts, sim.nv ? () => null : (e) => (snap.has(e) ? (snap.get(e) * 100).toFixed(1).replace('.', ',') + ' %' : null), dt);
-      if (this.renderer.time - this.hudAt > (sim.sides.length > 30 ? 0.5 : 0.2)) { this.hudAt = this.renderer.time; this.hud.update(sim); this.nationUI.update(sim); this.gameNav.update(); this.worldViews.update(); this.netUI.update();
+      if (this.renderer.time - this.hudAt > (sim.sides.length > 30 ? 0.5 : 0.2)) { this.hudAt = this.renderer.time; this.hud.update(sim); this.nationUI.update(sim); this.forcesUI.refresh(); this.gameNav.update(); this.worldViews.update(); this.netUI.update();
         if (sim.nv && this.session.state === 'running' && performance.now() - (this._autosaveAt || 0) > 180000) { this._autosaveAt = performance.now(); this.saveGame(true); } this.cellCountsDirty = true; if (this.control.active) this.control.refreshSim(); }
     } else if (this.screen === 'menu' || this.screen === 'creator' || this.screen === 'control' || this.screen === 'editor' || this.screen === 'nationPick') {
       this.labels.update(owner, this.screen === 'creator' ? new Set(this.creator.allMembers().map((m) => m.e)) : null, null, dt);
@@ -807,6 +810,8 @@ class App {
         const cell = this.pickCell(e.clientX, e.clientY);
         if (this.editor.active) { this.editor.click(this.renderer.rayToLatLon(e.clientX, e.clientY), cell); return; }
         if (this.control.active) { this.control.click(cell); if (this.control.tool !== 'select') return; }
+        // groupe d'armée ou flotte sous le curseur : fiche flottante (ou choix d'une destination de flotte)
+        if (this.session.sim && this.screen === 'game' && this.forcesUI.click(e.clientX, e.clientY)) { audio.sfx('click'); return; }
         const o = this.ownerAt(cell);
         if (this.screen === 'nationPick') { if (o !== NONE) this.nationUI.pick(o, false); audio.sfx('click'); return; }
         if (o !== NONE && this.entities()[o]) this.selectEntity(o);
@@ -862,6 +867,8 @@ class App {
         if (this.guide.isOpen()) { this.guide.close(); return; }
         if (this.recap.isOpen()) { this.recap.close(); return; }
         if (this.tuningUI.isOpen()) { this.tuningUI.close(); return; }
+        if (this.forcesUI.pickMode) { this.forcesUI.cancelPick(); return; }
+        if (isShown('floatCard')) { this.forcesUI.hideCard(); return; }
         if (isShown('settings')) { show('settings', false); this.resumeAfterOverlay(); return; }
         for (const id of ['picker', 'saveWorldDialog', 'newCountry', 'worlds', 'loadGame', 'edStart']) if (isShown(id)) { show(id, false); return; }
         if (isShown('warReport')) { this.warUI.closeReport(); return; }

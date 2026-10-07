@@ -1,7 +1,7 @@
 // UI — RÉGLAGES AVANCÉS : profils (Équilibré, Réaliste, Guerre totale, Diplomatique, Bâtisseur, Arcade, profils
 // enregistrés par le joueur) et une trentaine de curseurs par catégorie. Avant la partie : valeurs de la partie à
 // créer ; en partie : le jeu se met en pause, et la validation envoie un ordre (identique chez tous les joueurs).
-import { $, show, isShown, esc, notice } from './util.js';
+import { $, show, isShown, esc, notice, fillRanges } from './util.js';
 import { icon } from './icons.js';
 import { Store } from '../save/store.js';
 import { TUNING, TUNING_CATS, TUNING_PROFILES, normalizeTuning, profileTuning, matchProfile, defaultTuning } from '../sim/tuning.js';
@@ -70,6 +70,7 @@ export class TuningUI {
         <button class="btn ghost" data-act="cancel">${ro ? 'Fermer' : 'Annuler'}</button>${ro ? '' : `<button class="btn primary" data-act="ok">${this.opts.inGame ? 'Appliquer' : 'Valider'}</button>`}
       </div>`;
     const box = $('tuningBox');
+    fillRanges(box);
     box.querySelectorAll('[data-cat]').forEach((b) => { b.onclick = () => { this.cat = b.dataset.cat; this._render(); }; });
     box.querySelectorAll('[data-tn]').forEach((inp) => {
       inp.oninput = () => { const p = TUNING.find((x) => x.id === inp.dataset.tn); this.t[p.id] = Number(inp.value); box.querySelector(`[data-out="${p.id}"]`).textContent = fmt(p, this.t[p.id]); };
