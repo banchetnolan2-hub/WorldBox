@@ -7,6 +7,7 @@ export function flagUrlFor(entity) {
   if (!entity) return '';
   if (entity.customFlag) return customFlagDataUrl(entity.customFlag, 64, 48);
   if (entity.kind === 'custom') return customFlagDataUrl(entity.flag, 64, 48);
+  if (entity.flagSpec) return customFlagDataUrl(entity.flagSpec, 64, 48);   // territoire sans drapeau officiel (dessiné)
   return `assets/flags/${(entity.iso2 || '').toLowerCase()}.svg`;
 }
 
@@ -133,8 +134,8 @@ export class FlagAtlas {
     const [cx, cy] = this.slotXY(slot);
     const x = cx * SLOT_W, y = cy * SLOT_H;
     return new Promise((resolve) => {
-      if (e.kind === 'custom') {
-        drawCustomFlag(this.ctx, e.flag, x, y, SLOT_W, SLOT_H);
+      if (e.kind === 'custom' || e.flagSpec) {
+        drawCustomFlag(this.ctx, e.kind === 'custom' ? e.flag : e.flagSpec, x, y, SLOT_W, SLOT_H);
         this.texture.needsUpdate = true;
         resolve();
         return;

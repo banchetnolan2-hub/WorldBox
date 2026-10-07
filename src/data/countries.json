@@ -1,5 +1,5 @@
 {
- "_doc": "Base des 196 pays (193 membres de l'ONU + Saint-Siège + Palestine). Pour ajouter/modifier un pays : id et iso2 (drapeau), atlasId (code ISO 3166 numérique), nom, continent, couleurs de secours, capitale (lat/lon), population de simulation, statistiques 0-100. Statistiques et populations sont des valeurs de jeu.",
+ "_doc": "Base des 196 pays (193 membres de l'ONU + Saint-Siège + Palestine + Groenland). Pour ajouter/modifier un pays : id et iso2 (drapeau), atlasId (code ISO 3166 numérique), nom, continent, couleurs de secours, capitale (lat/lon), population de simulation, statistiques 0-100. Statistiques et populations sont des valeurs de jeu.",
  "statKeys": [
   "puissance",
   "economie",
@@ -4917,6 +4917,224 @@
     "defense": 53,
     "expansion": 56,
     "vitesse": 63
+   }
+  }
+ ],
+ "promoted": [
+  {
+   "mapName": "Kosovo",
+   "id": "XK",
+   "iso2": "xk",
+   "name": "Kosovo",
+   "continent": "Europe",
+   "color": "#d039bf",
+   "color2": "#da8194",
+   "capital": {
+    "name": "Pristina",
+    "lat": 42.66,
+    "lon": 21.17
+   },
+   "population": 1847750,
+   "stats": {
+    "puissance": 34,
+    "economie": 45,
+    "ressources": 49,
+    "stabilite": 62,
+    "mobilite": 53,
+    "defense": 52,
+    "expansion": 54,
+    "vitesse": 59
+   }
+  },
+  {
+   "mapName": "Taïwan",
+   "id": "TW",
+   "iso2": "tw",
+   "name": "Taïwan",
+   "continent": "Asie",
+   "color": "#b0d039",
+   "color2": "#8bda81",
+   "capital": {
+    "name": "Taipei",
+    "lat": 25.03,
+    "lon": 121.56
+   },
+   "population": 22316486,
+   "stats": {
+    "puissance": 70,
+    "economie": 74,
+    "ressources": 70,
+    "stabilite": 72,
+    "mobilite": 68,
+    "defense": 73,
+    "expansion": 62,
+    "vitesse": 68
+   }
+  },
+  {
+   "mapName": "Sahara occidental",
+   "id": "EH",
+   "iso2": "eh",
+   "name": "Sahara occidental",
+   "continent": "Afrique",
+   "color": "#b1d039",
+   "color2": "#8cda81",
+   "capital": {
+    "name": "Laâyoune",
+    "lat": 27.15,
+    "lon": -13.2
+   },
+   "population": 605674,
+   "stats": {
+    "puissance": 18,
+    "economie": 26,
+    "ressources": 40,
+    "stabilite": 44,
+    "mobilite": 48,
+    "defense": 46,
+    "expansion": 39,
+    "vitesse": 60
+   }
+  },
+  {
+   "mapName": "Chypre du Nord",
+   "id": "XC",
+   "iso2": "",
+   "name": "Chypre du Nord",
+   "continent": "Europe",
+   "color": "#c239d0",
+   "color2": "#da81a7",
+   "capital": {
+    "name": "Nicosie-Nord",
+    "lat": 35.19,
+    "lon": 33.36
+   },
+   "population": 407026,
+   "stats": {
+    "puissance": 28,
+    "economie": 38,
+    "ressources": 55,
+    "stabilite": 53,
+    "mobilite": 64,
+    "defense": 46,
+    "expansion": 63,
+    "vitesse": 55
+   },
+   "flagSpec": {
+    "layout": "h3",
+    "colors": [
+     "#e30a17",
+     "#ffffff",
+     "#e30a17"
+    ]
+   }
+  },
+  {
+   "mapName": "Nouvelle-Calédonie",
+   "id": "NC",
+   "iso2": "nc",
+   "name": "Nouvelle-Calédonie",
+   "continent": "Océanie",
+   "color": "#d04539",
+   "color2": "#dac481",
+   "capital": {
+    "name": "Nouméa",
+    "lat": -22.27,
+    "lon": 166.45
+   },
+   "population": 264518,
+   "stats": {
+    "puissance": 34,
+    "economie": 55,
+    "ressources": 52,
+    "stabilite": 61,
+    "mobilite": 59,
+    "defense": 51,
+    "expansion": 40,
+    "vitesse": 60
+   }
+  },
+  {
+   "mapName": "Porto Rico",
+   "id": "PR",
+   "iso2": "pr",
+   "name": "Porto Rico",
+   "continent": "Amérique du Nord",
+   "color": "#80d039",
+   "color2": "#81da92",
+   "capital": {
+    "name": "San Juan",
+    "lat": 18.47,
+    "lon": -66.11
+   },
+   "population": 3114189,
+   "stats": {
+    "puissance": 57,
+    "economie": 70,
+    "ressources": 77,
+    "stabilite": 71,
+    "mobilite": 70,
+    "defense": 61,
+    "expansion": 47,
+    "vitesse": 58
+   }
+  },
+  {
+   "mapName": "Hong Kong",
+   "id": "HK",
+   "iso2": "hk",
+   "name": "Hong Kong",
+   "continent": "Asie",
+   "color": "#d03999",
+   "color2": "#da8381",
+   "capital": {
+    "name": "Hong Kong",
+    "lat": 22.32,
+    "lon": 114.17
+   },
+   "population": 7190040,
+   "stats": {
+    "puissance": 73,
+    "economie": 81,
+    "ressources": 86,
+    "stabilite": 83,
+    "mobilite": 70,
+    "defense": 69,
+    "expansion": 45,
+    "vitesse": 68
+   }
+  },
+  {
+   "mapName": "Somaliland",
+   "id": "XS",
+   "iso2": "",
+   "name": "Somaliland",
+   "continent": "Afrique",
+   "color": "#d039ba",
+   "color2": "#da8191",
+   "capital": {
+    "name": "Hargeisa",
+    "lat": 9.56,
+    "lon": 44.06
+   },
+   "population": 5988648,
+   "stats": {
+    "puissance": 31,
+    "economie": 27,
+    "ressources": 61,
+    "stabilite": 44,
+    "mobilite": 54,
+    "defense": 51,
+    "expansion": 61,
+    "vitesse": 44
+   },
+   "flagSpec": {
+    "layout": "h3",
+    "colors": [
+     "#006d21",
+     "#ffffff",
+     "#d12229"
+    ]
    }
   }
  ]

@@ -31,7 +31,7 @@ const flagSrc = path.join(root, 'node_modules', 'flag-icons', 'flags', '4x3');
 const flagOut = path.join(out, 'assets', 'flags');
 fs.mkdirSync(flagOut, { recursive: true });
 let missing = [];
-for (const c of countries.countries) {
+for (const c of [...countries.countries, ...(countries.promoted || []).filter((x) => x.iso2)]) {
   const code = (c.flag || c.iso2).toLowerCase();
   const f = path.join(flagSrc, code + '.svg');
   if (fs.existsSync(f)) fs.copyFileSync(f, path.join(flagOut, code + '.svg'));

@@ -46,7 +46,7 @@ export class WorldsUI {
           ${builtin ? '' : `<button class="btn ghost sm icon" data-act="export" title="Exporter (.simworld)">${icon('download')}</button><button class="btn ghost sm icon danger" data-act="del" title="Supprimer">${icon('trash-2')}</button>`}
         </div>
       </li>`;
-    let html = item('original', 'Monde original', 'La Terre · 196 pays · frontières de départ', 'earth', true);
+    let html = item('original', 'Monde original', 'La Terre · 204 pays et territoires · frontières de départ', 'earth', true);
     for (const w of list) {
       const m = w.meta || {};
       const date = m.updatedAt ? new Date(m.updatedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';

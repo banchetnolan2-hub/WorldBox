@@ -53,11 +53,31 @@ for (const line of lines) {
     stats,
   });
 }
+// pays et territoires promus (zones neutres de la carte devenues jouables, même index de territoire)
+const promoted = [];
+const plines = fs.existsSync(path.join(__dirname, 'data', 'promoted.txt')) ? fs.readFileSync(path.join(__dirname, 'data', 'promoted.txt'), 'utf8').split(/\r?\n/).filter((l) => l && !l.startsWith('#')) : [];
+for (const line of plines) {
+  const [mapName, id, flag, continent, capName, lat, lon, popM, eco, drawn] = line.split('|');
+  const p = Number(popM), e = Number(eco);
+  const r = (k) => hash(id, k);
+  const lp = Math.log10(p + 0.1);
+  const stats = {
+    puissance: clamp(10 + e * 9 + 14 * lp + r(1) * 6, 8, 95), economie: clamp(10 + e * 13 + 4 * Math.log10(p + 1) + r(2) * 8, 8, 95),
+    ressources: clamp(28 + e * 6 + r(3) * 30, 10, 95), stabilite: clamp(28 + e * 10 + r(4) * 16, 10, 95), mobilite: clamp(34 + e * 7 + r(5) * 16, 10, 95),
+    defense: clamp(30 + e * 6 + 7 * Math.max(0, lp) + r(6) * 10, 10, 95), expansion: clamp(35 + r(7) * 30, 10, 95), vitesse: clamp(40 + e * 4 + r(8) * 16, 10, 95),
+  };
+  const hue = r(9) * 360;
+  const flagSpec = drawn ? { layout: drawn.split(':')[0], colors: drawn.split(':')[1].split(',') } : undefined;
+  promoted.push({ mapName, id, iso2: flag || '', name: mapName, continent, color: hsl(hue, 0.62, 0.52), color2: hsl((hue + 40) % 360, 0.55, 0.68), capital: { name: capName, lat: Number(lat), lon: Number(lon) }, population: Math.round(p * 1e6 * (0.92 + r(10) * 0.16)), stats, ...(flagSpec ? { flagSpec } : {}) });
+}
 const data = {
   _doc: 'Base des 196 pays (193 membres de l\'ONU + Saint-Siège + Palestine + Groenland). Pour ajouter/modifier un pays : id et iso2 (drapeau), atlasId (code ISO 3166 numérique), nom, continent, couleurs de secours, capitale (lat/lon), population de simulation, statistiques 0-100. Statistiques et populations sont des valeurs de jeu.',
   statKeys: ['puissance', 'economie', 'ressources', 'stabilite', 'mobilite', 'defense', 'expansion', 'vitesse'],
   continents: ['Europe', 'Asie', 'Afrique', 'Amérique du Nord', 'Amérique du Sud', 'Océanie'],
   countries: out,
+  // zones de la carte promues en pays jouables (Kosovo, Taïwan, Sahara occidental, Chypre du Nord, Nouvelle-Calédonie,
+  // Porto Rico, Hong Kong, Somaliland) : elles gardent leur index de territoire (sauvegardes compatibles)
+  promoted,
 };
 fs.writeFileSync(path.join(root, 'src', 'data', 'countries.json'), JSON.stringify(data, null, 1));
-console.log(out.length + ' pays écrits');
+console.log(out.length + ' pays + ' + promoted.length + ' territoires promus écrits');

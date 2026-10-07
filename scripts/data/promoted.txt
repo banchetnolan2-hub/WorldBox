@@ -1,0 +1,10 @@
+# Pays et territoires jouables issus de zones de la carte auparavant neutres (même index : sauvegardes compatibles).
+# nom sur la carte|id|drapeau (flag-icons, ou vide = drapeau dessiné)|continent|capitale|lat|lon|population(M)|niveau éco (1-5)|drapeau dessiné (disposition:couleurs)
+Kosovo|XK|xk|Europe|Pristina|42.66|21.17|1.8|2|
+Taïwan|TW|tw|Asie|Taipei|25.03|121.56|23.4|4|
+Sahara occidental|EH|eh|Afrique|Laâyoune|27.15|-13.20|0.6|1|
+Chypre du Nord|XC||Europe|Nicosie-Nord|35.19|33.36|0.38|2|h3:#e30a17,#ffffff,#e30a17
+Nouvelle-Calédonie|NC|nc|Océanie|Nouméa|-22.27|166.45|0.27|3|
+Porto Rico|PR|pr|Amérique du Nord|San Juan|18.47|-66.11|3.2|4|
+Hong Kong|HK|hk|Asie|Hong Kong|22.32|114.17|7.5|5|
+Somaliland|XS||Afrique|Hargeisa|9.56|44.06|5.7|1|h3:#006d21,#ffffff,#d12229

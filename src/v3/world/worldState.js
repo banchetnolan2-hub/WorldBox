@@ -11,7 +11,16 @@ export const NONE = 65535;
 
 export function buildEntities(grid, countriesData) {
   const byId = new Map(countriesData.countries.map((c) => [c.id, c]));
+  // zones neutres promues en pays jouables (même index : les anciennes sauvegardes gardent leur correspondance)
+  const promoted = new Map((countriesData.promoted || []).map((c) => [c.mapName, c]));
   return grid.territories.map((t, k) => {
+    if (t.kind !== 'country' && promoted.has(t.name)) {
+      const c = promoted.get(t.name);
+      return {
+        index: k, id: c.id, kind: 'country', promoted: true, name: c.name, iso2: c.iso2, continent: c.continent, flagSpec: c.flagSpec,
+        color: c.color, color2: c.color2, capital: { ...c.capital }, population: c.population, stats: { ...c.stats }, alive: true,
+      };
+    }
     if (t.kind === 'country') {
       const c = byId.get(t.id);
       return {
@@ -36,7 +45,7 @@ export function createOriginalWorld(grid, countriesData) {
     entities,
     teams: [],
     relations: {},
-    history: [{ year: 1, title: 'Monde original', text: 'Frontières de départ (196 pays).', date: new Date().toISOString() }],
+    history: [{ year: 1, title: 'Monde original', text: 'Frontières de départ (204 pays et territoires).', date: new Date().toISOString() }],
     chronicle: emptyChronicle(),
     dateDays: 0,
     readonly: true,

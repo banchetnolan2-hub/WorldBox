@@ -60,4 +60,16 @@ const ok = (c, label) => { console.log((c ? 'OK   ' : 'ÉCHEC') + ' ' + label); 
   const oldData = { format: 'world-simulator-monde', version: 1, id: 'monde-x', name: 'Ancien', year: 2, cells: eg.n, owner: m.encodeOwner(oldOwner), entities: oldEnts, teams: [], relations: {}, history: [] };
   const mig = await m.deserializeWorld(oldData, { earthGrid: eg }, cd);
   ok(mig.owner.every((v, i) => v === orig.owner[i]), 'ancien monde migré : frontières identiques, Groenland indépendant');
+  // pays et territoires ajoutés : Kosovo, Taïwan, Sahara occidental, Chypre du Nord, Nouvelle-Calédonie, Porto Rico,
+  // Hong Kong, Somaliland — jouables, à l'index de l'ancienne zone neutre (sauvegardes compatibles)
+  const ids = ['XK', 'TW', 'EH', 'XC', 'NC', 'PR', 'HK', 'XS'];
+  const counts = new Map(); for (const v of orig.owner) counts.set(v, (counts.get(v) || 0) + 1);
+  const added = ids.map((id) => orig.entities.find((e) => e.id === id));
+  ok(added.every((e) => e && e.kind === 'country' && e.capital && (counts.get(e.index) || 0) > 0), `pays ajoutés : ${added.map((e) => `${e.name} (${counts.get(e.index)} parcelle(s))`).join(', ')}`);
+  const cdOld = { ...cd, promoted: [] };
+  const before = m.createOriginalWorld(eg, cdOld);
+  ok(added.every((e) => before.entities[e.index].kind === 'neutral' && before.entities[e.index].name === e.name), 'même index que l\'ancienne zone neutre');
+  const oldW = { format: 'world-simulator-monde', version: 1, id: 'monde-y', name: 'Avant', year: 3, cells: eg.n, owner: m.encodeOwner(before.owner), entities: before.entities, teams: [], relations: {}, history: [] };
+  const mig2 = await m.deserializeWorld(oldW, { earthGrid: eg }, cd);
+  ok(mig2.owner.every((v, i) => v === before.owner[i]) && added.every((e) => mig2.entities[e.index].kind === 'country'), 'monde enregistré avant l\'ajout : frontières identiques, territoires désormais jouables');
 })();
