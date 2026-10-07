@@ -39,6 +39,7 @@ import { NetUI, commandHooks } from './ui/netUI.js';
 import { execCommand } from './net/commands.js';
 import { GuideUI } from './ui/guide.js';
 import { RecapUI } from './ui/recap.js';
+import { TuningUI } from './ui/tuningUI.js';
 import { applyTheme, themePickerHtml, UI_SIZES } from './ui/themes.js';
 import { NOTIF_LEVELS, AUTO_PAUSE, defaultAutoPause } from './ui/notify.js';
 
@@ -91,6 +92,8 @@ class App {
     this.netUI = new NetUI(this);
     this.guide = new GuideUI(this);
     this.recap = new RecapUI(this);
+    this.tuningUI = new TuningUI(this);
+    this.notice = notice;
     this.cmdHooks = commandHooks(this);
     this.screen = 'menu';
     this.cellCountsDirty = true;
@@ -397,6 +400,14 @@ class App {
   wantsAutoPause(kind) {
     const ap = { ...defaultAutoPause(), ...(this.settings.autoPause || {}) };
     return ap[kind] !== false;
+  }
+  // réglages avancés de la partie en cours (hôte : modifiables ; invité : lecture seule)
+  openTuning() {
+    const sim = this.session.sim;
+    if (!sim) return;
+    const n = sim.nation;
+    const readonly = !!(n && sim.localSide !== undefined && sim.localSide !== null && sim.localSide !== n.player);
+    this.tuningUI.open({ tuning: sim.tuning, inGame: true, readonly, onDone: (t) => this.act({ op: 'tuning', t }) });
   }
   pauseForOverlay() {
     if (this.session.net && this.session.net.active) return;      // partie partagée : un panneau ne met pas tout le monde en pause
@@ -846,6 +857,7 @@ class App {
         e.preventDefault();
         if (this.guide.isOpen()) { this.guide.close(); return; }
         if (this.recap.isOpen()) { this.recap.close(); return; }
+        if (this.tuningUI.isOpen()) { this.tuningUI.close(); return; }
         if (isShown('settings')) { show('settings', false); this.resumeAfterOverlay(); return; }
         for (const id of ['picker', 'saveWorldDialog', 'newCountry', 'worlds', 'loadGame', 'edStart']) if (isShown(id)) { show(id, false); return; }
         if (isShown('warReport')) { this.warUI.closeReport(); return; }

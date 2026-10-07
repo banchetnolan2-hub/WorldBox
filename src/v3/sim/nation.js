@@ -11,6 +11,7 @@
 //  • des événements mondiaux liés aux statistiques ; la chronologie annuelle du pays ; les scénarios.
 // Tout est déterministe (générateur de la simulation) et sérialisable.
 import { PERSONALITIES, UNIT_COST } from './profile.js';
+import { tn } from './tuning.js';
 import { MONTH_SEC, YEAR_SEC, fmtDate, dateParts } from './calendar.js';
 import { startWar, joinWar, endWar, addRel, relationStatus } from './wars.js';
 import { powerOf, aiLog } from './ai.js';
@@ -242,7 +243,7 @@ export class Nation {
   costOf(k, id) {
     const sd = this.sim.sides[k]; const n = DEV_BY_ID[id];
     const aff = affinity(this.sim, k, n.branch);
-    return { total: n.cost * Math.max(0.5, sd.eco.gdp) / aff, months: Math.max(6, Math.round(n.years * 12 / Math.sqrt(aff))), aff };
+    return { total: n.cost * Math.max(0.5, sd.eco.gdp) / aff * tn(this.sim, 'techCost'), months: Math.max(6, Math.round(n.years * 12 / Math.sqrt(aff) * tn(this.sim, 'techTime'))), aff };
   }
   startProject(k, id) {
     if (!this.canStart(k, id)) return false;
@@ -260,7 +261,7 @@ export class Nation {
     // entretien des technologies coûteuses (porte-avions, défense antimissile, protection sociale…)
     if (sd.techUpkeep && sim.rules.economy !== false) sd.money -= sd.techUpkeep * sd.eco.gdp / 12;
     // les IA choisissent leurs projets selon leur personnalité et leurs moyens
-    if (!this.isHuman(k) && sd.ai && sim.rules.aiAdvanced !== false && sim.rng.next() < 0.35) this._aiPickProject(k);
+    if (!this.isHuman(k) && sd.ai && sim.rules.aiAdvanced !== false && sim.rng.next() < 0.35 * tn(sim, 'aiResearch')) this._aiPickProject(k);
     for (const [branch, a] of Object.entries(sd.dev.active)) {
       const R = sim.rules;
       // financement impossible : projet suspendu (sans dette autorisée, la trésorerie doit suffire)
@@ -385,13 +386,13 @@ export class Nation {
     const f = [];
     const add = (label, v) => { if (Math.abs(v) >= 0.02) f.push({ label, v: Math.round(v * 100) / 100 }); };
     add(`Relations (${Math.round(rel)})`, rel / 90);
-    const trust = -mem.broken * 0.35 - Math.min(0.35, mem.refused * 0.06) + Math.min(0.25, mem.gifts * 0.04);
+    const trust = (-mem.broken * 0.35 - Math.min(0.35, mem.refused * 0.06) + Math.min(0.25, mem.gifts * 0.04)) * tn(sim, 'dipMemory');
     add('Confiance (historique de vos échanges)', trust);
     const spam = sim.time - mem.lastAsk < MONTH_SEC * 4 ? -0.2 * Math.min(3, mem.asked) : 0;
     add('Sollicitations répétées', spam);
     const diplo = (A.devDiplo || 0) * 0.8;
     add('Votre influence diplomatique', diplo);
-    let score = 0.25 + rel / 90 + trust + spam + diplo;
+    let score = 0.25 + rel / 90 + trust + spam + diplo + (tn(sim, 'dipOpenness') - 1) * 0.5;
     let counter = null;
     const R = sim.rules;
     const off = (type === 'alliance' && R.alliances === false) || ((type === 'trade' || type === 'nap') && R.treaties === false) || (type === 'trade' && R.trade === false)
@@ -578,8 +579,8 @@ export class Nation {
     // alliances défensives de la cible ; réprobation des pays proches de la cible
     for (let o = 0; o < S; o++) {
       if (o === k || o === to || sim.sides[o].eliminated) continue;
-      if (sim.rules.alliances !== false && sim.allied[to * S + o] && !sim.allied[k * S + o] && sim.rng.next() < 0.45 * PERSONALITIES[sim.sides[o].ai.personality].ally + 0.2) joinWar(sim, w, o, 'b');
-      if (sim.rel[o * S + to] > 30) addRel(sim, k, o, -8);
+      if (sim.rules.alliances !== false && sim.allied[to * S + o] && !sim.allied[k * S + o] && sim.rng.next() < (0.45 * PERSONALITIES[sim.sides[o].ai.personality].ally + 0.2) * tn(sim, 'allyReliability')) joinWar(sim, w, o, 'b');
+      if (sim.rel[o * S + to] > 30) addRel(sim, k, o, -8 * tn(sim, 'aggressionPenalty'));
     }
     this._refreshTrade();
     this.milestone('war', `Déclaration de guerre à ${B.name}.`);
@@ -610,7 +611,7 @@ export class Nation {
     const rel = sim.rel[k * S + p];
     const near = sim.contact[k * S + p] > 0 || sim.nearCap[k * S + p];
     const P = PERSONALITIES[sd.ai.personality];
-    const r = sim.rng.next();
+    const r = sim.rng.next() / tn(sim, 'aiProposals');
     const d = this.deal(k, p) || {};
     const mem = this.memOf(k);
     const coop = (1 - Math.min(0.8, mem.refused * 0.15)) * (1 + trustOf(sim, k, p) * 0.5);
@@ -624,7 +625,7 @@ export class Nation {
     }
   }
   // délai minimal entre deux propositions de paix reçues par le joueur (tous pays confondus)
-  peaceOfferReady(gap = 40) { return this.sim.time - (this.lastPeaceAt ?? -1e9) >= gap; }
+  peaceOfferReady(gap = 40) { return this.sim.time - (this.lastPeaceAt ?? -1e9) >= gap * tn(this.sim, 'peaceCooldown'); }
   offerAllowed(type) {
     const R = this.sim.rules;
     if (R.negotiations === false && type !== 'peace') return false;

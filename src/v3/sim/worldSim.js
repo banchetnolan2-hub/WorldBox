@@ -13,6 +13,7 @@
 // Pas de temps fixe (TICK) : la vitesse d'affichage ne change pas le résultat pour une seed donnée.
 
 import { RNG } from './rng.js';
+import { tn, normalizeTuning } from './tuning.js';
 import { pickEvent, EVENTS_BY_ID } from './events.js';
 import { distKm, EARTH_R } from '../world/worldGrid.js';
 import { greatCircle, polylineLengthKm } from '../world/navigation.js';
@@ -138,6 +139,8 @@ export class WorldSim {
     if (!this.cfg.warEnd) this.cfg.warEnd = { ...DEFAULT_WAR_END, percent: 1 - (this.cfg.victoryRatio ?? 0.35) };
     // fin des guerres : mode Nation = pas de paix automatique (le joueur décide de la paix)
     this.cfg.warEnd = normalizeWarEnd(this.cfg.warEnd, !!this.cfg.nation);
+    // réglages avancés (multiplicateurs, 1 = comportement de base) : état de la partie, sauvegardé
+    this.tuning = normalizeTuning(restore && restore.tuning ? restore.tuning : this.cfg.tuning);
     // règles de la partie (systèmes actifs) : consultées partout dans la simulation
     // un scénario impose ses règles (même si l'interface ne les a pas transmises, ex. ancienne sauvegarde)
     const scn = this.cfg.nation && this.cfg.nation.scenario ? findScenario(this.cfg.nation.scenario, this.cfg.nation.scenarioSpec) : null;
@@ -662,7 +665,7 @@ export class WorldSim {
     let v = 1;
     if (targetCell >= 0 && this.origin[targetCell] !== sd.e) {
       const frac = sd.heldForeign / Math.max(50, sd.initial);
-      v /= 1 + (1.45 - 0.7 * sd.supplyLvl) * frac * TUNE.supply;
+      v /= 1 + (1.45 - 0.7 * sd.supplyLvl) * frac * TUNE.supply / tn(this, 'supplyRange');
     }
     if (sd.resources < 8) v *= 0.8;
     return v * (0.8 + 0.2 * sd.readiness);
@@ -697,7 +700,7 @@ export class WorldSim {
       v *= 1.1 * (1 + TUNE.desperation * (1 - this.intensity() * 0.8) * Math.max(0, 1 - sd.cells / sd.initial));
     } else v *= 0.85;
     if (this.contest[cell] > this.time && this.regional) v *= 0.8;
-    return v;
+    return v * tn(this, 'defense');
   }
 
   pressure(s) {
@@ -750,11 +753,11 @@ export class WorldSim {
     sd.opsAcc += densA;
     // pertes (abstraites) : proportionnelles aux forces engagées localement
     const la = TUNE.lossK * Math.min(densA, 5) * (1.1 - 0.7 * p) * (dd ? 1 : 0.35);
-    applyLosses(sd, la, true);
+    applyLosses(sd, la * tn(this, 'lethality'), true);
     if (f) f.lossU = (f.lossU || 0) + la;
     if (dd) {
       const ld = TUNE.lossK * Math.min(densD, 5) * (0.35 + 0.9 * p) * (A / (A + D) + 0.3);
-      applyLosses(dd, ld, false);
+      applyLosses(dd, ld * tn(this, 'lethality'), false);
       const fd = dd.front[secKey(s, bin)];
       if (fd) fd.lossU = (fd.lossU || 0) + ld;
     }
@@ -1128,11 +1131,11 @@ export class WorldSim {
     const ports = sd.p.infra.ports || 0;
     if (ports < 4 && sd.navy < 0.5) return 0;
     if (this.rules.logistics === false) return 6;      // capacité de transport non limitée par la flotte
-    return clamp(Math.round(0.6 + sd.navy / 6 + ports / 30) + (sd.techSealift || 0), 1, 9);
+    return clamp(Math.round((0.6 + sd.navy / 6 + ports / 30) * tn(this, 'naval')) + (sd.techSealift || 0), 1, 9);
   }
   _seaOrders(sd) { let n = 0; for (const a of sd.agents) if (a.sea || a.transit >= 0) n++; return n; }
   // portée maximale raisonnable d'un convoi (km) : pas de traversée d'océan sans marine
-  _seaRange(sd) { return (1600 + 950 * Math.sqrt(Math.max(0, sd.navy)) + 25 * (sd.p.infra.ports || 0)) * (1 + (sd.techRange || 0)); }
+  _seaRange(sd) { return (1600 + 950 * Math.sqrt(Math.max(0, sd.navy)) + 25 * (sd.p.infra.ports || 0)) * (1 + (sd.techRange || 0)) * tn(this, 'naval'); }
   // port du pays le plus pertinent sur une masse terrestre (proche du groupe et de la destination)
   _portIn(sd, comp, near, toward, owner = sd.e, lab = null) {
     const g = this.grid;
@@ -1794,7 +1797,7 @@ export class WorldSim {
 
   _integrate() {
     const g = this.grid;
-    const base = this.cfg.integrationDelay;
+    const base = this.cfg.integrationDelay / tn(this, 'occSpeed');
     const ready = [];
     const keep = [];
     if (!this._occStamp) { this._occStamp = new Int32Array(this.n); this._occPass = 0; }
@@ -1876,7 +1879,7 @@ export class WorldSim {
     if (this.nation) this.nation.preMonth(s);
     const R = this.rules;
     if (R.trade === false) { tradeBonus = 0; sd.blockade = 0; }
-    const evs = R.economy === false ? [] : monthTick(sd, { drag: clamp((sd.sanctionLoss || 0) + (sd.crisisLoss || 0), -0.03, 0.15), terrFactor: terr, atWar, tradeBonus, blockade: sd.blockade, opsCost: ops, debt: R.debt !== false, crises: R.crises !== false, research: R.research !== false, mobilization: R.mobilization !== false });
+    const evs = R.economy === false ? [] : monthTick(sd, { growthK: tn(this, 'growth'), taxK: tn(this, 'taxYield'), interestK: tn(this, 'interest'), debtK: tn(this, 'debtCrisis'), recruitK: tn(this, 'recruit'), drag: clamp((sd.sanctionLoss || 0) + (sd.crisisLoss || 0), -0.03, 0.15), terrFactor: terr, atWar, tradeBonus: tradeBonus * tn(this, 'trade'), blockade: sd.blockade * tn(this, 'trade'), opsCost: ops, debt: R.debt !== false, crises: R.crises !== false, research: R.research !== false, mobilization: R.mobilization !== false });
     if (R.economy === false && R.mobilization !== false) refreshCombat(sd);
     for (const ev of evs) {
       if (ev.type === 'crisis') {
@@ -1946,7 +1949,7 @@ export class WorldSim {
     const warm = 0.45 + 0.55 * Math.min(1, this.time / 15);
     const inten = 1 + TUNE.ramp * this.intensity();
     const avgBorder = Math.max(1, this.totalBorder() / Math.max(1, this.sides.length));
-    this.attemptCost = 3.8 / Math.max(3, TUNE.rate * avgBorder * 1.2);
+    this.attemptCost = 3.8 / Math.max(3, TUNE.rate * avgBorder * 1.2) * tn(this, 'attrition');
     const order = this.sides.map((_, k) => k);
     for (let k = order.length - 1; k > 0; k--) { const r = rng.int(k + 1); [order[k], order[r]] = [order[r], order[k]]; }
     const budgetScale = Math.min(1, 1200 / Math.max(1, this.totalBorder() * TUNE.rate * TICK * 2.5));
@@ -1991,7 +1994,7 @@ export class WorldSim {
     if (this.time >= this.nextEventAt) {
       const choice = pickEvent(this, rng);
       if (choice) this.triggerEvent(choice.type.id, choice.side, false);
-      this.nextEventAt = this.time + Math.max(3, rng.exp(this.eventInterval));
+      this.nextEventAt = this.time + Math.max(3, rng.exp(this.eventInterval / Math.max(0.05, tn(this, 'events'))));
     }
     if (this.regional && this.time >= this.regional.until) this.regional = null;
 
@@ -2293,6 +2296,7 @@ export class WorldSim {
       crises: serializeCrises(this),
       borderEdits: this.borderEdits || [],   // [parcelle, propriétaire voulu]
       warEnd: this.cfg.warEnd,               // réglages de fin des guerres (modifiables en partie)
+      tuning: this.tuning,                   // réglages avancés (modifiables en partie)
       nation: this.nation ? this.nation.serialize() : null,
     };
   }

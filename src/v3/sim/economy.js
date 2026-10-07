@@ -107,10 +107,10 @@ export function monthTick(sd, ctx) {
   const tb0 = sd.tb0 ?? (sd.tb0 = ctx.tradeBonus - ctx.blockade);
   const gdp = sd.gdpBase * Math.pow(Math.max(0.05, ctx.terrFactor), 0.85) * (0.7 + 0.3 * stab) / (0.7 + 0.3 * stab0) * warDrag * (1 + ctx.tradeBonus - ctx.blockade) / (1 + tb0) * (1 - Math.min(0.3, sd.infraDamage)) * (1 - (ctx.drag || 0));   // sanctions, crises mondiales
   const m = 1 / 12;
-  const income = gdp * p.taxRate * (0.85 + 0.15 * stab) * m;
+  const income = gdp * p.taxRate * (0.85 + 0.15 * stab) * m * (ctx.taxK ?? 1);
   const upkeepFull = armyUpkeepSide(sd) * m;
   const useDebt = ctx.debt !== false;
-  const interest = useDebt ? sd.debt * interestRate(sd.debt / Math.max(1, gdp)) * m : 0;
+  const interest = useDebt ? sd.debt * interestRate(sd.debt / Math.max(1, gdp)) * m * (ctx.interestK ?? 1) : 0;
   const civil = p.civil * (gdp / Math.max(1, sd.eco.gdp0 || gdp)) ** 0.5 * (1 - sd.austerity) * m;
   const ops = ctx.opsCost || 0;
   // l'armée est payée en priorité après l'administration ; au-delà de la capacité d'emprunt : sous-entretien
@@ -137,7 +137,7 @@ export function monthTick(sd, ctx) {
   const infraGain = inv.infra / (gy * 0.03) * 0.8;
   for (const k of ['roads', 'rail', 'airports']) p.infra[k] = clamp(p.infra[k] + infraGain - sd.infraDamage * 0.4, 1, 100);
   sd.infraDamage = Math.max(0, sd.infraDamage * 0.93 - infraGain * 0.002);
-  const growth = 0.012 + 0.022 * (1 - p.tech / 100) + inv.econ / gy * 1.2 - (ctx.atWar ? 0.015 + 0.03 * sd.exhaustion : 0) - (sd.crisis ? 0.03 : 0) + (sd.devGrowth || 0) + (sd.policyGrowth || 0);
+  const growth = (0.012 + 0.022 * (1 - p.tech / 100)) * (ctx.growthK ?? 1) + inv.econ / gy * 1.2 - (ctx.atWar ? 0.015 + 0.03 * sd.exhaustion : 0) - (sd.crisis ? 0.03 : 0) + (sd.devGrowth || 0) + (sd.policyGrowth || 0);
   sd.gdpBase *= 1 + growth * m;
   // population, réservistes
   sd.pop *= 1 + (p.popGrowth / 100) * m * (ctx.atWar ? 0.6 : 1);
@@ -152,7 +152,7 @@ export function monthTick(sd, ctx) {
   const land = landTotal(sd);
   if (land < targetLand && sd.money > 0 && ctx.mobilization !== false) {
     const heavyCap = 0.5 + sd.p.production / 100 * 2.5 * Math.sqrt(gdp / 500 + 0.2);
-    let d = Math.min(targetLand - land, targetLand * 0.07 * (1 + (sd.devRecruit || 0)), sd.manpower, sd.money / Math.max(1e-6, perLand * 0.5));
+    let d = Math.min(targetLand - land, targetLand * 0.07 * (1 + (sd.devRecruit || 0)) * (ctx.recruitK ?? 1), sd.manpower, sd.money / Math.max(1e-6, perLand * 0.5));
     d = Math.max(0, d);
     const heavy = d * (sd.doctrine.arm + sd.doctrine.art);
     const kHeavy = heavy > heavyCap ? heavyCap / heavy : 1;
@@ -176,7 +176,8 @@ export function monthTick(sd, ctx) {
   const debtRatio = sd.debt / gy;
   const wasCrisis = sd.crisis;
   sd.debtRatio0 = sd.debtRatio0 ?? debtRatio;
-  sd.crisis = ctx.crises !== false && (debtRatio > Math.max(1.45, sd.debtRatio0 + 0.45) || (sd.money <= 0 && balance < -income * 0.4 && debtRatio > 0.9));
+  const dk = ctx.debtK ?? 1;
+  sd.crisis = ctx.crises !== false && (debtRatio > Math.max(1.45 * dk, sd.debtRatio0 + 0.45 * dk) || (sd.money <= 0 && balance < -income * 0.4 && debtRatio > 0.9 * dk));
   if (sd.crisis && !wasCrisis) out.push({ type: 'crisis' });
   if (!sd.crisis && wasCrisis) out.push({ type: 'recovery' });
   if (sd.crisis) sd.stability = Math.max(0.15, sd.stability - 0.015);

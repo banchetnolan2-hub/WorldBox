@@ -28,6 +28,7 @@ const ITEMS = [
   ['crises', 'Crises', 'activity', 'Crises internationales, conférences et sanctions'],
   ['stats', 'Statistiques', 'activity', 'Évolution des grandes puissances'],
   ['rules', 'Règles', 'sliders-horizontal', 'Systèmes actifs dans cette partie'],
+  ['tuning', 'Réglages', 'gauge', 'Réglages avancés de la partie (le jeu se met en pause)'],
   ['guide', 'Guide', 'circle-help', 'Aide et tutoriel (F1)'],
   ['save', 'Sauvegarde', 'save', 'Sauvegarder la partie'],
 ];
@@ -64,6 +65,7 @@ export class GameNav {
     if (k === 'map') { this.closePanel(); nui.closePanel(); app.selectEntity(-1); this.setActive('map'); return; }
     if (k === 'save') { app.saveGame(); return; }
     if (k === 'guide') { app.guide.open(); return; }
+    if (k === 'tuning') { this.closePanel(); app.openTuning(); return; }
     if (k === 'multi') { this.closePanel(); app.nationUI.closePanel(); if (app.netUI.isOpen()) app.netUI.closePanel(); else app.netUI.openPanel(); return; }
     if (k === 'rules') { app.rulesUI.open({ mode: sim.cfg.mode || (sim.nv ? 'nation' : 'sandbox'), rules: sim.rules, readonly: true, title: 'Règles de cette partie' }); return; }
     if (k === 'history') { app.warUI.openHistory(); return; }

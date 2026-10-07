@@ -1638,3 +1638,20 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .theme-opt .sw i { flex: 1; }
 .theme-opt small { color: var(--text-3); font-size: 11px; }
 .toast .t-count { color: var(--text-3); font-weight: 500; }
+
+/* ---- RÉGLAGES AVANCÉS ---- */
+.dialog.tuning { width: min(900px, calc(100vw - 32px)); }
+.tn-head { display: flex; align-items: flex-end; gap: 12px; }
+.tn-head > div { flex: 1; }
+.tn-head h2 { font-family: var(--display); font-size: 25px; }
+.tn-profs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.tn-prof { position: relative; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); }
+.tn-prof small { color: var(--text-3); font-size: 11px; line-height: 1.3; }
+.tn-prof.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: var(--accent-soft); }
+.tn-prof i { position: absolute; top: 6px; right: 6px; opacity: 0.55; }
+.tn-prof i:hover { opacity: 1; color: var(--bad); }
+.tn-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; max-height: 46vh; overflow: auto; padding-right: 4px; }
+.tn-row.mod output { color: var(--accent); font-weight: 600; }
+.tn-row .hint { font-size: 11px; }
+#tnName { width: 160px; }
+@media (max-width: 800px) { .tn-list { grid-template-columns: 1fr; } }

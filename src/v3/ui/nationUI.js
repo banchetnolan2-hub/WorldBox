@@ -24,6 +24,8 @@ import { randomSeedString } from '../sim/rng.js';
 import { drawCustomFlag } from '../globe/flagAtlas.js';
 import { MAP_PALETTE } from '../globe/mapColors.js';
 import { dashboardHtml, advisorHtml } from './dashboard.js';
+import { tuningBadge } from './tuningUI.js';
+import { profileTuning } from '../sim/tuning.js';
 
 export const NATION_SPEEDS = [1, 2, 3, 5, 10];       // vitesse maximale : ×10
 const NONE = 65535;
@@ -235,6 +237,7 @@ export class NationUI {
       <div class="np-actions">
         <button class="btn ghost" id="npIdentity">${icon('pencil')}<span>Personnaliser l'identité</span></button>
         <button class="btn ghost" id="npRules" title="Règles de la partie">${icon('sliders-horizontal')}<span>${rulesBadge(this.rules || {}, sc ? 'story' : 'nation', sc ? sc.rules || {} : {})}</span></button>
+        <button class="btn ghost" id="npTuning" title="Réglages avancés : diplomatie, économie, guerre, IA, paix, occupation, logistique">${icon('gauge')}<span>${tuningBadge(this.tuning || profileTuning('balanced'))}</span></button>
         <button class="btn ghost" id="npWarEnd" title="Fin des guerres : paix automatique et conditions">${icon('scroll-text')}<span>Paix automatique : ${(this.warEnd || NATION_WAR_END).autoPeace ? 'ON' : 'OFF'}</span></button>
         <span class="grow"></span>
         <span class="hint">Début : ${fmtDate(0, this._startDay())}</span>
@@ -246,6 +249,7 @@ export class NationUI {
     $('npStart').onclick = () => this.start();
     const openRules = () => this.app.rulesUI.open({ mode: sc ? 'story' : 'nation', rules: this.rules || {}, locked: sc ? sc.rules || {} : {}, onDone: (r) => { this.rules = r; if (this.difficulty !== 'custom' && JSON.stringify(r) !== JSON.stringify({ ...DIFFICULTY_BY_ID[this.difficulty].rules, ...((sc && sc.rules) || {}) })) this.difficulty = 'custom'; this._sheet(ent); } });
     $('npRules').onclick = openRules;
+    $('npTuning').onclick = () => this.app.tuningUI.open({ tuning: this.tuning || profileTuning('balanced'), onDone: (t) => { this.tuning = t; this._sheet(ent); } });
     $('npWarEnd').onclick = () => this.app.warEndUI.open({ warEnd: this.warEnd || NATION_WAR_END, nation: true, title: 'Fin des guerres (mode Nation)', onDone: (we) => { this.warEnd = we; this._sheet(ent); } });
     $('npSheet').querySelectorAll('[data-diff]').forEach((b) => { b.onclick = () => {
       const id = b.dataset.diff;
@@ -346,7 +350,7 @@ export class NationUI {
         seed: randomSeedString(), maxAgents: 1100, eventRate: (DIFFICULTY_BY_ID[this.difficulty] || DIFFICULTY_BY_ID.normal).eventRate, decisionRate: (DIFFICULTY_BY_ID[this.difficulty] || DIFFICULTY_BY_ID.normal).decisionRate, difficulty: this.difficulty, randomness: 0.5, maxDuration: 1e9, peaceEnd: 1e9, victoryRatio: 0.35, naval: true, speed: 1,
         start: 'world', neutralCapture: false, warStart: 'tensions', aiWars: true, maxWarsPerYear: 2, warEnd: { ...(this.warEnd || NATION_WAR_END) },
         startDay: this._startDay(), nation: { player, scenario: this.scenario ? this.scenario.id : null, scenarioSpec: this.scenarioSpec || null, realWorld: !app.world.terrain },
-        mode: this.scenario ? 'story' : 'nation', rules: { ...(this.rules || {}) }, lockedRules: this.scenario ? { ...(this.scenario.rules || {}) } : {},
+        mode: this.scenario ? 'story' : 'nation', rules: { ...(this.rules || {}) }, tuning: this.tuning || profileTuning('balanced'), lockedRules: this.scenario ? { ...(this.scenario.rules || {}) } : {},
       },
       label: this.scenario ? this.scenario.title : (this.identity && this.identity.e === sel ? this.identity.name : ent.name),
       mode: 'nation',

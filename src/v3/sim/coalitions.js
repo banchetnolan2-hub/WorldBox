@@ -12,6 +12,7 @@
 // }
 // Tout est déterministe (générateur de la simulation) et sérialisé avec la partie.
 import { joinWar, startWar, addRel, noteChange } from './wars.js';
+import { tn } from './tuning.js';
 import { powerOf, aiLog } from './ai.js';
 import { PERSONALITIES } from './profile.js';
 import { MONTH_SEC, YEAR_SEC } from './calendar.js';
@@ -131,7 +132,7 @@ export function evaluateJoin(sim, c, k) {
   add('Personnalité', (P.ally - 1) * 0.35 + (K.ai && K.ai.personality === 'isolationist' ? -0.6 : 0));
   // le joueur : mémoire des engagements tenus ou rompus
   if (isPlayer(sim, c.leader) && sim.nation) { const mm = sim.nation.at(c.leader).memOf(k); add('Confiance envers vous', clamp(0.1 - mm.broken * 0.25 - mm.declined * 0.03 + mm.gifts * 0.04, -0.6, 0.3)); }
-  let score = -0.25; for (const x of f) score += x.v;
+  let score = -0.25 + (tn(sim, 'aiCoalitions') - 1) * 0.4; for (const x of f) score += x.v;
   return { accept: score > 0, score: r2(score), interest: interest || 'alliance', factors: f.sort((a, b) => Math.abs(b.v) - Math.abs(a.v)) };
 }
 

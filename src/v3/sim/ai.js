@@ -4,6 +4,7 @@
 // aériennes) et stratégique (chaque mois : objectifs, budget, diplomatie, mémoire).
 // Chaque pays a une personnalité ; une même situation produit des décisions différentes.
 import { coalitionsOf } from './coalitions.js';
+import { tn } from './tuning.js';
 import { PERSONALITIES } from './profile.js';
 import { MONTH_SEC, YEAR_SEC } from './calendar.js';
 import { secKey } from './fronts.js';
@@ -98,7 +99,7 @@ export function aiOperational(sim, s) {
     else if (threatened) post = 'defend';
     f.posture = post;
     if (post === 'defend' || (post === 'hold' && (P.fort > 1.2 || stance === 'defensive'))) {
-      const add = (post === 'defend' ? 0.035 : 0.012) * (stance === 'defensive' ? Math.max(1.3, P.fort) : P.fort) * (1 + (sd.devFort || 0));
+      const add = (post === 'defend' ? 0.035 : 0.012) * (stance === 'defensive' ? Math.max(1.3, P.fort) : P.fort) * (1 + (sd.devFort || 0)) * tn(sim, 'fortSpeed');
       const cost = sd.eco.gdp * 0.00004 * (post === 'defend' ? 1 : 0.4);
       if (sd.money > cost && f.fort < 1) { f.fort = Math.min(1, f.fort + add); sd.money -= cost; }
     }
@@ -151,7 +152,8 @@ export function aiStrategic(sim, s) {
   for (const sec of sd.sectors || []) { const f = sd.front[sec.key]; if (!f || sec.o < 0) continue; fronts.total++; if (fronts[f.status] !== undefined) fronts[f.status]++; }
   for (const o of enemies) threat += powerOf(sim.sides[o]) / warsOf(o) / my;
   // lassitude de la guerre
-  if (enemies.length) sd.exhaustion = clamp(sd.exhaustion + 0.012 + Math.max(0, -unitsTrend) * 0.25 + Math.max(0, -cellsTrend) * 0.8 + (sd.crisis ? 0.02 : 0), 0, 1);
+  const exK = tn(sim, 'exhaustion');      // réglage avancé ; à 1, calcul identique à l'origine (même ordre des opérations)
+  if (enemies.length) sd.exhaustion = clamp(exK === 1 ? sd.exhaustion + 0.012 + Math.max(0, -unitsTrend) * 0.25 + Math.max(0, -cellsTrend) * 0.8 + (sd.crisis ? 0.02 : 0) : sd.exhaustion + (0.012 + Math.max(0, -unitsTrend) * 0.25 + Math.max(0, -cellsTrend) * 0.8 + (sd.crisis ? 0.02 : 0)) * exK, 0, 1);
   else sd.exhaustion = Math.max(0, sd.exhaustion - 0.04);
   // moral : résultats récents
   sd.morale = clamp(sd.morale + cellsTrend * 0.9 - sd.exhaustion * 0.01 + (sd.crisis ? -0.02 : 0.004) + (0.72 + 0.3 * sd.p.politics.cohesion / 100 - sd.morale) * 0.04, 0.25, 1.25);
@@ -174,7 +176,7 @@ export function aiStrategic(sim, s) {
   for (const o of enemies) {
     const ratio = my / Math.max(1e-6, powerOf(sim.sides[o]) / warsOf(o));
     const failed = mem(ai, 'failedOffensive', (m) => m.target === o);
-    const conq = P.aggr * clamp(ratio, 0.15, 3) * (1 + clamp(cellsTrend * 8, -0.5, 0.8)) * (1 - 0.55 * sd.exhaustion) / (1 + failed * 0.35) * (1 + claimVs(o) * 0.3);
+    const conq = tn(sim, 'aiAggression') * P.aggr * clamp(ratio, 0.15, 3) * (1 + clamp(cellsTrend * 8, -0.5, 0.8)) * (1 - 0.55 * sd.exhaustion) / (1 + failed * 0.35) * (1 + claimVs(o) * 0.3);
     cands.push({ type: 'conquer', target: o, score: conq });
     const losing = fronts.retreating / Math.max(1, fronts.total);
     const capThreat = sd.capital >= 0 && sim.owner[sd.capital] !== sd.e ? 1 : 0;
@@ -367,7 +369,7 @@ function requestHelp(sim, s) {
         if (!sd.ai.lastHelpAsk || sim.time - sd.ai.lastHelpAsk > 60) { sd.ai.lastHelpAsk = sim.time; sim.nation.at(k).offer(s, 'help', {}, `${sd.name}${allied ? ', votre allié,' : ''} est en guerre et demande votre aide militaire.`); }
         return;
       }
-      const chance = (allied ? 0.55 : 0.18) * P.ally * (busy ? 0.3 : 1) * (1 - kd.exhaustion) * (kd.crisis ? 0.3 : 1);
+      const chance = (allied ? 0.55 : 0.18) * P.ally * (busy ? 0.3 : 1) * (1 - kd.exhaustion) * (kd.crisis ? 0.3 : 1) * tn(sim, 'allyReliability');
       if (sim.rng.next() < chance) {
         if (joinWar(sim, w, k, side)) { aiLog(sim, k, `Répond à l'appel de ${sd.name} et entre en guerre.`, 'bad'); aiLog(sim, s, `${kd.name} rejoint la guerre à nos côtés.`, 'good'); }
       } else if (allied) {
@@ -422,7 +424,7 @@ function declare(sim, s, o) {
   // limite globale : pas plus de N nouvelles guerres déclarées par les IA par an (parties longues)
   if (sim.cfg.maxWarsPerYear) {
     sim.aiDeclares = (sim.aiDeclares || []).filter((x) => sim.time - x < YEAR_SEC);
-    if (sim.aiDeclares.length >= sim.cfg.maxWarsPerYear) return;
+    if (sim.aiDeclares.length >= Math.round(sim.cfg.maxWarsPerYear * tn(sim, 'aiWarFreq'))) return;
   }
   // un pacte de non-agression avec le joueur est respecté (sauf personnalité très agressive)
   if (isPlayer(sim, o)) { const d = sim.nation.deal(s, o); if (d && d.nap > sim.time && PERSONALITIES[sim.sides[s].ai.personality].expand < 1.5) return; }

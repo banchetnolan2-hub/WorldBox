@@ -4,6 +4,7 @@
 import { sanction, liftSanction } from '../sim/crises.js';
 import { computeEdit, applyEdit } from '../sim/borderEdit.js';
 import { normalizeWarEnd } from '../sim/warEnd.js';
+import { normalizeTuning } from '../sim/tuning.js';
 
 // méthodes de la Nation qu'un joueur peut déclencher (toujours dans son propre contexte)
 export const NATION_COMMANDS = new Set([
@@ -75,6 +76,13 @@ export function execCommand(sim, cmd, hooks = {}) {
       if (n && !n.isHuman(a)) return null;
       sim.cfg.warEnd = normalizeWarEnd(cmd.we, !!n);
       if (hooks.onWarEnd) hooks.onWarEnd(sim.cfg.warEnd);
+      return true;
+    }
+    case 'tuning': {
+      // réglages avancés modifiés en partie : réservés à l'hôte (joueur principal), appliqués au même pas partout
+      if (n && a !== n.player) return null;
+      sim.tuning = normalizeTuning(cmd.t);
+      if (hooks.onTuning) hooks.onTuning(sim.tuning);
       return true;
     }
     case 'join': {

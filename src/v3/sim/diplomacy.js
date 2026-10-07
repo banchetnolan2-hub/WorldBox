@@ -7,6 +7,7 @@
 //  • Conditions de paix détaillées : territoires conservés ou rendus, réparations, trêve, conséquences ;
 //    réponse : accepter, refuser ou contre-proposer. Les conditions sont appliquées au traité.
 import { coalitionPeaceFactor } from './coalitions.js';
+import { tn } from './tuning.js';
 import { PERSONALITIES } from './profile.js';
 import { addRel } from './wars.js';
 import { YEAR_SEC } from './calendar.js';
@@ -44,7 +45,7 @@ export function canPropose(sim, a, b, type, ctx = null, opts = {}) {
   const bt = dmem(sim, a, b).byType[type];
   if (!bt) return { ok: true };
   const t = sim.time;
-  const base = opts.cooldown ?? 60;                     // ≈ 6 mois entre deux propositions du même type
+  const base = (opts.cooldown ?? 60) * (type === 'peace' ? tn(sim, 'peaceCooldown') : 1);   // ≈ 6 mois entre deux propositions du même type
   if (t - bt.last < base) return { ok: false, reason: 'délai' };
   if (bt.refused > 0) {
     const wait = base * (1 + bt.refused) * (opts.patience ?? 1);
@@ -226,7 +227,7 @@ export function makePeaceTerms(sim, w, s, strategy = 'normal') {
   if (c.adv > 0.08) {
     // en position de force : on garde les territoires, réparations possibles
     t.kind = 'treaty';
-    if (c.adv > 0.25 && enemyLead !== undefined) { t.payer = enemyLead; t.reparations = Math.round(sim.sides[enemyLead].eco.gdp * 0.01 * 10) / 10; }
+    if (c.adv > 0.25 && enemyLead !== undefined) { t.payer = enemyLead; t.reparations = Math.round(sim.sides[enemyLead].eco.gdp * 0.01 * tn(sim, 'reparations') * 10) / 10; }
     if (strategy === 'concede') { t.reparations = 0; t.payer = -1; }
   } else if (c.adv < -0.08) {
     // en difficulté : cessez-le-feu sur les lignes actuelles ; après des refus, concessions
@@ -248,7 +249,7 @@ export function evaluatePeace(sim, w, r, terms) {
   const held = mine === 'a' ? byA : byB, lost = mine === 'a' ? byB : byA;
   const size = Math.max(1, rd.km2 || 1);
   const f = a.factors.slice(0, 5);
-  let score = a.will - 0.35;
+  let score = a.will - 0.35 + (tn(sim, 'peaceAccept') - 1) * 0.4;
   let terr = 0;
   let claimLabel = '';
   if (terms.territory === 'custom') {

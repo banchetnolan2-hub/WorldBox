@@ -281,6 +281,7 @@ export function commandHooks(app) {
       if (app.labels) app.labels.invalidate();
       if (app.refreshParams) app.refreshParams();
     },
+    onTuning: () => { if (app.notice) app.notice('Réglages avancés de la partie modifiés.'); },
     onJoin: () => { if (app.netUI) app.netUI.render(); },
     onLeave: () => { if (app.netUI) app.netUI.render(); },
   };
