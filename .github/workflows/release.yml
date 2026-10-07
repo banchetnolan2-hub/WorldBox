@@ -1,5 +1,6 @@
 # Construit WorldSimulator.exe (portable) et l'installateur sous Windows, puis les publie dans une release GitHub.
-# Déclenchement : manuel (Actions → Release Windows → Run workflow) ou en poussant un tag v*.
+# Déclenchement : manuel (Actions → Release Windows → Run workflow), en poussant un tag v*, ou en poussant
+# sur la branche de développement (tag = v + version du package.json ; la release est mise à jour).
 name: Release Windows
 
 on:
@@ -11,6 +12,7 @@ on:
         default: 'v3.1.0'
   push:
     tags: ['v*']
+    branches: ['claude/kind-galileo-qxpu6r']
 
 permissions:
   contents: write
@@ -25,6 +27,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Tag de la release
+        id: tag
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then t="${{ github.event.inputs.tag }}";
+          elif [ "${{ github.ref_type }}" = "tag" ]; then t="${{ github.ref_name }}";
+          else t="v$(node -p "require('./package.json').version")"; fi
+          echo "tag=$t" >> "$GITHUB_OUTPUT"
       - name: Construire WorldSimulator.exe et l'installateur
         run: npm run build
         env:
@@ -32,8 +42,9 @@ jobs:
       - name: Publier la release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          name: WorldSimulator ${{ github.event.inputs.tag || github.ref_name }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: WorldSimulator ${{ steps.tag.outputs.tag }}
+          make_latest: true
           target_commitish: ${{ github.sha }}
           body: |
             WorldSimulator pour Windows (64 bits).
