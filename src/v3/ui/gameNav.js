@@ -17,7 +17,6 @@ const ITEMS = [
   ['countries', 'Pays', 'flag', 'Tous les pays : population, économie, forces, territoire'],
   ['diplo', 'Diplomatie', 'handshake', 'Alliances, guerres, tensions et accords'],
   ['coal', 'Coalitions', 'shield', 'Coalitions : membres, objectifs, cohésion, offensives coordonnées'],
-  ['borders', 'Frontières', 'pencil', 'Dessiner les frontières de votre pays (crayon)', true],
   ['multi', 'Multijoueur', 'users', 'Jouer à plusieurs : inviter des amis, joueurs, messagerie', true],
   ['eco', 'Économie', 'coins', 'PIB, croissance, dette, commerce'],
   ['tech', 'Technologie', 'cpu', 'Niveaux technologiques et projets'],
@@ -66,7 +65,6 @@ export class GameNav {
     if (k === 'save') { app.saveGame(); return; }
     if (k === 'guide') { app.guide.open(); return; }
     if (k === 'multi') { this.closePanel(); app.nationUI.closePanel(); if (app.netUI.isOpen()) app.netUI.closePanel(); else app.netUI.openPanel(); return; }
-    if (k === 'borders') { this.closePanel(); app.nationUI.closePanel(); app.borderEditor.open(); return; }
     if (k === 'rules') { app.rulesUI.open({ mode: sim.cfg.mode || (sim.nv ? 'nation' : 'sandbox'), rules: sim.rules, readonly: true, title: 'Règles de cette partie' }); return; }
     if (k === 'history') { app.warUI.openHistory(); return; }
     if (nation && ['mine', 'diplo', 'eco', 'tech', 'mil'].includes(k)) {

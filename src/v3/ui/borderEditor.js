@@ -62,7 +62,7 @@ export class BorderEditorUI {
   // ---------------- ouverture / fermeture ----------------
   open() {
     const sim = this.sim;
-    if (!sim || !sim.nv) { notice('Disponible en Nation Simulator.'); return; }
+    if (!sim || sim.nv) { notice('Le crayon de frontières n\'est pas disponible en Mode Nation : utilisez la diplomatie territoriale ou la guerre. Il reste accessible dans le Sandbox (Contrôle total) et l\'éditeur.'); return; }
     if (this.active) return;
     this.active = true;
     this.strokes = []; this.undo = []; this.redo = []; this.cur = null; this.edit = null; this.view = 'after';

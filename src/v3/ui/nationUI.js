@@ -724,7 +724,7 @@ export class NationUI {
   }
   _tId(sim, n, sd) {
     if (!this.identity || this.identity.e !== sd.e) this.identity = this._defaultIdentity(this.ent(sd.e));
-    return `<div class="id-borders"><div><b>Territoire</b><small>Redessinez vous-même les frontières de votre pays sur la carte, au crayon.</small></div><button class="btn accent sm" data-borders>${icon('pencil')}<span>Dessiner les frontières</span></button></div><div id="nmIdBox"></div><p class="hint">Le nom, la couleur et le drapeau sont appliqués immédiatement à la carte, aux rapports et aux sauvegardes de cette partie.</p>`;
+    return `<div id="nmIdBox"></div><p class="hint">Le nom, la couleur et le drapeau sont appliqués immédiatement à la carte, aux rapports et aux sauvegardes de cette partie.</p>`;
   }
   _objLine(o, st, withPct = false) {
     const done = st.done && st.done[o.id];
@@ -779,8 +779,6 @@ export class NationUI {
     const dc = body.querySelector('[data-devcat]');
     if (dc) dc.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { this.devCat = b.dataset.v; this.devBranch = null; this._renderTab(false); }));
     body.querySelectorAll('[data-devbranch]').forEach((b) => b.addEventListener('click', () => { this.devBranch = b.dataset.devbranch; this._renderTab(false); }));
-    const bb = body.querySelector('[data-borders]');
-    if (bb) bb.addEventListener('click', () => this.app.borderEditor.open());
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
     const rcb = body.querySelector('[data-recap]');

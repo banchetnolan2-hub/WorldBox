@@ -62,7 +62,9 @@ export function execCommand(sim, cmd, hooks = {}) {
       return ok;
     }
     case 'border': {
-      if (!human) return null;
+      // crayon de frontières : réservé au Sandbox et à l'éditeur, jamais en Mode Nation (diplomatie ou guerre uniquement).
+      // Les tracés des anciennes sauvegardes restent appliqués au chargement (sim.borderEdits).
+      if (!human || n) return null;
       const e = computeEdit(sim, a, cmd.strokes || []);
       if (!e || !e.transfers.length) return null;
       const rec = applyEdit(sim, a, e, cmd.strokes, true);
