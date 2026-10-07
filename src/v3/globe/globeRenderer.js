@@ -9,6 +9,20 @@ import { buildNoiseTexture, TerritoryTextures } from './globeTextures.js';
 import { mapColors, distinctParticipantColors } from './mapColors.js';
 import * as S from './shaders.js';
 
+// identité visuelle : formes des unités, couleur secondaire empaquetée, couleur d'affichage des autres pays
+const SHAPES = { disk: 0, square: 1, diamond: 2, hex: 3 };
+const packRgb = (hex) => { const v = parseInt(String(hex).slice(1), 16); return Number.isFinite(v) ? v : -1; };
+function othersColor(hex, mode) {
+  const c = hexRgb(hex);
+  if (!mode || mode === 'normal') return c;
+  const g = (c[0] + c[1] + c[2]) / 3;
+  if (mode === 'gris') return [g * 0.55 + 0.25, g * 0.55 + 0.26, g * 0.55 + 0.28];
+  if (mode === 'pastel') return [c[0] * 0.55 + 0.42, c[1] * 0.55 + 0.42, c[2] * 0.55 + 0.42];
+  if (mode === 'sombre') return [c[0] * 0.55, c[1] * 0.55, c[2] * 0.55];
+  return c;
+}
+
+
 const NONE = 65535;
 const MAX_ENT = 512;
 const MAX_MARKERS = 8000;
@@ -753,10 +767,11 @@ export class GlobeRenderer {
     for (const e of ents) if (e && e.colorOverride) e.color = e.colorOverride;   // couleur choisie par le joueur (NATION SIMULATOR)
     this.colors = [];
     for (const e of ents) {
+      if (!e) continue;
       const k = e.index;
       if (k >= MAX_ENT) continue;
       const mode = e.kind === 'neutral' || e.removed ? 0 : (!participants || participants.has(k)) ? 2 : 1;
-      const col = hexRgb(e.color);
+      const col = this.focusEntity >= 0 && k !== this.focusEntity && mode === 2 ? othersColor(e.color, this.othersMode) : hexRgb(e.color);   // couleur d'affichage des autres pays
       this.colors[k] = e.color;
       this.params[k * 4] = col[0]; this.params[k * 4 + 1] = col[1]; this.params[k * 4 + 2] = col[2]; this.params[k * 4 + 3] = mode;
     }
@@ -1026,6 +1041,13 @@ export class GlobeRenderer {
       const ccol = this.colors[sim.sides[tr.side].e] || '#ffffff';
       col.set(ccol).lerp(new THREE.Color(1, 1, 1), tr.kind === 'ship' ? 0.35 : 0.55);
       if (tr.kind === 'fleet' || tr.kind === 'strike') col.set(ccol).lerp(new THREE.Color(0.75, 0.78, 0.82), 0.45);
+      // style des navires choisi par le joueur (identité)
+      const se = this.entities && this.entities[sim.sides[tr.side].e];
+      if (se && se.shipStyle && (tr.kind === 'fleet' || tr.kind === 'ship')) {
+        if (se.shipStyle === 'national') col.set(ccol);
+        else if (se.shipStyle === 'sombre') col.set(ccol).lerp(new THREE.Color(0.08, 0.09, 0.11), 0.6);
+        else if (se.shipStyle === 'clair') col.set(ccol).lerp(new THREE.Color(1, 1, 1), 0.75);
+      }
       if (tr.kind === 'fleet' && nw < MAX_SHIPS) { this.warMesh.setMatrixAt(nw, m4); this.warMesh.setColorAt(nw, col); nw++; }
       else if (tr.kind === 'strike' && nj < MAX_SHIPS) { this.jetMesh.setMatrixAt(nj, m4); this.jetMesh.setColorAt(nj, col); nj++; }
       else if (tr.kind === 'ship' && ns < MAX_SHIPS) { this.shipMesh.setMatrixAt(ns, m4); this.shipMesh.setColorAt(ns, col); ns++; }
@@ -1142,6 +1164,10 @@ export class GlobeRenderer {
       for (const sd of sim.sides) {
         if (sd.eliminated) continue;
         const c = hexRgb(this.colors[sd.e]);
+        // identité visuelle du pays (forme des unités, couleur secondaire)
+        const ident = this.entities && this.entities[sd.e];
+        const shape = ident ? (SHAPES[ident.unitShape] || 0) : 0;
+        const sec = ident && ident.color2Override ? packRgb(ident.color2Override) : -1;
         // un point par groupe militaire : taille selon les forces représentées, halo pulsé au combat
         let avg = 0, na = 0;
         for (const a of sd.agents) { avg += a.str || 1; na++; }
@@ -1157,7 +1183,7 @@ export class GlobeRenderer {
           if (m >= MAX_MARKERS) break;
           const R = this.surfaceR(x, y, z) + 0.0006;
           this.mPos[m * 3] = x * R; this.mPos[m * 3 + 1] = y * R; this.mPos[m * 3 + 2] = z * R;
-          this.mDir[m * 3] = 0; this.mDir[m * 3 + 1] = 0; this.mDir[m * 3 + 2] = 0;
+          this.mDir[m * 3] = shape; this.mDir[m * 3 + 1] = sec; this.mDir[m * 3 + 2] = 0;
           this.mColor[m * 3] = c[0]; this.mColor[m * 3 + 1] = c[1]; this.mColor[m * 3 + 2] = c[2];
           const rel = Math.sqrt((a.str || avg) / avg);
           const hot = Math.max(0, 1 - (sim.time - a.lastWinAt) / 0.8);
@@ -1180,7 +1206,7 @@ export class GlobeRenderer {
       const c = hexRgb(this.colors[mi.owner]);
       this.mColor[m * 3] = c[0]; this.mColor[m * 3 + 1] = c[1]; this.mColor[m * 3 + 2] = c[2];
       this.mData[m * 4] = 13; this.mData[m * 4 + 1] = 2; this.mData[m * 4 + 2] = 1; this.mData[m * 4 + 3] = 0;
-      this.mDir[m * 3] = 0; this.mDir[m * 3 + 1] = 0; this.mDir[m * 3 + 2] = 0;
+      this.mDir[m * 3] = 0; this.mDir[m * 3 + 1] = -1; this.mDir[m * 3 + 2] = 0;
       m++;
     }
     this.markerGeo.instanceCount = m;

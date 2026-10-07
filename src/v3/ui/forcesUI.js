@@ -4,7 +4,10 @@
 import { $, show, esc, notice, fmtInt } from './util.js';
 import { icon } from './icons.js';
 import { COMP_KEYS, COMP_LABELS, currentComposition, normalizeComposition, compositionEffects, GROUP_TASKS, MAX_GROUPS, normalizeGroups, groupName, FLEET_ORDERS } from '../sim/military.js';
-import { relationStatus } from '../sim/wars.js';
+import { relationStatus, REL_LABELS } from '../sim/wars.js';
+import { fmtBn } from '../sim/profile.js';
+import { powerOf } from '../sim/ai.js';
+import { flagImg } from './util.js';
 
 const pctx = (v) => `${v >= 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)} %`;
 
@@ -126,7 +129,49 @@ export class ForcesUI {
     return true;
   }
   hideCard() { show('floatCard', false); this.sel = null; }
-  refresh() { if (this.sel && !$('floatCard').classList.contains('hidden')) this._card(null, null); }
+  // fiche flottante d'un pays (Mode Nation) : relation, chiffres clés, accès à la diplomatie et à la fiche complète
+  countryCard(sx, sy, e) {
+    const sim = this.sim, n = sim && sim.nv;
+    if (!n) return false;
+    const k = sim.sideOf[e];
+    const ent = this.app.entities()[e];
+    if (!ent) return false;
+    const el = $('floatCard');
+    const col = this.app.renderer.colors[e] || ent.color;
+    this.sel = { kind: 'country', e };
+    let body;
+    if (k < 0) {
+      body = `<div class="fc-h">${flagImg(ent, 'flag sm')}<b>${esc(ent.name)}</b></div><p class="hint">Territoire hors de la simulation.</p>`;
+    } else {
+      const sd = sim.sides[k], me = n.player, S = sim.S;
+      const mine = k === me;
+      const st = mine ? null : relationStatus(sim, me, k);
+      const rel = mine ? 0 : sim.rel[me * S + k];
+      const ratio = powerOf(sd) / Math.max(1e-6, powerOf(sim.sides[me]));
+      body = `<div class="fc-h">${flagImg(ent, 'flag sm')}<b>${esc(sd.name)}</b>${mine ? '<small>votre pays</small>' : `<span class="pill rel-${st}">${REL_LABELS[st]}</span>`}</div>
+        ${mine ? '' : `<div class="kv"><span>Relations</span><b class="${rel >= 0 ? 'up' : 'down'}">${rel > 0 ? '+' : ''}${Math.round(rel)}</b></div>`}
+        <div class="kv"><span>PIB</span><b>${fmtBn(sd.eco.gdp)}</b></div>
+        <div class="kv"><span>Population</span><b>${(Math.round(sd.pop / 1e5) / 10).toLocaleString('fr-FR')} M</b></div>
+        ${mine ? '' : `<div class="kv"><span>Puissance / la vôtre</span><b>${(Math.round(ratio * 100) / 100).toLocaleString('fr-FR')} ×</b></div>`}
+        <div class="kv"><span>Stabilité</span><b>${Math.round(sd.stability * 100)} %</b></div>
+        ${sim.isAtWar(k) ? `<div class="kv"><span>En guerre</span><b class="down">${sim.wars.filter((w) => w.status === 'active' && (w.a.includes(k) || w.b.includes(k))).length} conflit(s)</b></div>` : ''}
+        <div class="fc-acts">${mine ? `<button class="btn ghost xs" data-cc="home">${icon('landmark')}Mon pays</button>` : `<button class="btn ghost xs" data-cc="diplo">${icon('handshake')}Diplomatie</button>`}<button class="btn ghost xs" data-cc="sheet">${icon('list')}Fiche complète</button></div>`;
+    }
+    el.innerHTML = `<button class="btn ghost xs icon fc-x" title="Fermer">${icon('x')}</button>${body}`;
+    el.style.setProperty('--c', col);
+    el.style.left = Math.min(window.innerWidth - 300, sx + 16) + 'px';
+    el.style.top = Math.min(window.innerHeight - 260, Math.max(70, sy - 20)) + 'px';
+    show('floatCard');
+    el.querySelector('.fc-x').onclick = () => this.hideCard();
+    el.querySelectorAll('[data-cc]').forEach((b) => { b.onclick = () => {
+      this.hideCard();
+      if (b.dataset.cc === 'home') this.app.nationUI.openPanel('home');
+      else if (b.dataset.cc === 'diplo') this.app.nationUI.openDiplo(k);
+      else this.app.selectEntity(e);
+    }; });
+    return true;
+  }
+  refresh() { if (this.sel && this.sel.kind !== 'country' && !$('floatCard').classList.contains('hidden')) this._card(null, null); }
   _card(sx, sy) {
     const sim = this.sim, s = this.sel;
     if (!s) return;

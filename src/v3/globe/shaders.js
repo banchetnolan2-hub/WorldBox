@@ -495,6 +495,8 @@ out vec3 vColor;
 out vec4 vData;
 out float vPhase;
 out float vKind;
+out float vShape;   // groupes : forme (0 disque, 1 carré, 2 losange, 3 hexagone)
+out vec3 vColor2;   // groupes : couleur secondaire (liseré) ; x < 0 = blanc
 uniform float uPixel;
 uniform float uTime;
 void main() {
@@ -519,6 +521,9 @@ void main() {
     vUv = vec2(c.x * face, c.y + 0.5);
   }
   vColor = aColor;
+  vShape = state > 1.5 ? aDir.x : 0.0;
+  float pk = state > 1.5 ? aDir.y : -1.0;
+  vColor2 = pk < 0.0 ? vec3(-1.0) : vec3(floor(pk / 65536.0), mod(floor(pk / 256.0), 256.0), mod(pk, 256.0)) / 255.0;
   vData = vec4(aData.x, state, aData.z, aData.w);
   vKind = kind;
   vPhase = uTime * (state > 0.5 ? 13.0 : 9.0) + aData.w * 5.7;
@@ -532,6 +537,8 @@ in vec3 vColor;
 in vec4 vData;
 in float vPhase;
 in float vKind;
+in float vShape;
+in vec3 vColor2;
 out vec4 fragColor;
 float capsule(vec2 p, vec2 a, vec2 b, float r) {
   vec2 pa = p - a, ba = b - a;
@@ -547,16 +554,21 @@ void main() {
   if (vData.y > 1.5) {
     vec2 q = vUv;
     if (vKind > 0.5) {
-      // groupe militaire : disque plein aux couleurs du pays, contour sombre, anneau clair, halo au combat
+      // groupe militaire : forme pleine aux couleurs du pays (disque, carré, losange ou hexagone), liseré clair
+      // (ou couleur secondaire), contour sombre renforcé pour rester visible sur tous les fonds, halo au combat
       float r = length(q);
-      float d = r - 0.3;
-      float aa = fwidth(r) * 1.2;
-      float fill = 1.0 - smoothstep(-aa, aa, d);
-      float ring = smoothstep(-0.07 - aa, -0.07 + aa, d);                   // liseré clair
-      float rim = smoothstep(-0.025 - aa, -0.025 + aa, d);                 // contour sombre fin
+      float d;
+      if (vShape > 2.5) { vec2 h = abs(q); d = max(h.x * 0.8660254 + h.y * 0.5, h.y) - 0.29; }          // hexagone
+      else if (vShape > 1.5) d = (abs(q.x) + abs(q.y)) * 0.7071068 - 0.255;                            // losange
+      else if (vShape > 0.5) d = rbox(q, vec2(0.0), vec2(0.27), 0.05);                                  // carré
+      else d = r - 0.3;                                                                                  // disque
+      float aa = fwidth(d) * 1.2 + 1e-4;
+      float fill = 1.0 - smoothstep(-aa, aa, d + 0.012);
+      float ring = smoothstep(-0.085 - aa, -0.085 + aa, d);                // liseré
+      float rim = smoothstep(-0.04 - aa, -0.04 + aa, d);                   // contour sombre (renforcé)
       vec3 c = vColor * (1.0 + 0.18 * (1.0 - smoothstep(0.0, 0.22, length(q - vec2(-0.06, 0.07)))));
-      c = mix(c, vec3(0.97), ring * 0.9);
-      c = mix(c, vec3(0.05, 0.06, 0.08), rim * 0.85);
+      c = mix(c, vColor2.x < 0.0 ? vec3(0.97) : vColor2, ring * 0.9);
+      c = mix(c, vec3(0.03, 0.035, 0.05), rim * 0.95);
       float a = fill;
       if (vKind > 1.5) {
         float ph = fract(vPhase * 0.08);

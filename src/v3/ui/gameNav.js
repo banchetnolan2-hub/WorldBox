@@ -32,6 +32,21 @@ const ITEMS = [
   ['guide', 'Guide', 'circle-help', 'Aide et tutoriel (F1)'],
   ['save', 'Sauvegarde', 'save', 'Sauvegarder la partie'],
 ];
+// Mode Nation : sections de l'interface (cahier des charges §9)
+const NATION_ITEMS = [
+  ['mine', 'Mon pays', 'landmark', 'Tableau de bord, conseiller, chronologie (P)'],
+  ['gov', 'Gouvernement', 'scale', 'Économie, population, infrastructures, technologies'],
+  ['mil', 'Militaire', 'swords', 'Armée, composition, groupes d\'armée, guerres'],
+  ['dip', 'Diplomatie & Territoire', 'handshake', 'Relations, propositions, diplomatie territoriale, nations formables (D)'],
+  ['ident', 'Identité', 'flag', 'Nom, couleurs, drapeau, forme des unités, style des navires'],
+  ['world', 'Carte du monde', 'globe', 'Pays, classement, cartes thématiques, crises, actualités'],
+  ['settings', 'Réglages', 'gauge', 'Réglages avancés de la partie, paramètres (le jeu se met en pause)'],
+  ['sep'],
+  ['multi', 'Multijoueur', 'users', 'Jouer à plusieurs : code de partie, joueurs, messagerie'],
+  ['history', 'Histoire', 'book-open', 'Histoire du monde (H)'],
+  ['guide', 'Guide', 'circle-help', 'Aide et tutoriel (F1)'],
+  ['save', 'Sauvegarde', 'save', 'Sauvegarder la partie'],
+];
 const WTABS = [['countries', 'Pays'], ['rank', 'Classement'], ['cmp', 'Comparer'], ['diplo', 'Diplomatie'], ['coal', 'Coalitions'], ['crises', 'Crises'], ['maps', 'Cartes'], ['eco', 'Économie'], ['tech', 'Technologie'], ['mil', 'Militaire'], ['news', 'Actualités'], ['stats', 'Statistiques']];
 
 export class GameNav {
@@ -53,7 +68,8 @@ export class GameNav {
   get sim() { return this.app.session.sim; }
   render() {
     const nation = !!(this.sim && this.sim.nv);
-    $('navRail').innerHTML = ITEMS.filter((it) => !it[4] || nation).map(([k, l, ic, tip]) => `<button data-nav="${k}" title="${esc(tip)}">${icon(ic)}<span>${l}</span></button>`).join('');
+    const items = nation ? NATION_ITEMS : ITEMS.filter((it) => !it[4]);
+    $('navRail').innerHTML = items.map(([k, l, ic, tip]) => (k === 'sep' ? '<i class="nav-sep"></i>' : `<button data-nav="${k}" title="${esc(tip)}">${icon(ic)}<span>${l}</span></button>`)).join('');
   }
   showRail(on) { if (on) this.render(); show('navRail', on); document.body.classList.toggle('rail-on', on); if (!on) this.closePanel(); }
   setActive(k) { document.querySelectorAll('#navRail [data-nav]').forEach((b) => b.classList.toggle('on', b.dataset.nav === k)); }
@@ -63,6 +79,15 @@ export class GameNav {
     const nui = app.nationUI;
     const nation = nui.active && sim.nv;
     if (k === 'map') { this.closePanel(); nui.closePanel(); app.selectEntity(-1); this.setActive('map'); return; }
+    // sections du Mode Nation
+    if (nation && ['mine', 'gov', 'mil', 'dip', 'ident'].includes(k)) {
+      this.closePanel();
+      nui.openPanel({ mine: 'home', gov: 'eco', mil: 'def', dip: 'diplo', ident: 'id' }[k]);
+      this.setActive(k);
+      return;
+    }
+    if (k === 'world') { nui.closePanel(); this.openPanel('countries'); this.setActive('world'); return; }
+    if (k === 'settings') { this.closePanel(); nui.closePanel(); app.openSettings(); return; }
     if (k === 'save') { app.saveGame(); return; }
     if (k === 'guide') { app.guide.open(); return; }
     if (k === 'tuning') { this.closePanel(); app.openTuning(); return; }

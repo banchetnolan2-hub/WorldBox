@@ -761,6 +761,11 @@ class App {
     $('sAutoPause').innerHTML = AUTO_PAUSE.map(([k, l]) => `<label class="check"><input type="checkbox" data-ap="${k}" ${ap[k] ? 'checked' : ''}><span>${l}</span></label>`).join('');
     $('sAutoPause').onchange = (e) => { const c = e.target.closest('[data-ap]'); if (!c) return; this.settings.autoPause = { ...ap, ...(this.settings.autoPause || {}), [c.dataset.ap]: c.checked }; this.saveSettings(); };
     seg($('sUiScale'), UI_SIZES, Number(s.uiScale) || 1, (v) => { this.settings.uiScale = Number(v); applyTheme(this.settings); this.saveSettings(); });
+    // en partie : accès aux réglages avancés et aux règles de la partie
+    const sim = this.session.sim;
+    $('sGameRow').classList.toggle('hidden', !sim);
+    $('sTuning').onclick = () => { show('settings', false); this.openTuning(); };
+    $('sRules').onclick = () => { if (sim) this.rulesUI.open({ mode: sim.cfg.mode || (sim.nv ? 'nation' : 'sandbox'), rules: sim.rules, readonly: true, title: 'Règles de cette partie' }); };
     show('settings');
     this.pauseForOverlay();            // réglages ouverts en partie : jeu en pause
   }
@@ -823,6 +828,8 @@ class App {
         if (this.session.sim && this.screen === 'game' && this.forcesUI.click(e.clientX, e.clientY)) { audio.sfx('click'); return; }
         const o = this.ownerAt(cell);
         if (this.screen === 'nationPick') { if (o !== NONE) this.nationUI.pick(o, false); audio.sfx('click'); return; }
+        // Mode Nation : fiche flottante du pays (la fiche complète reste accessible depuis la fiche)
+        if (this.nationUI.active && o !== NONE && this.entities()[o] && this.entities()[o].kind !== 'neutral' && this.screen === 'game') { this.renderer.selected = o; this.forcesUI.countryCard(e.clientX, e.clientY, o); audio.sfx('click'); return; }
         if (o !== NONE && this.entities()[o]) this.selectEntity(o);
         else this.selectEntity(-1);
         audio.sfx('click');

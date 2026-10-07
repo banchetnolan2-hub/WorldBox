@@ -1021,7 +1021,7 @@ button.mm-card:hover { border-color: rgba(var(--ac), 0.5); background: rgba(var(
 @keyframes railIn { from { opacity: 0; transform: translate(-8px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
 #navRail button { position: relative; width: 40px; height: 38px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 7px; background: transparent; color: var(--text-2); transition: background 0.15s, color 0.15s; }
 #navRail button .ic { width: 18px; height: 18px; }
-#navRail button span { position: absolute; left: 48px; top: 50%; transform: translate(-4px, -50%); opacity: 0; pointer-events: none; white-space: nowrap; padding: 5px 10px; border-radius: 5px; background: #13222f; border: 1px solid var(--line-2); color: var(--text); font-size: 12.5px; font-weight: 500; transition: opacity 0.15s, transform 0.15s var(--ease); box-shadow: var(--shadow); }
+#navRail button span { position: absolute; left: 48px; top: 50%; transform: translate(-4px, -50%); opacity: 0; pointer-events: none; white-space: nowrap; padding: 5px 10px; border-radius: 5px; background: var(--panel-solid); border: 1px solid var(--line-2); color: var(--text); font-size: 12.5px; font-weight: 500; transition: opacity 0.15s, transform 0.15s var(--ease); box-shadow: var(--shadow); }
 #navRail button:hover span, #navRail button:focus-visible span { opacity: 1; transform: translate(0, -50%); }
 #navRail button:hover { background: rgba(var(--tx), 0.07); color: var(--text); }
 #navRail button.on { background: var(--accent-soft); color: var(--accent); }
@@ -1734,3 +1734,17 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .fm-pick { padding: 3px 8px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text-2); font-size: 12px; }
 .fm-pick.on { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
 @media (max-width: 800px) { .fm-ed { grid-template-columns: 1fr; } }
+.id-presets { flex-wrap: wrap; margin-top: 6px; } .id-presets select { max-width: 220px; } .id-presets input { width: 170px; }
+#navRail .nav-sep { display: block; width: 26px; height: 1px; margin: 4px auto; background: var(--line-2); }
+/* barre supérieure : pastilles colorées */
+.nb-kpis { display: flex; gap: 6px; }
+.nb-pill { display: flex; flex-direction: column; align-items: flex-start; min-width: 92px; padding: 4px 10px 5px; border-radius: 9px; border: 1px solid var(--line); border-top: 3px solid var(--good); background: var(--panel-2); color: var(--text); text-align: left; transition: background 0.15s, transform 0.15s var(--ease); }
+.nb-pill:hover { background: rgba(var(--hl), 0.07); transform: translateY(-1px); }
+.nb-pill.warn { border-top-color: var(--gold); }
+.nb-pill.bad { border-top-color: var(--bad); }
+.nb-pill small { font-size: 10.5px; color: var(--text-3); }
+.nb-pill b { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.nb-pill span { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+.nb-pill.bad span { color: var(--bad-text); }
+@media (max-width: 1350px) { .nb-pill { min-width: 0; padding: 3px 7px; } .nb-pill span { display: none; } }
+@media (max-width: 1050px) { .nb-pill:nth-child(3), .nb-pill:nth-child(4) { display: none; } }

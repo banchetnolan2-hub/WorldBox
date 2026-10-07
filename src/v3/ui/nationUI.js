@@ -3,6 +3,7 @@
 // technologie, défense, diplomatie, arbre de développement, chronologie, identité, objectifs),
 // dialogue diplomatique avec l'analyse de l'IA, propositions des IA, décisions, fin de scénario.
 import { $, show, isShown, esc, notice, fmtInt, flagImg, fillRanges } from './util.js';
+import { Store } from '../save/store.js';
 import { icon } from './icons.js';
 import { participantProfile } from '../sim/worldSim.js';
 import { fmtBn, PERSONALITIES, ECONOMY_TYPES, UNIT_LABELS, realStatsOf, REAL_META } from '../sim/profile.js';
@@ -25,6 +26,7 @@ import { drawCustomFlag } from '../globe/flagAtlas.js';
 import { MAP_PALETTE } from '../globe/mapColors.js';
 import { dashboardHtml, advisorHtml } from './dashboard.js';
 import { tuningBadge } from './tuningUI.js';
+import { dashboard, alerts } from '../sim/insights.js';
 import { TERRITORIAL_TYPES, tradableRegions, evaluateDeal, fairPrice, describeDeal } from '../sim/territorial.js';
 import { regionCells } from '../sim/diplomacy.js';
 import { profileTuning } from '../sim/tuning.js';
@@ -41,6 +43,15 @@ const TABS = [
   ['def', 'Défense', 'shield'], ['diplo', 'Diplomatie', 'handshake'], ['dev', 'Technologies', 'network'], ['time', 'Chronologie', 'history'],
   ['form', 'Nations formables', 'crown'], ['id', 'Identité', 'flag'], ['goals', 'Objectifs', 'target'],
 ];
+// sections du Mode Nation : onglets affichés selon la section ouverte (moins de surcharge)
+export const SECTIONS = {
+  mine: { label: 'Mon pays', tabs: ['home', 'advisor', 'time', 'goals'] },
+  gov: { label: 'Gouvernement', tabs: ['eco', 'pop', 'infra', 'tech', 'dev'] },
+  mil: { label: 'Militaire', tabs: ['def'] },
+  dip: { label: 'Diplomatie & Territoire', tabs: ['diplo', 'form'] },
+  ident: { label: 'Identité', tabs: ['id'] },
+};
+const sectionOf = (tab) => Object.keys(SECTIONS).find((s) => SECTIONS[s].tabs.includes(tab)) || 'mine';
 const SYMBOLS = ['crown', 'shield', 'landmark', 'anchor', 'sprout', 'zap', 'mountain', 'trees', 'waves', 'sparkles', 'globe', 'award'];
 const FLAG_LAYOUTS = [['h3', 'Horizontal ×3'], ['v3', 'Vertical ×3'], ['h2', 'Horizontal ×2'], ['v2', 'Vertical ×2'], ['cross', 'Croix'], ['diag', 'Diagonale'], ['circle', 'Disque'], ['star', 'Étoile'], ['solid', 'Uni']];
 const REGION_DIRS = [['nord', 'Nord'], ['sud', 'Sud'], ['est', 'Est'], ['ouest', 'Ouest']];
@@ -269,7 +280,8 @@ export class NationUI {
   }
   _startDay() { return Math.max(365, this.app.world.dateDays || 0); }
   _defaultIdentity(ent) {
-    return { e: ent.index, name: ent.name, shortName: ent.shortName || ent.name.slice(0, 3).toUpperCase(), capital: (ent.capital && ent.capital.name) || '', color: ent.colorOverride || ent.color, flag: ent.customFlag || null, symbol: ent.symbol || 'landmark', regions: { ...(ent.regionNames || {}) } };
+    return { e: ent.index, name: ent.name, shortName: ent.shortName || ent.name.slice(0, 3).toUpperCase(), capital: (ent.capital && ent.capital.name) || '', color: ent.colorOverride || ent.color, color2: ent.color2Override || '#f5f2ea', flag: ent.customFlag || null, symbol: ent.symbol || 'landmark', regions: { ...(ent.regionNames || {}) },
+      unitShape: ent.unitShape || 'disk', shipStyle: ent.shipStyle || 'classique', others: (this.app.renderer && this.app.renderer.othersMode) || 'normal' };
   }
   // formulaire d'identité (choix du pays ou en partie)
   _identityForm(box, idt, onChange, preview = false) {
@@ -281,6 +293,10 @@ export class NationUI {
           <div class="field"><label><span>Nom court</span></label><input type="text" data-f="shortName" maxlength="12" value="${esc(idt.shortName)}"></div>
           <div class="field"><label><span>Capitale</span></label><input type="text" data-f="capital" maxlength="32" value="${esc(idt.capital)}"></div>
           <div class="field"><label><span>Couleur sur la carte</span></label><div class="swatches">${MAP_PALETTE.slice(0, 16).map((c) => `<button style="--c:${c}" data-c="${c}" class="${c === idt.color ? 'on' : ''}"></button>`).join('')}<input type="color" data-f="color" value="${idt.color}"></div></div>
+          <div class="field"><label><span>Couleur secondaire</span></label><input type="color" data-f="color2" value="${idt.color2 || '#f5f2ea'}"><small class="hint">Liseré des unités sur la carte.</small></div>
+          <div class="field"><label><span>Forme des unités</span></label><div class="seg" data-ishape>${[['disk', 'Disque'], ['square', 'Carré'], ['diamond', 'Losange'], ['hex', 'Hexagone']].map(([v, l]) => `<button data-v="${v}" class="${(idt.unitShape || 'disk') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+          <div class="field"><label><span>Style des navires</span></label><div class="seg" data-iship>${[['classique', 'Classique'], ['national', 'Couleur nationale'], ['sombre', 'Sombre'], ['clair', 'Clair']].map(([v, l]) => `<button data-v="${v}" class="${(idt.shipStyle || 'classique') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+          <div class="field"><label><span>Couleur des autres pays</span></label><div class="seg" data-iothers>${[['normal', 'Normale'], ['pastel', 'Pastel'], ['gris', 'Grisée'], ['sombre', 'Assombrie']].map(([v, l]) => `<button data-v="${v}" class="${(idt.others || 'normal') === v ? 'on' : ''}">${l}</button>`).join('')}</div><small class="hint">Fait ressortir votre pays sur la carte (affichage uniquement).</small></div>
           <div class="field"><label><span>Symbole national</span></label><div class="sym-row">${SYMBOLS.map((s) => `<button data-sym="${s}" class="${s === idt.symbol ? 'on' : ''}">${icon(s)}</button>`).join('')}</div></div>
         </div>
         <div>
@@ -292,7 +308,7 @@ export class NationUI {
           <div class="field"><label><span>Noms des régions</span></label><div class="reg-grid">${REGION_DIRS.map(([k, l]) => `<input type="text" data-reg="${k}" maxlength="24" placeholder="${l}" value="${esc(idt.regions[k] || '')}">`).join('')}</div><small class="hint">Utilisés pour nommer les zones dans les rapports de guerre.</small></div>
         </div>
       </div>
-      <div class="row"><span class="grow"></span><button class="btn primary sm" data-apply>${icon('check')}<span>Appliquer</span></button></div>`;
+      <div class="row id-presets"><span class="hint">Configurations visuelles :</span><select data-ipreset><option value="">— Charger une configuration —</option></select><input type="text" data-ipname maxlength="28" placeholder="Nom de la configuration"><button class="btn ghost sm" data-isave>${icon('save')}<span>Enregistrer</span></button><span class="grow"></span><button class="btn primary sm" data-apply>${icon('check')}<span>Appliquer</span></button></div>`;
     const draw = () => { const cv = box.querySelector('[data-flagcv]'); const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, 72, 48); if (idt.flag) drawCustomFlag(ctx, idt.flag, 0, 0, 72, 48); else { ctx.fillStyle = '#222'; ctx.fillRect(0, 0, 72, 48); ctx.fillStyle = '#888'; ctx.font = '10px Inter'; ctx.fillText('officiel', 18, 28); } };
     box.querySelectorAll('input[type=text]').forEach((inp) => inp.addEventListener('keydown', (e) => e.stopPropagation()));
     box.querySelectorAll('[data-f]').forEach((inp) => inp.addEventListener('input', () => {
@@ -305,6 +321,23 @@ export class NationUI {
     box.querySelectorAll('[data-flaglayout] button').forEach((b) => b.addEventListener('click', () => { fl.layout = b.dataset.v; box.querySelectorAll('[data-flaglayout] button').forEach((x) => x.classList.toggle('on', x === b)); if (idt.flag) idt.flag = { layout: fl.layout, colors: [...fl.colors] }; draw(); }));
     box.querySelectorAll('[data-fc]').forEach((inp) => inp.addEventListener('input', () => { fl.colors[Number(inp.dataset.fc)] = inp.value; if (idt.flag) idt.flag = { layout: fl.layout, colors: [...fl.colors] }; draw(); }));
     box.querySelectorAll('[data-reg]').forEach((inp) => inp.addEventListener('input', () => { idt.regions[inp.dataset.reg] = inp.value.trim(); }));
+    const segPick = (attr, key) => box.querySelectorAll(`[${attr}] button`).forEach((b) => b.addEventListener('click', () => { idt[key] = b.dataset.v; box.querySelectorAll(`[${attr}] button`).forEach((x) => x.classList.toggle('on', x === b)); }));
+    segPick('data-ishape', 'unitShape'); segPick('data-iship', 'shipStyle'); segPick('data-iothers', 'others');
+    // configurations visuelles enregistrées (réutilisables d'une partie à l'autre)
+    const VIS = ['color', 'color2', 'flag', 'symbol', 'unitShape', 'shipStyle', 'others'];
+    const sel = box.querySelector('[data-ipreset]');
+    Store.list('reglages').then(async (list) => {
+      for (const x of list) if (x.id.startsWith('identite-')) { const d = await Store.read('reglages', x.id); if (d && d.v) { const o = document.createElement('option'); o.value = x.id; o.textContent = d.name || x.id.slice(9); o._v = d.v; sel.appendChild(o); } }
+    }).catch(() => {});
+    sel.onchange = () => { const o = sel.selectedOptions[0]; if (!o || !o._v) return; for (const k of VIS) if (o._v[k] !== undefined) idt[k] = JSON.parse(JSON.stringify(o._v[k])); this._identityForm(box, idt, onChange, preview); notice(`Configuration « ${o.textContent} » chargée : cliquez sur Appliquer.`); };
+    const nm = box.querySelector('[data-ipname]'); nm.addEventListener('keydown', (e) => e.stopPropagation());
+    box.querySelector('[data-isave]').onclick = async () => {
+      const name = nm.value.trim(); if (!name) { notice('Donnez un nom à la configuration.'); nm.focus(); return; }
+      const v = {}; for (const k of VIS) v[k] = idt[k] === undefined ? null : JSON.parse(JSON.stringify(idt[k]));
+      await Store.write('reglages', 'identite-' + name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 30), { name, v, meta: { name, updatedAt: new Date().toISOString() } });
+      notice(`Configuration « ${name} » enregistrée : réutilisable dans vos autres parties.`);
+      this._identityForm(box, idt, onChange, preview);
+    };
     box.querySelector('[data-apply]').onclick = () => { idt.name = idt.name.trim() || this.ent(idt.e).name; onChange(); };
     draw();
     void preview;
@@ -313,7 +346,11 @@ export class NationUI {
   _applyIdentity(idt) {
     const ent = this.ent(idt.e);
     if (!ent) return;
-    if (!this.backup || this.backup.e !== idt.e) this.backup = { e: idt.e, name: ent.name, shortName: ent.shortName, capital: ent.capital ? ent.capital.name : null, colorOverride: ent.colorOverride, customFlag: ent.customFlag, symbol: ent.symbol, regionNames: ent.regionNames };
+    if (!this.backup || this.backup.e !== idt.e) this.backup = { e: idt.e, name: ent.name, shortName: ent.shortName, capital: ent.capital ? ent.capital.name : null, colorOverride: ent.colorOverride, customFlag: ent.customFlag, symbol: ent.symbol, regionNames: ent.regionNames, color2Override: ent.color2Override, unitShape: ent.unitShape, shipStyle: ent.shipStyle };
+    ent.color2Override = idt.color2 && idt.color2 !== '#f5f2ea' ? idt.color2 : undefined;
+    ent.unitShape = idt.unitShape && idt.unitShape !== 'disk' ? idt.unitShape : undefined;
+    ent.shipStyle = idt.shipStyle && idt.shipStyle !== 'classique' ? idt.shipStyle : undefined;
+    if (this.app.renderer) { this.app.renderer.othersMode = idt.others || 'normal'; this.app.renderer.focusEntity = idt.others && idt.others !== 'normal' ? idt.e : -1; }
     ent.name = idt.name || ent.name;
     ent.shortName = idt.shortName;
     if (ent.capital && idt.capital) ent.capital = { ...ent.capital, name: idt.capital };
@@ -332,7 +369,9 @@ export class NationUI {
     if (ent) {
       ent.name = b.name; ent.shortName = b.shortName; if (ent.capital && b.capital) ent.capital = { ...ent.capital, name: b.capital };
       ent.colorOverride = b.colorOverride; ent.customFlag = b.customFlag; ent.symbol = b.symbol; ent.regionNames = b.regionNames;
+      ent.color2Override = b.color2Override; ent.unitShape = b.unitShape; ent.shipStyle = b.shipStyle;
     }
+    if (this.app.renderer) { this.app.renderer.othersMode = 'normal'; this.app.renderer.focusEntity = -1; }
     this.backup = null;
   }
 
@@ -457,13 +496,20 @@ export class NationUI {
     $('nbYear').textContent = dp.y;
     $('nbDate').textContent = fmtDate(sim.time, sim.cfg.startDay);
     const growth = sd.growthRate || 0;
+    // pastilles colorées (bon / à surveiller / critique) ; un clic ouvre le panneau concerné
+    const d = dashboard(sim, n.player, n), al = alerts(sim, n.player, n);
+    const crit = al.filter((a) => a.level >= 3).length, warn = al.filter((a) => a.level === 2).length;
+    const wars = d.wars.list.length;
     $('nbKpis').innerHTML = [
-      ['PIB', fmtBn(sd.eco.gdp), `${growth >= 0 ? '+' : ''}${num(growth * 100)} %`, growth >= 0 ? 'up' : 'down'],
-      ['Trésorerie', fmtBn(sd.money), `dette ${Math.round(sd.debt / Math.max(0.1, sd.eco.gdp) * 100)} %`, sd.debt / Math.max(0.1, sd.eco.gdp) > 1 ? 'down' : ''],
-      ['Population', `${num(sd.pop / 1e6)} M`, `${num(sd.p.popGrowth, 2)} %/an`, ''],
-      ['Stabilité', `${Math.round(sd.stability * 100)} %`, sd.unemp !== undefined ? `chômage ${num(sd.unemp)} %` : '', sd.stability < 0.45 ? 'down' : ''],
-      ['Personnel', fmtInt(landTotal(sd) * 1000), `${sd.agents.length} groupes`, ''],
-    ].map(([l, v, s, c]) => `<div><small>${l}</small><b>${v}</b><span class="${c}">${s}</span></div>`).join('');
+      ['eco', 'PIB', fmtBn(sd.eco.gdp), d.economy.growthKnown ? `${growth >= 0 ? '+' : ''}${num(growth * 100)} %` : 'croissance…', d.economy.tone],
+      ['eco', 'Budget', fmtBn(sd.money), `dette ${Math.round(d.budget.debtRatio * 100)} %`, d.budget.tone],
+      ['pop', 'Population', `${num(sd.pop / 1e6)} M`, `${num(sd.p.popGrowth, 2)} %/an`, d.population.tone],
+      ['pop', 'Stabilité', `${Math.round(sd.stability * 100)} %`, sd.unemp !== undefined ? `chômage ${num(sd.unemp)} %` : '', d.stability.tone],
+      ['def', 'Armée', fmtInt(landTotal(sd) * 1000), `préparation ${Math.round(sd.readiness * 100)} %`, d.military.tone],
+      ['wars', 'Guerres', wars ? String(wars) : 'Paix', wars ? d.wars.list.map((w) => (w.trend === 'win' ? 'avantage' : w.trend === 'lose' ? 'recul' : 'équilibre')).slice(0, 2).join(', ') : 'aucun conflit', d.wars.tone],
+      ['home', 'Alertes', String(crit + warn), crit ? `${crit} critique(s)` : warn ? 'à surveiller' : 'aucune', crit ? 'bad' : warn ? 'warn' : 'good'],
+    ].map(([open, l, v, s, tone]) => `<button class="nb-pill ${tone}" data-pill="${open}"><small>${l}</small><b>${v}</b><span>${s}</span></button>`).join('');
+    $('nbKpis').onclick = (e) => { const b = e.target.closest('[data-pill]'); if (!b) return; if (b.dataset.pill === 'wars') { this.app.warUI.openWars(); return; } this.openPanel(b.dataset.pill); };
     const no = n.offers.length;
     $('nbOffers').classList.toggle('hidden', sim.rules.negotiations === false && !no);
     $('nbDecision').classList.toggle('hidden', sim.rules.decisions === false);
@@ -491,11 +537,14 @@ export class NationUI {
     this.tab = tab;
     const n = this.sim.nv;
     const R = this.sim.rules;
-    const tabs = TABS.filter(([k]) => (k !== 'goals' || n.scenario) && (k !== 'dev' || R.techTree !== false));
+    let tabs = TABS.filter(([k]) => (k !== 'goals' || n.scenario) && (k !== 'dev' || R.techTree !== false));
     if (!tabs.some(([k]) => k === tab)) tab = this.tab = 'home';
+    const sec = sectionOf(tab);
+    tabs = tabs.filter(([k]) => SECTIONS[sec].tabs.includes(k));
+    if (this.app.gameNav) this.app.gameNav.setActive(sec);
     $('nmTabs').innerHTML = tabs.map(([k, l, ic]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${icon(ic)}<span>${l}</span></button>`).join('');
     const sd = this.sim.sides[n.player], ent = this.ent(sd.e);
-    $('nmTitle').innerHTML = `${flagImg(ent, 'flag md')}<div><small class="eyebrow">Gestion du pays</small><b>${esc(ent.name)}</b></div>`;
+    $('nmTitle').innerHTML = `${flagImg(ent, 'flag md')}<div><small class="eyebrow">${esc(SECTIONS[sec].label)}</small><b>${esc(ent.name)}</b></div>`;
     $('nationPanel').classList.toggle('wide', tab === 'dev');          // l'arbre technologique a besoin de place
     show('nationPanel');
     this._renderTab(false);
