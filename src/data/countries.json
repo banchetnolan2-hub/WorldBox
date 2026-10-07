@@ -1,0 +1,4923 @@
+{
+ "_doc": "Base des 196 pays (193 membres de l'ONU + Saint-Siège + Palestine). Pour ajouter/modifier un pays : id et iso2 (drapeau), atlasId (code ISO 3166 numérique), nom, continent, couleurs de secours, capitale (lat/lon), population de simulation, statistiques 0-100. Statistiques et populations sont des valeurs de jeu.",
+ "statKeys": [
+  "puissance",
+  "economie",
+  "ressources",
+  "stabilite",
+  "mobilite",
+  "defense",
+  "expansion",
+  "vitesse"
+ ],
+ "continents": [
+  "Europe",
+  "Asie",
+  "Afrique",
+  "Amérique du Nord",
+  "Amérique du Sud",
+  "Océanie"
+ ],
+ "countries": [
+  {
+   "id": "DZ",
+   "atlasId": "012",
+   "iso2": "DZ",
+   "name": "Algérie",
+   "continent": "Afrique",
+   "color": "#00843d",
+   "color2": "#4cbf7f",
+   "capital": {
+    "name": "Alger",
+    "lat": 36.75,
+    "lon": 3.06
+   },
+   "population": 44085600,
+   "stats": {
+    "puissance": 62,
+    "economie": 60,
+    "ressources": 62,
+    "stabilite": 54,
+    "mobilite": 56,
+    "defense": 64,
+    "expansion": 56,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "AO",
+   "atlasId": "024",
+   "iso2": "AO",
+   "name": "Angola",
+   "continent": "Afrique",
+   "color": "#5cd039",
+   "color2": "#81daa8",
+   "capital": {
+    "name": "Luanda",
+    "lat": -8.84,
+    "lon": 13.23
+   },
+   "population": 33648160,
+   "stats": {
+    "puissance": 52,
+    "economie": 44,
+    "ressources": 60,
+    "stabilite": 53,
+    "mobilite": 53,
+    "defense": 56,
+    "expansion": 65,
+    "vitesse": 55
+   }
+  },
+  {
+   "id": "BJ",
+   "atlasId": "204",
+   "iso2": "BJ",
+   "name": "Bénin",
+   "continent": "Afrique",
+   "color": "#d0cc39",
+   "color2": "#a1da81",
+   "capital": {
+    "name": "Porto-Novo",
+    "lat": 6.5,
+    "lon": 2.6
+   },
+   "population": 12877696,
+   "stats": {
+    "puissance": 40,
+    "economie": 29,
+    "ressources": 38,
+    "stabilite": 48,
+    "mobilite": 55,
+    "defense": 46,
+    "expansion": 45,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "BW",
+   "atlasId": "072",
+   "iso2": "BW",
+   "name": "Botswana",
+   "continent": "Afrique",
+   "color": "#d039a4",
+   "color2": "#da8184",
+   "capital": {
+    "name": "Gaborone",
+    "lat": -24.65,
+    "lon": 25.91
+   },
+   "population": 2721222,
+   "stats": {
+    "puissance": 47,
+    "economie": 56,
+    "ressources": 63,
+    "stabilite": 59,
+    "mobilite": 70,
+    "defense": 55,
+    "expansion": 45,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "BF",
+   "atlasId": "854",
+   "iso2": "BF",
+   "name": "Burkina Faso",
+   "continent": "Afrique",
+   "color": "#cf39d0",
+   "color2": "#da819f",
+   "capital": {
+    "name": "Ouagadougou",
+    "lat": 12.37,
+    "lon": -1.52
+   },
+   "population": 21121408,
+   "stats": {
+    "puissance": 41,
+    "economie": 28,
+    "ressources": 36,
+    "stabilite": 46,
+    "mobilite": 50,
+    "defense": 51,
+    "expansion": 40,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "BI",
+   "atlasId": "108",
+   "iso2": "BI",
+   "name": "Burundi",
+   "continent": "Afrique",
+   "color": "#39a3d0",
+   "color2": "#8184da",
+   "capital": {
+    "name": "Gitega",
+    "lat": -3.43,
+    "lon": 29.93
+   },
+   "population": 12675728,
+   "stats": {
+    "puissance": 36,
+    "economie": 35,
+    "ressources": 60,
+    "stabilite": 53,
+    "mobilite": 49,
+    "defense": 45,
+    "expansion": 61,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "CV",
+   "atlasId": "132",
+   "iso2": "CV",
+   "name": "Cap-Vert",
+   "continent": "Afrique",
+   "color": "#39d053",
+   "color2": "#81dacc",
+   "capital": {
+    "name": "Praia",
+    "lat": 14.93,
+    "lon": -23.51
+   },
+   "population": 619565,
+   "stats": {
+    "puissance": 27,
+    "economie": 37,
+    "ressources": 51,
+    "stabilite": 51,
+    "mobilite": 61,
+    "defense": 47,
+    "expansion": 60,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "CM",
+   "atlasId": "120",
+   "iso2": "CM",
+   "name": "Cameroun",
+   "continent": "Afrique",
+   "color": "#d09b39",
+   "color2": "#beda81",
+   "capital": {
+    "name": "Yaoundé",
+    "lat": 3.87,
+    "lon": 11.52
+   },
+   "population": 26983936,
+   "stats": {
+    "puissance": 52,
+    "economie": 47,
+    "ressources": 55,
+    "stabilite": 63,
+    "mobilite": 56,
+    "defense": 53,
+    "expansion": 37,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "CF",
+   "atlasId": "140",
+   "iso2": "CF",
+   "name": "Centrafrique",
+   "continent": "Afrique",
+   "color": "#3962d0",
+   "color2": "#a481da",
+   "capital": {
+    "name": "Bangui",
+    "lat": 4.39,
+    "lon": 18.56
+   },
+   "population": 5240312,
+   "stats": {
+    "puissance": 31,
+    "economie": 27,
+    "ressources": 34,
+    "stabilite": 47,
+    "mobilite": 49,
+    "defense": 43,
+    "expansion": 51,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "TD",
+   "atlasId": "148",
+   "iso2": "TD",
+   "name": "Tchad",
+   "continent": "Afrique",
+   "color": "#d09d39",
+   "color2": "#bdda81",
+   "capital": {
+    "name": "N'Djaména",
+    "lat": 12.13,
+    "lon": 15.06
+   },
+   "population": 17106048,
+   "stats": {
+    "puissance": 39,
+    "economie": 34,
+    "ressources": 41,
+    "stabilite": 48,
+    "mobilite": 46,
+    "defense": 47,
+    "expansion": 41,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "KM",
+   "atlasId": "174",
+   "iso2": "KM",
+   "name": "Comores",
+   "continent": "Afrique",
+   "color": "#3939d0",
+   "color2": "#bd81da",
+   "capital": {
+    "name": "Moroni",
+    "lat": -11.7,
+    "lon": 43.26
+   },
+   "population": 920318,
+   "stats": {
+    "puissance": 20,
+    "economie": 26,
+    "ressources": 49,
+    "stabilite": 45,
+    "mobilite": 42,
+    "defense": 37,
+    "expansion": 54,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "CG",
+   "atlasId": "178",
+   "iso2": "CG",
+   "name": "Congo",
+   "continent": "Afrique",
+   "color": "#d09b39",
+   "color2": "#beda81",
+   "capital": {
+    "name": "Brazzaville",
+    "lat": -4.27,
+    "lon": 15.28
+   },
+   "population": 6413760,
+   "stats": {
+    "puissance": 44,
+    "economie": 43,
+    "ressources": 42,
+    "stabilite": 51,
+    "mobilite": 58,
+    "defense": 54,
+    "expansion": 36,
+    "vitesse": 53
+   }
+  },
+  {
+   "id": "CD",
+   "atlasId": "180",
+   "iso2": "CD",
+   "name": "RD Congo",
+   "continent": "Afrique",
+   "color": "#007fff",
+   "color2": "#f7d618",
+   "capital": {
+    "name": "Kinshasa",
+    "lat": -4.44,
+    "lon": 15.27
+   },
+   "population": 101611200,
+   "stats": {
+    "puissance": 52,
+    "economie": 37,
+    "ressources": 62,
+    "stabilite": 40,
+    "mobilite": 50,
+    "defense": 52,
+    "expansion": 52,
+    "vitesse": 50
+   }
+  },
+  {
+   "id": "CI",
+   "atlasId": "384",
+   "iso2": "CI",
+   "name": "Côte d'Ivoire",
+   "continent": "Afrique",
+   "color": "#b6d039",
+   "color2": "#8fda81",
+   "capital": {
+    "name": "Yamoussoukro",
+    "lat": 6.83,
+    "lon": -5.29
+   },
+   "population": 28641536,
+   "stats": {
+    "puissance": 53,
+    "economie": 49,
+    "ressources": 69,
+    "stabilite": 56,
+    "mobilite": 63,
+    "defense": 61,
+    "expansion": 38,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "DJ",
+   "atlasId": "262",
+   "iso2": "DJ",
+   "name": "Djibouti",
+   "continent": "Afrique",
+   "color": "#d04439",
+   "color2": "#dac381",
+   "capital": {
+    "name": "Djibouti",
+    "lat": 11.59,
+    "lon": 43.15
+   },
+   "population": 1105579,
+   "stats": {
+    "puissance": 31,
+    "economie": 42,
+    "ressources": 67,
+    "stabilite": 50,
+    "mobilite": 50,
+    "defense": 52,
+    "expansion": 62,
+    "vitesse": 61
+   }
+  },
+  {
+   "id": "EG",
+   "atlasId": "818",
+   "iso2": "EG",
+   "name": "Égypte",
+   "continent": "Afrique",
+   "color": "#c09300",
+   "color2": "#e6c34d",
+   "capital": {
+    "name": "Le Caire",
+    "lat": 30.04,
+    "lon": 31.24
+   },
+   "population": 105251520,
+   "stats": {
+    "puissance": 66,
+    "economie": 59,
+    "ressources": 60,
+    "stabilite": 56,
+    "mobilite": 56,
+    "defense": 66,
+    "expansion": 56,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "GQ",
+   "atlasId": "226",
+   "iso2": "GQ",
+   "name": "Guinée équatoriale",
+   "continent": "Afrique",
+   "color": "#4bd039",
+   "color2": "#81dab2",
+   "capital": {
+    "name": "Malabo",
+    "lat": 3.75,
+    "lon": 8.78
+   },
+   "population": 1760003,
+   "stats": {
+    "puissance": 37,
+    "economie": 40,
+    "ressources": 52,
+    "stabilite": 57,
+    "mobilite": 52,
+    "defense": 47,
+    "expansion": 56,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "ER",
+   "atlasId": "232",
+   "iso2": "ER",
+   "name": "Érythrée",
+   "continent": "Afrique",
+   "color": "#3dd039",
+   "color2": "#81daba",
+   "capital": {
+    "name": "Asmara",
+    "lat": 15.32,
+    "lon": 38.93
+   },
+   "population": 3659803,
+   "stats": {
+    "puissance": 33,
+    "economie": 27,
+    "ressources": 52,
+    "stabilite": 43,
+    "mobilite": 42,
+    "defense": 42,
+    "expansion": 43,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "SZ",
+   "atlasId": "748",
+   "iso2": "SZ",
+   "name": "Eswatini",
+   "continent": "Afrique",
+   "color": "#d0395b",
+   "color2": "#daa881",
+   "capital": {
+    "name": "Mbabane",
+    "lat": -26.31,
+    "lon": 31.14
+   },
+   "population": 1220122,
+   "stats": {
+    "puissance": 32,
+    "economie": 43,
+    "ressources": 49,
+    "stabilite": 60,
+    "mobilite": 60,
+    "defense": 44,
+    "expansion": 55,
+    "vitesse": 64
+   }
+  },
+  {
+   "id": "ET",
+   "atlasId": "231",
+   "iso2": "ET",
+   "name": "Éthiopie",
+   "continent": "Afrique",
+   "color": "#078930",
+   "color2": "#fcdd09",
+   "capital": {
+    "name": "Addis-Abeba",
+    "lat": 9.03,
+    "lon": 38.75
+   },
+   "population": 123054000,
+   "stats": {
+    "puissance": 56,
+    "economie": 38,
+    "ressources": 52,
+    "stabilite": 50,
+    "mobilite": 54,
+    "defense": 60,
+    "expansion": 54,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "GA",
+   "atlasId": "266",
+   "iso2": "GA",
+   "name": "Gabon",
+   "continent": "Afrique",
+   "color": "#d0cf39",
+   "color2": "#9fda81",
+   "capital": {
+    "name": "Libreville",
+    "lat": 0.39,
+    "lon": 9.45
+   },
+   "population": 2554714,
+   "stats": {
+    "puissance": 45,
+    "economie": 53,
+    "ressources": 55,
+    "stabilite": 73,
+    "mobilite": 62,
+    "defense": 53,
+    "expansion": 55,
+    "vitesse": 67
+   }
+  },
+  {
+   "id": "GM",
+   "atlasId": "270",
+   "iso2": "GM",
+   "name": "Gambie",
+   "continent": "Afrique",
+   "color": "#d06239",
+   "color2": "#dad481",
+   "capital": {
+    "name": "Banjul",
+    "lat": 13.45,
+    "lon": -16.58
+   },
+   "population": 2519986,
+   "stats": {
+    "puissance": 28,
+    "economie": 26,
+    "ressources": 36,
+    "stabilite": 51,
+    "mobilite": 52,
+    "defense": 46,
+    "expansion": 50,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "GH",
+   "atlasId": "288",
+   "iso2": "GH",
+   "name": "Ghana",
+   "continent": "Afrique",
+   "color": "#d0ac39",
+   "color2": "#b4da81",
+   "capital": {
+    "name": "Accra",
+    "lat": 5.6,
+    "lon": -0.19
+   },
+   "population": 35495328,
+   "stats": {
+    "puissance": 51,
+    "economie": 45,
+    "ressources": 45,
+    "stabilite": 63,
+    "mobilite": 50,
+    "defense": 56,
+    "expansion": 48,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "GN",
+   "atlasId": "324",
+   "iso2": "GN",
+   "name": "Guinée",
+   "continent": "Afrique",
+   "color": "#6039d0",
+   "color2": "#d481da",
+   "capital": {
+    "name": "Conakry",
+    "lat": 9.64,
+    "lon": -13.58
+   },
+   "population": 13323520,
+   "stats": {
+    "puissance": 38,
+    "economie": 34,
+    "ressources": 52,
+    "stabilite": 50,
+    "mobilite": 48,
+    "defense": 50,
+    "expansion": 55,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "GW",
+   "atlasId": "624",
+   "iso2": "GW",
+   "name": "Guinée-Bissau",
+   "continent": "Afrique",
+   "color": "#3f39d0",
+   "color2": "#c081da",
+   "capital": {
+    "name": "Bissau",
+    "lat": 11.86,
+    "lon": -15.6
+   },
+   "population": 2101445,
+   "stats": {
+    "puissance": 24,
+    "economie": 28,
+    "ressources": 47,
+    "stabilite": 49,
+    "mobilite": 44,
+    "defense": 44,
+    "expansion": 52,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "KE",
+   "atlasId": "404",
+   "iso2": "KE",
+   "name": "Kenya",
+   "continent": "Afrique",
+   "color": "#006600",
+   "color2": "#bb0000",
+   "capital": {
+    "name": "Nairobi",
+    "lat": -1.29,
+    "lon": 36.82
+   },
+   "population": 53939600,
+   "stats": {
+    "puissance": 52,
+    "economie": 44,
+    "ressources": 52,
+    "stabilite": 54,
+    "mobilite": 56,
+    "defense": 56,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "LS",
+   "atlasId": "426",
+   "iso2": "LS",
+   "name": "Lesotho",
+   "continent": "Afrique",
+   "color": "#d0be39",
+   "color2": "#a9da81",
+   "capital": {
+    "name": "Maseru",
+    "lat": -29.31,
+    "lon": 27.48
+   },
+   "population": 2157952,
+   "stats": {
+    "puissance": 25,
+    "economie": 29,
+    "ressources": 57,
+    "stabilite": 44,
+    "mobilite": 52,
+    "defense": 47,
+    "expansion": 55,
+    "vitesse": 55
+   }
+  },
+  {
+   "id": "LR",
+   "atlasId": "430",
+   "iso2": "LR",
+   "name": "Liberia",
+   "continent": "Afrique",
+   "color": "#39d047",
+   "color2": "#81dac5",
+   "capital": {
+    "name": "Monrovia",
+    "lat": 6.3,
+    "lon": -10.8
+   },
+   "population": 5388446,
+   "stats": {
+    "puissance": 32,
+    "economie": 34,
+    "ressources": 47,
+    "stabilite": 43,
+    "mobilite": 54,
+    "defense": 45,
+    "expansion": 47,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "LY",
+   "atlasId": "434",
+   "iso2": "LY",
+   "name": "Libye",
+   "continent": "Afrique",
+   "color": "#239e46",
+   "color2": "#6ccf87",
+   "capital": {
+    "name": "Tripoli",
+    "lat": 32.89,
+    "lon": 13.19
+   },
+   "population": 6692000,
+   "stats": {
+    "puissance": 50,
+    "economie": 53,
+    "ressources": 58,
+    "stabilite": 40,
+    "mobilite": 54,
+    "defense": 52,
+    "expansion": 50,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "MG",
+   "atlasId": "450",
+   "iso2": "MG",
+   "name": "Madagascar",
+   "continent": "Afrique",
+   "color": "#d06039",
+   "color2": "#dad481",
+   "capital": {
+    "name": "Antananarivo",
+    "lat": -18.88,
+    "lon": 47.51
+   },
+   "population": 28416000,
+   "stats": {
+    "puissance": 44,
+    "economie": 31,
+    "ressources": 52,
+    "stabilite": 53,
+    "mobilite": 50,
+    "defense": 50,
+    "expansion": 38,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "MW",
+   "atlasId": "454",
+   "iso2": "MW",
+   "name": "Malawi",
+   "continent": "Afrique",
+   "color": "#39d09d",
+   "color2": "#81bdda",
+   "capital": {
+    "name": "Lilongwe",
+    "lat": -13.96,
+    "lon": 33.79
+   },
+   "population": 21485760,
+   "stats": {
+    "puissance": 38,
+    "economie": 30,
+    "ressources": 54,
+    "stabilite": 42,
+    "mobilite": 54,
+    "defense": 54,
+    "expansion": 55,
+    "vitesse": 49
+   }
+  },
+  {
+   "id": "ML",
+   "atlasId": "466",
+   "iso2": "ML",
+   "name": "Mali",
+   "continent": "Afrique",
+   "color": "#7dd039",
+   "color2": "#81da94",
+   "capital": {
+    "name": "Bamako",
+    "lat": 12.64,
+    "lon": -8
+   },
+   "population": 20873952,
+   "stats": {
+    "puissance": 38,
+    "economie": 34,
+    "ressources": 48,
+    "stabilite": 39,
+    "mobilite": 54,
+    "defense": 52,
+    "expansion": 54,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "MR",
+   "atlasId": "478",
+   "iso2": "MR",
+   "name": "Mauritanie",
+   "continent": "Afrique",
+   "color": "#d03961",
+   "color2": "#daa481",
+   "capital": {
+    "name": "Nouakchott",
+    "lat": 18.08,
+    "lon": -15.98
+   },
+   "population": 4420557,
+   "stats": {
+    "puissance": 40,
+    "economie": 42,
+    "ressources": 69,
+    "stabilite": 61,
+    "mobilite": 53,
+    "defense": 51,
+    "expansion": 46,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "MU",
+   "atlasId": "480",
+   "iso2": "MU",
+   "name": "Maurice",
+   "continent": "Afrique",
+   "color": "#9439d0",
+   "color2": "#da81c2",
+   "capital": {
+    "name": "Port-Louis",
+    "lat": -20.16,
+    "lon": 57.5
+   },
+   "population": 1343451,
+   "stats": {
+    "puissance": 45,
+    "economie": 57,
+    "ressources": 70,
+    "stabilite": 66,
+    "mobilite": 65,
+    "defense": 55,
+    "expansion": 38,
+    "vitesse": 66
+   }
+  },
+  {
+   "id": "MA",
+   "atlasId": "504",
+   "iso2": "MA",
+   "name": "Maroc",
+   "continent": "Afrique",
+   "color": "#c1272d",
+   "color2": "#e86a6f",
+   "capital": {
+    "name": "Rabat",
+    "lat": 34.02,
+    "lon": -6.84
+   },
+   "population": 34088544,
+   "stats": {
+    "puissance": 58,
+    "economie": 63,
+    "ressources": 54,
+    "stabilite": 60,
+    "mobilite": 58,
+    "defense": 62,
+    "expansion": 54,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "MZ",
+   "atlasId": "508",
+   "iso2": "MZ",
+   "name": "Mozambique",
+   "continent": "Afrique",
+   "color": "#d0394c",
+   "color2": "#dab181",
+   "capital": {
+    "name": "Maputo",
+    "lat": -25.97,
+    "lon": 32.57
+   },
+   "population": 34480512,
+   "stats": {
+    "puissance": 44,
+    "economie": 29,
+    "ressources": 45,
+    "stabilite": 48,
+    "mobilite": 51,
+    "defense": 51,
+    "expansion": 51,
+    "vitesse": 46
+   }
+  },
+  {
+   "id": "NA",
+   "atlasId": "516",
+   "iso2": "NA",
+   "name": "Namibie",
+   "continent": "Afrique",
+   "color": "#d04039",
+   "color2": "#dac181",
+   "capital": {
+    "name": "Windhoek",
+    "lat": -22.56,
+    "lon": 17.08
+   },
+   "population": 2520003,
+   "stats": {
+    "puissance": 49,
+    "economie": 55,
+    "ressources": 73,
+    "stabilite": 68,
+    "mobilite": 61,
+    "defense": 57,
+    "expansion": 57,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "NE",
+   "atlasId": "562",
+   "iso2": "NE",
+   "name": "Niger",
+   "continent": "Afrique",
+   "color": "#d0a339",
+   "color2": "#b9da81",
+   "capital": {
+    "name": "Niamey",
+    "lat": 13.51,
+    "lon": 2.11
+   },
+   "population": 27341600,
+   "stats": {
+    "puissance": 44,
+    "economie": 30,
+    "ressources": 47,
+    "stabilite": 54,
+    "mobilite": 52,
+    "defense": 47,
+    "expansion": 41,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "NG",
+   "atlasId": "566",
+   "iso2": "NG",
+   "name": "Nigeria",
+   "continent": "Afrique",
+   "color": "#008751",
+   "color2": "#52b88b",
+   "capital": {
+    "name": "Abuja",
+    "lat": 9.06,
+    "lon": 7.49
+   },
+   "population": 203917120,
+   "stats": {
+    "puissance": 60,
+    "economie": 51,
+    "ressources": 62,
+    "stabilite": 48,
+    "mobilite": 56,
+    "defense": 58,
+    "expansion": 56,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "RW",
+   "atlasId": "646",
+   "iso2": "RW",
+   "name": "Rwanda",
+   "continent": "Afrique",
+   "color": "#d0393e",
+   "color2": "#dab981",
+   "capital": {
+    "name": "Kigali",
+    "lat": -1.95,
+    "lon": 30.06
+   },
+   "population": 13732768,
+   "stats": {
+    "puissance": 41,
+    "economie": 30,
+    "ressources": 45,
+    "stabilite": 52,
+    "mobilite": 51,
+    "defense": 51,
+    "expansion": 61,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "ST",
+   "atlasId": "678",
+   "iso2": "ST",
+   "name": "Sao Tomé-et-Principe",
+   "continent": "Afrique",
+   "color": "#394dd0",
+   "color2": "#b081da",
+   "capital": {
+    "name": "São Tomé",
+    "lat": 0.34,
+    "lon": 6.73
+   },
+   "population": 230066,
+   "stats": {
+    "puissance": 17,
+    "economie": 28,
+    "ressources": 37,
+    "stabilite": 53,
+    "mobilite": 52,
+    "defense": 46,
+    "expansion": 45,
+    "vitesse": 55
+   }
+  },
+  {
+   "id": "SN",
+   "atlasId": "686",
+   "iso2": "SN",
+   "name": "Sénégal",
+   "continent": "Afrique",
+   "color": "#d05939",
+   "color2": "#dad081",
+   "capital": {
+    "name": "Dakar",
+    "lat": 14.72,
+    "lon": -17.47
+   },
+   "population": 18538272,
+   "stats": {
+    "puissance": 47,
+    "economie": 45,
+    "ressources": 54,
+    "stabilite": 55,
+    "mobilite": 52,
+    "defense": 56,
+    "expansion": 51,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "SC",
+   "atlasId": "690",
+   "iso2": "SC",
+   "name": "Seychelles",
+   "continent": "Afrique",
+   "color": "#d0a839",
+   "color2": "#b6da81",
+   "capital": {
+    "name": "Victoria",
+    "lat": -4.62,
+    "lon": 55.45
+   },
+   "population": 105053,
+   "stats": {
+    "puissance": 33,
+    "economie": 56,
+    "ressources": 60,
+    "stabilite": 73,
+    "mobilite": 55,
+    "defense": 56,
+    "expansion": 43,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "SL",
+   "atlasId": "694",
+   "iso2": "SL",
+   "name": "Sierra Leone",
+   "continent": "Afrique",
+   "color": "#d08439",
+   "color2": "#ccda81",
+   "capital": {
+    "name": "Freetown",
+    "lat": 8.48,
+    "lon": -13.23
+   },
+   "population": 7925622,
+   "stats": {
+    "puissance": 36,
+    "economie": 32,
+    "ressources": 44,
+    "stabilite": 48,
+    "mobilite": 42,
+    "defense": 51,
+    "expansion": 56,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "SO",
+   "atlasId": "706",
+   "iso2": "SO",
+   "name": "Somalie",
+   "continent": "Afrique",
+   "color": "#3970d0",
+   "color2": "#9c81da",
+   "capital": {
+    "name": "Mogadiscio",
+    "lat": 2.05,
+    "lon": 45.32
+   },
+   "population": 19267776,
+   "stats": {
+    "puissance": 42,
+    "economie": 33,
+    "ressources": 54,
+    "stabilite": 39,
+    "mobilite": 49,
+    "defense": 53,
+    "expansion": 65,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "ZA",
+   "atlasId": "710",
+   "iso2": "ZA",
+   "name": "Afrique du Sud",
+   "continent": "Afrique",
+   "color": "#007a4d",
+   "color2": "#ffb612",
+   "capital": {
+    "name": "Pretoria",
+    "lat": -25.75,
+    "lon": 28.19
+   },
+   "population": 63381120,
+   "stats": {
+    "puissance": 60,
+    "economie": 60,
+    "ressources": 64,
+    "stabilite": 54,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 54,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "SS",
+   "atlasId": "728",
+   "iso2": "SS",
+   "name": "Soudan du Sud",
+   "continent": "Afrique",
+   "color": "#d05539",
+   "color2": "#dacd81",
+   "capital": {
+    "name": "Djouba",
+    "lat": 4.85,
+    "lon": 31.58
+   },
+   "population": 10370448,
+   "stats": {
+    "puissance": 39,
+    "economie": 34,
+    "ressources": 35,
+    "stabilite": 46,
+    "mobilite": 46,
+    "defense": 53,
+    "expansion": 54,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "SD",
+   "atlasId": "729",
+   "iso2": "SD",
+   "name": "Soudan",
+   "continent": "Afrique",
+   "color": "#39c0d0",
+   "color2": "#8195da",
+   "capital": {
+    "name": "Khartoum",
+    "lat": 15.5,
+    "lon": 32.56
+   },
+   "population": 48493472,
+   "stats": {
+    "puissance": 44,
+    "economie": 32,
+    "ressources": 53,
+    "stabilite": 42,
+    "mobilite": 52,
+    "defense": 52,
+    "expansion": 59,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "TZ",
+   "atlasId": "834",
+   "iso2": "TZ",
+   "name": "Tanzanie",
+   "continent": "Afrique",
+   "color": "#d09c39",
+   "color2": "#bdda81",
+   "capital": {
+    "name": "Dodoma",
+    "lat": -6.16,
+    "lon": 35.75
+   },
+   "population": 69626960,
+   "stats": {
+    "puissance": 45,
+    "economie": 36,
+    "ressources": 56,
+    "stabilite": 43,
+    "mobilite": 52,
+    "defense": 53,
+    "expansion": 44,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "TG",
+   "atlasId": "768",
+   "iso2": "TG",
+   "name": "Togo",
+   "continent": "Afrique",
+   "color": "#d039d0",
+   "color2": "#da819f",
+   "capital": {
+    "name": "Lomé",
+    "lat": 6.13,
+    "lon": 1.22
+   },
+   "population": 9679248,
+   "stats": {
+    "puissance": 35,
+    "economie": 32,
+    "ressources": 57,
+    "stabilite": 49,
+    "mobilite": 42,
+    "defense": 48,
+    "expansion": 51,
+    "vitesse": 48
+   }
+  },
+  {
+   "id": "TN",
+   "atlasId": "788",
+   "iso2": "TN",
+   "name": "Tunisie",
+   "continent": "Afrique",
+   "color": "#e70013",
+   "color2": "#ff5a66",
+   "capital": {
+    "name": "Tunis",
+    "lat": 36.81,
+    "lon": 10.18
+   },
+   "population": 11644032,
+   "stats": {
+    "puissance": 50,
+    "economie": 55,
+    "ressources": 50,
+    "stabilite": 56,
+    "mobilite": 56,
+    "defense": 56,
+    "expansion": 48,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "UG",
+   "atlasId": "800",
+   "iso2": "UG",
+   "name": "Ouganda",
+   "continent": "Afrique",
+   "color": "#98d039",
+   "color2": "#81da84",
+   "capital": {
+    "name": "Kampala",
+    "lat": 0.35,
+    "lon": 32.58
+   },
+   "population": 45940432,
+   "stats": {
+    "puissance": 46,
+    "economie": 36,
+    "ressources": 54,
+    "stabilite": 39,
+    "mobilite": 52,
+    "defense": 53,
+    "expansion": 52,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "ZM",
+   "atlasId": "894",
+   "iso2": "ZM",
+   "name": "Zambie",
+   "continent": "Afrique",
+   "color": "#ced039",
+   "color2": "#9dda81",
+   "capital": {
+    "name": "Lusaka",
+    "lat": -15.39,
+    "lon": 28.32
+   },
+   "population": 20133440,
+   "stats": {
+    "puissance": 42,
+    "economie": 33,
+    "ressources": 51,
+    "stabilite": 48,
+    "mobilite": 45,
+    "defense": 50,
+    "expansion": 40,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "ZW",
+   "atlasId": "716",
+   "iso2": "ZW",
+   "name": "Zimbabwe",
+   "continent": "Afrique",
+   "color": "#d03986",
+   "color2": "#da8e81",
+   "capital": {
+    "name": "Harare",
+    "lat": -17.83,
+    "lon": 31.05
+   },
+   "population": 15361024,
+   "stats": {
+    "puissance": 42,
+    "economie": 31,
+    "ressources": 47,
+    "stabilite": 41,
+    "mobilite": 52,
+    "defense": 52,
+    "expansion": 41,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "AL",
+   "atlasId": "008",
+   "iso2": "AL",
+   "name": "Albanie",
+   "continent": "Europe",
+   "color": "#8b1a1a",
+   "color2": "#c85050",
+   "capital": {
+    "name": "Tirana",
+    "lat": 41.33,
+    "lon": 19.82
+   },
+   "population": 2879520,
+   "stats": {
+    "puissance": 46,
+    "economie": 57,
+    "ressources": 44,
+    "stabilite": 54,
+    "mobilite": 52,
+    "defense": 56,
+    "expansion": 46,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "AD",
+   "atlasId": "020",
+   "iso2": "AD",
+   "name": "Andorre",
+   "continent": "Europe",
+   "color": "#cbd039",
+   "color2": "#9bda81",
+   "capital": {
+    "name": "Andorre-la-Vieille",
+    "lat": 42.51,
+    "lon": 1.52
+   },
+   "population": 82200,
+   "stats": {
+    "puissance": 39,
+    "economie": 68,
+    "ressources": 54,
+    "stabilite": 71,
+    "mobilite": 63,
+    "defense": 64,
+    "expansion": 36,
+    "vitesse": 66
+   }
+  },
+  {
+   "id": "AT",
+   "atlasId": "040",
+   "iso2": "AT",
+   "name": "Autriche",
+   "continent": "Europe",
+   "color": "#c0392b",
+   "color2": "#e57366",
+   "capital": {
+    "name": "Vienne",
+    "lat": 48.21,
+    "lon": 16.37
+   },
+   "population": 9189504,
+   "stats": {
+    "puissance": 54,
+    "economie": 85,
+    "ressources": 62,
+    "stabilite": 72,
+    "mobilite": 56,
+    "defense": 62,
+    "expansion": 48,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "BY",
+   "atlasId": "112",
+   "iso2": "BY",
+   "name": "Biélorussie",
+   "continent": "Europe",
+   "color": "#7b8d42",
+   "color2": "#aebf6f",
+   "capital": {
+    "name": "Minsk",
+    "lat": 53.9,
+    "lon": 27.56
+   },
+   "population": 9497933,
+   "stats": {
+    "puissance": 54,
+    "economie": 56,
+    "ressources": 54,
+    "stabilite": 58,
+    "mobilite": 54,
+    "defense": 58,
+    "expansion": 50,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "BE",
+   "atlasId": "056",
+   "iso2": "BE",
+   "name": "Belgique",
+   "continent": "Europe",
+   "color": "#d4a017",
+   "color2": "#f0d060",
+   "capital": {
+    "name": "Bruxelles",
+    "lat": 50.85,
+    "lon": 4.35
+   },
+   "population": 10985083,
+   "stats": {
+    "puissance": 54,
+    "economie": 86,
+    "ressources": 58,
+    "stabilite": 60,
+    "mobilite": 58,
+    "defense": 56,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "BA",
+   "atlasId": "070",
+   "iso2": "BA",
+   "name": "Bosnie-Herzégovine",
+   "continent": "Europe",
+   "color": "#f9a825",
+   "color2": "#ffd95a",
+   "capital": {
+    "name": "Sarajevo",
+    "lat": 43.86,
+    "lon": 18.41
+   },
+   "population": 3273779,
+   "stats": {
+    "puissance": 46,
+    "economie": 57,
+    "ressources": 46,
+    "stabilite": 50,
+    "mobilite": 50,
+    "defense": 58,
+    "expansion": 44,
+    "vitesse": 50
+   }
+  },
+  {
+   "id": "BG",
+   "atlasId": "100",
+   "iso2": "BG",
+   "name": "Bulgarie",
+   "continent": "Europe",
+   "color": "#2e8b57",
+   "color2": "#66c28f",
+   "capital": {
+    "name": "Sofia",
+    "lat": 42.7,
+    "lon": 23.32
+   },
+   "population": 6563544,
+   "stats": {
+    "puissance": 50,
+    "economie": 53,
+    "ressources": 50,
+    "stabilite": 58,
+    "mobilite": 54,
+    "defense": 56,
+    "expansion": 48,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "HR",
+   "atlasId": "191",
+   "iso2": "HR",
+   "name": "Croatie",
+   "continent": "Europe",
+   "color": "#5b6ee1",
+   "color2": "#9aa6f0",
+   "capital": {
+    "name": "Zagreb",
+    "lat": 45.81,
+    "lon": 15.98
+   },
+   "population": 3747619,
+   "stats": {
+    "puissance": 50,
+    "economie": 68,
+    "ressources": 50,
+    "stabilite": 60,
+    "mobilite": 56,
+    "defense": 58,
+    "expansion": 48,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "CZ",
+   "atlasId": "203",
+   "iso2": "CZ",
+   "name": "Tchéquie",
+   "continent": "Europe",
+   "color": "#2c7fb8",
+   "color2": "#6fb1e0",
+   "capital": {
+    "name": "Prague",
+    "lat": 50.08,
+    "lon": 14.42
+   },
+   "population": 10992499,
+   "stats": {
+    "puissance": 54,
+    "economie": 68,
+    "ressources": 60,
+    "stabilite": 70,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "DK",
+   "atlasId": "208",
+   "iso2": "DK",
+   "name": "Danemark",
+   "continent": "Europe",
+   "color": "#e53935",
+   "color2": "#ff8a80",
+   "capital": {
+    "name": "Copenhague",
+    "lat": 55.68,
+    "lon": 12.57
+   },
+   "population": 5688733,
+   "stats": {
+    "puissance": 52,
+    "economie": 79,
+    "ressources": 62,
+    "stabilite": 78,
+    "mobilite": 60,
+    "defense": 56,
+    "expansion": 48,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "EE",
+   "atlasId": "233",
+   "iso2": "EE",
+   "name": "Estonie",
+   "continent": "Europe",
+   "color": "#0072ce",
+   "color2": "#5aa9ee",
+   "capital": {
+    "name": "Tallinn",
+    "lat": 59.44,
+    "lon": 24.75
+   },
+   "population": 1370866,
+   "stats": {
+    "puissance": 46,
+    "economie": 64,
+    "ressources": 52,
+    "stabilite": 72,
+    "mobilite": 58,
+    "defense": 58,
+    "expansion": 44,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "FI",
+   "atlasId": "246",
+   "iso2": "FI",
+   "name": "Finlande",
+   "continent": "Europe",
+   "color": "#e8eef8",
+   "color2": "#3b82f6",
+   "capital": {
+    "name": "Helsinki",
+    "lat": 60.17,
+    "lon": 24.94
+   },
+   "population": 5472320,
+   "stats": {
+    "puissance": 56,
+    "economie": 79,
+    "ressources": 62,
+    "stabilite": 78,
+    "mobilite": 60,
+    "defense": 70,
+    "expansion": 46,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "FR",
+   "atlasId": "250",
+   "iso2": "FR",
+   "name": "France",
+   "continent": "Europe",
+   "color": "#2f6fe0",
+   "color2": "#5aa0ff",
+   "capital": {
+    "name": "Paris",
+    "lat": 48.86,
+    "lon": 2.35
+   },
+   "population": 66137344,
+   "stats": {
+    "puissance": 72,
+    "economie": 90,
+    "ressources": 70,
+    "stabilite": 62,
+    "mobilite": 64,
+    "defense": 66,
+    "expansion": 60,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "DE",
+   "atlasId": "276",
+   "iso2": "DE",
+   "name": "Allemagne",
+   "continent": "Europe",
+   "color": "#5d5d6e",
+   "color2": "#9aa0b4",
+   "capital": {
+    "name": "Berlin",
+    "lat": 52.52,
+    "lon": 13.4
+   },
+   "population": 83880384,
+   "stats": {
+    "puissance": 74,
+    "economie": 84,
+    "ressources": 76,
+    "stabilite": 70,
+    "mobilite": 66,
+    "defense": 66,
+    "expansion": 60,
+    "vitesse": 64
+   }
+  },
+  {
+   "id": "GR",
+   "atlasId": "300",
+   "iso2": "GR",
+   "name": "Grèce",
+   "continent": "Europe",
+   "color": "#1e88e5",
+   "color2": "#64b5f6",
+   "capital": {
+    "name": "Athènes",
+    "lat": 37.98,
+    "lon": 23.73
+   },
+   "population": 10271373,
+   "stats": {
+    "puissance": 56,
+    "economie": 69,
+    "ressources": 54,
+    "stabilite": 58,
+    "mobilite": 58,
+    "defense": 62,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "HU",
+   "atlasId": "348",
+   "iso2": "HU",
+   "name": "Hongrie",
+   "continent": "Europe",
+   "color": "#4c9a2a",
+   "color2": "#86c965",
+   "capital": {
+    "name": "Budapest",
+    "lat": 47.5,
+    "lon": 19.04
+   },
+   "population": 9573427,
+   "stats": {
+    "puissance": 54,
+    "economie": 67,
+    "ressources": 54,
+    "stabilite": 60,
+    "mobilite": 58,
+    "defense": 58,
+    "expansion": 52,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "IS",
+   "atlasId": "352",
+   "iso2": "IS",
+   "name": "Islande",
+   "continent": "Europe",
+   "color": "#394bd0",
+   "color2": "#b181da",
+   "capital": {
+    "name": "Reykjavik",
+    "lat": 64.15,
+    "lon": -21.94
+   },
+   "population": 392573,
+   "stats": {
+    "puissance": 53,
+    "economie": 81,
+    "ressources": 83,
+    "stabilite": 80,
+    "mobilite": 78,
+    "defense": 68,
+    "expansion": 49,
+    "vitesse": 66
+   }
+  },
+  {
+   "id": "IE",
+   "atlasId": "372",
+   "iso2": "IE",
+   "name": "Irlande",
+   "continent": "Europe",
+   "color": "#16a085",
+   "color2": "#48c9b0",
+   "capital": {
+    "name": "Dublin",
+    "lat": 53.35,
+    "lon": -6.26
+   },
+   "population": 5005752,
+   "stats": {
+    "puissance": 48,
+    "economie": 84,
+    "ressources": 56,
+    "stabilite": 74,
+    "mobilite": 56,
+    "defense": 56,
+    "expansion": 46,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "IT",
+   "atlasId": "380",
+   "iso2": "IT",
+   "name": "Italie",
+   "continent": "Europe",
+   "color": "#27ae60",
+   "color2": "#6fcf97",
+   "capital": {
+    "name": "Rome",
+    "lat": 41.9,
+    "lon": 12.5
+   },
+   "population": 61305248,
+   "stats": {
+    "puissance": 64,
+    "economie": 87,
+    "ressources": 64,
+    "stabilite": 56,
+    "mobilite": 58,
+    "defense": 62,
+    "expansion": 56,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "LV",
+   "atlasId": "428",
+   "iso2": "LV",
+   "name": "Lettonie",
+   "continent": "Europe",
+   "color": "#8d2434",
+   "color2": "#c4596a",
+   "capital": {
+    "name": "Riga",
+    "lat": 56.95,
+    "lon": 24.11
+   },
+   "population": 2002600,
+   "stats": {
+    "puissance": 46,
+    "economie": 65,
+    "ressources": 50,
+    "stabilite": 66,
+    "mobilite": 54,
+    "defense": 56,
+    "expansion": 44,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "LI",
+   "atlasId": "438",
+   "iso2": "LI",
+   "name": "Liechtenstein",
+   "continent": "Europe",
+   "color": "#d039b2",
+   "color2": "#da818c",
+   "capital": {
+    "name": "Vaduz",
+    "lat": 47.14,
+    "lon": 9.52
+   },
+   "population": 42889,
+   "stats": {
+    "puissance": 46,
+    "economie": 76,
+    "ressources": 59,
+    "stabilite": 84,
+    "mobilite": 79,
+    "defense": 62,
+    "expansion": 52,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "LT",
+   "atlasId": "440",
+   "iso2": "LT",
+   "name": "Lituanie",
+   "continent": "Europe",
+   "color": "#f5b700",
+   "color2": "#ffd84d",
+   "capital": {
+    "name": "Vilnius",
+    "lat": 54.69,
+    "lon": 25.28
+   },
+   "population": 2997344,
+   "stats": {
+    "puissance": 48,
+    "economie": 69,
+    "ressources": 52,
+    "stabilite": 68,
+    "mobilite": 56,
+    "defense": 58,
+    "expansion": 46,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "LU",
+   "atlasId": "442",
+   "iso2": "LU",
+   "name": "Luxembourg",
+   "continent": "Europe",
+   "color": "#d039b2",
+   "color2": "#da818c",
+   "capital": {
+    "name": "Luxembourg",
+    "lat": 49.61,
+    "lon": 6.13
+   },
+   "population": 702979,
+   "stats": {
+    "puissance": 54,
+    "economie": 82,
+    "ressources": 82,
+    "stabilite": 88,
+    "mobilite": 77,
+    "defense": 61,
+    "expansion": 52,
+    "vitesse": 72
+   }
+  },
+  {
+   "id": "MT",
+   "atlasId": "470",
+   "iso2": "MT",
+   "name": "Malte",
+   "continent": "Europe",
+   "color": "#c439d0",
+   "color2": "#da81a6",
+   "capital": {
+    "name": "La Valette",
+    "lat": 35.9,
+    "lon": 14.51
+   },
+   "population": 558951,
+   "stats": {
+    "puissance": 47,
+    "economie": 66,
+    "ressources": 71,
+    "stabilite": 74,
+    "mobilite": 74,
+    "defense": 60,
+    "expansion": 50,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "MD",
+   "atlasId": "498",
+   "iso2": "MD",
+   "name": "Moldavie",
+   "continent": "Europe",
+   "color": "#d06b39",
+   "color2": "#dada81",
+   "capital": {
+    "name": "Chisinau",
+    "lat": 47.01,
+    "lon": 28.86
+   },
+   "population": 2691720,
+   "stats": {
+    "puissance": 39,
+    "economie": 45,
+    "ressources": 57,
+    "stabilite": 58,
+    "mobilite": 51,
+    "defense": 52,
+    "expansion": 38,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "MC",
+   "atlasId": "492",
+   "iso2": "MC",
+   "name": "Monaco",
+   "continent": "Europe",
+   "color": "#39d05d",
+   "color2": "#81dad2",
+   "capital": {
+    "name": "Monaco",
+    "lat": 43.73,
+    "lon": 7.42
+   },
+   "population": 36887,
+   "stats": {
+    "puissance": 47,
+    "economie": 80,
+    "ressources": 62,
+    "stabilite": 81,
+    "mobilite": 74,
+    "defense": 63,
+    "expansion": 40,
+    "vitesse": 61
+   }
+  },
+  {
+   "id": "ME",
+   "atlasId": "499",
+   "iso2": "ME",
+   "name": "Monténégro",
+   "continent": "Europe",
+   "color": "#c739d0",
+   "color2": "#da81a4",
+   "capital": {
+    "name": "Podgorica",
+    "lat": 42.44,
+    "lon": 19.26
+   },
+   "population": 581967,
+   "stats": {
+    "puissance": 36,
+    "economie": 57,
+    "ressources": 61,
+    "stabilite": 61,
+    "mobilite": 57,
+    "defense": 55,
+    "expansion": 65,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "NL",
+   "atlasId": "528",
+   "iso2": "NL",
+   "name": "Pays-Bas",
+   "continent": "Europe",
+   "color": "#ff7a1a",
+   "color2": "#ffa25e",
+   "capital": {
+    "name": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9
+   },
+   "population": 17208344,
+   "stats": {
+    "puissance": 56,
+    "economie": 80,
+    "ressources": 66,
+    "stabilite": 72,
+    "mobilite": 62,
+    "defense": 54,
+    "expansion": 52,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "MK",
+   "atlasId": "807",
+   "iso2": "MK",
+   "name": "Macédoine du Nord",
+   "continent": "Europe",
+   "color": "#3981d0",
+   "color2": "#9181da",
+   "capital": {
+    "name": "Skopje",
+    "lat": 42,
+    "lon": 21.43
+   },
+   "population": 1888243,
+   "stats": {
+    "puissance": 43,
+    "economie": 54,
+    "ressources": 54,
+    "stabilite": 74,
+    "mobilite": 56,
+    "defense": 59,
+    "expansion": 43,
+    "vitesse": 61
+   }
+  },
+  {
+   "id": "NO",
+   "atlasId": "578",
+   "iso2": "NO",
+   "name": "Norvège",
+   "continent": "Europe",
+   "color": "#ad1457",
+   "color2": "#e3528e",
+   "capital": {
+    "name": "Oslo",
+    "lat": 59.91,
+    "lon": 10.75
+   },
+   "population": 5340192,
+   "stats": {
+    "puissance": 56,
+    "economie": 83,
+    "ressources": 72,
+    "stabilite": 78,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 46,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "PL",
+   "atlasId": "616",
+   "iso2": "PL",
+   "name": "Pologne",
+   "continent": "Europe",
+   "color": "#dc3c50",
+   "color2": "#f07888",
+   "capital": {
+    "name": "Varsovie",
+    "lat": 52.23,
+    "lon": 21.01
+   },
+   "population": 35090125,
+   "stats": {
+    "puissance": 66,
+    "economie": 74,
+    "ressources": 60,
+    "stabilite": 64,
+    "mobilite": 62,
+    "defense": 68,
+    "expansion": 56,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "PT",
+   "atlasId": "620",
+   "iso2": "PT",
+   "name": "Portugal",
+   "continent": "Europe",
+   "color": "#1f9d55",
+   "color2": "#56c98a",
+   "capital": {
+    "name": "Lisbonne",
+    "lat": 38.72,
+    "lon": -9.14
+   },
+   "population": 10537806,
+   "stats": {
+    "puissance": 52,
+    "economie": 73,
+    "ressources": 50,
+    "stabilite": 70,
+    "mobilite": 56,
+    "defense": 58,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "RO",
+   "atlasId": "642",
+   "iso2": "RO",
+   "name": "Roumanie",
+   "continent": "Europe",
+   "color": "#f4c430",
+   "color2": "#ffe27a",
+   "capital": {
+    "name": "Bucarest",
+    "lat": 44.43,
+    "lon": 26.1
+   },
+   "population": 17802848,
+   "stats": {
+    "puissance": 56,
+    "economie": 60,
+    "ressources": 56,
+    "stabilite": 58,
+    "mobilite": 56,
+    "defense": 60,
+    "expansion": 52,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "RU",
+   "atlasId": "643",
+   "iso2": "RU",
+   "name": "Russie",
+   "continent": "Europe",
+   "color": "#b03a2e",
+   "color2": "#e0735f",
+   "capital": {
+    "name": "Moscou",
+    "lat": 55.75,
+    "lon": 37.62
+   },
+   "population": 149384448,
+   "stats": {
+    "puissance": 76,
+    "economie": 78,
+    "ressources": 72,
+    "stabilite": 54,
+    "mobilite": 58,
+    "defense": 70,
+    "expansion": 64,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "SM",
+   "atlasId": "674",
+   "iso2": "SM",
+   "name": "Saint-Marin",
+   "continent": "Europe",
+   "color": "#39d065",
+   "color2": "#81dad7",
+   "capital": {
+    "name": "Saint-Marin",
+    "lat": 43.94,
+    "lon": 12.45
+   },
+   "population": 34413,
+   "stats": {
+    "puissance": 39,
+    "economie": 64,
+    "ressources": 68,
+    "stabilite": 81,
+    "mobilite": 68,
+    "defense": 60,
+    "expansion": 52,
+    "vitesse": 69
+   }
+  },
+  {
+   "id": "RS",
+   "atlasId": "688",
+   "iso2": "RS",
+   "name": "Serbie",
+   "continent": "Europe",
+   "color": "#9c2c3a",
+   "color2": "#d06a78",
+   "capital": {
+    "name": "Belgrade",
+    "lat": 44.82,
+    "lon": 20.46
+   },
+   "population": 6888136,
+   "stats": {
+    "puissance": 54,
+    "economie": 53,
+    "ressources": 52,
+    "stabilite": 56,
+    "mobilite": 56,
+    "defense": 60,
+    "expansion": 52,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "SK",
+   "atlasId": "703",
+   "iso2": "SK",
+   "name": "Slovaquie",
+   "continent": "Europe",
+   "color": "#3a6ea5",
+   "color2": "#7fa8d8",
+   "capital": {
+    "name": "Bratislava",
+    "lat": 48.15,
+    "lon": 17.11
+   },
+   "population": 5271264,
+   "stats": {
+    "puissance": 48,
+    "economie": 72,
+    "ressources": 50,
+    "stabilite": 64,
+    "mobilite": 54,
+    "defense": 56,
+    "expansion": 46,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "SI",
+   "atlasId": "705",
+   "iso2": "SI",
+   "name": "Slovénie",
+   "continent": "Europe",
+   "color": "#00897b",
+   "color2": "#4db6ac",
+   "capital": {
+    "name": "Ljubljana",
+    "lat": 46.06,
+    "lon": 14.51
+   },
+   "population": 1947456,
+   "stats": {
+    "puissance": 46,
+    "economie": 68,
+    "ressources": 54,
+    "stabilite": 70,
+    "mobilite": 54,
+    "defense": 56,
+    "expansion": 44,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "ES",
+   "atlasId": "724",
+   "iso2": "ES",
+   "name": "Espagne",
+   "continent": "Europe",
+   "color": "#e8a317",
+   "color2": "#f2c94c",
+   "capital": {
+    "name": "Madrid",
+    "lat": 40.42,
+    "lon": -3.7
+   },
+   "population": 49973760,
+   "stats": {
+    "puissance": 62,
+    "economie": 87,
+    "ressources": 62,
+    "stabilite": 64,
+    "mobilite": 60,
+    "defense": 64,
+    "expansion": 58,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "SE",
+   "atlasId": "752",
+   "iso2": "SE",
+   "name": "Suède",
+   "continent": "Europe",
+   "color": "#1f78b4",
+   "color2": "#f2c14e",
+   "capital": {
+    "name": "Stockholm",
+    "lat": 59.33,
+    "lon": 18.07
+   },
+   "population": 10231368,
+   "stats": {
+    "puissance": 60,
+    "economie": 83,
+    "ressources": 70,
+    "stabilite": 78,
+    "mobilite": 60,
+    "defense": 62,
+    "expansion": 50,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "CH",
+   "atlasId": "756",
+   "iso2": "CH",
+   "name": "Suisse",
+   "continent": "Europe",
+   "color": "#d7263d",
+   "color2": "#f06a7a",
+   "capital": {
+    "name": "Berne",
+    "lat": 46.95,
+    "lon": 7.45
+   },
+   "population": 8560499,
+   "stats": {
+    "puissance": 52,
+    "economie": 82,
+    "ressources": 70,
+    "stabilite": 82,
+    "mobilite": 50,
+    "defense": 78,
+    "expansion": 40,
+    "vitesse": 50
+   }
+  },
+  {
+   "id": "UA",
+   "atlasId": "804",
+   "iso2": "UA",
+   "name": "Ukraine",
+   "continent": "Europe",
+   "color": "#1565c0",
+   "color2": "#f9d71c",
+   "capital": {
+    "name": "Kiev",
+    "lat": 50.45,
+    "lon": 30.52
+   },
+   "population": 36039808,
+   "stats": {
+    "puissance": 62,
+    "economie": 58,
+    "ressources": 58,
+    "stabilite": 56,
+    "mobilite": 60,
+    "defense": 70,
+    "expansion": 54,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "GB",
+   "atlasId": "826",
+   "iso2": "GB",
+   "name": "Royaume-Uni",
+   "continent": "Europe",
+   "color": "#8e44ad",
+   "color2": "#b57edc",
+   "capital": {
+    "name": "Londres",
+    "lat": 51.51,
+    "lon": -0.13
+   },
+   "population": 69540608,
+   "stats": {
+    "puissance": 72,
+    "economie": 90,
+    "ressources": 70,
+    "stabilite": 64,
+    "mobilite": 70,
+    "defense": 64,
+    "expansion": 62,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "VA",
+   "atlasId": "336",
+   "iso2": "VA",
+   "name": "Saint-Siège",
+   "continent": "Europe",
+   "color": "#c7d039",
+   "color2": "#99da81",
+   "capital": {
+    "name": "Cité du Vatican",
+    "lat": 41.9,
+    "lon": 12.45
+   },
+   "population": 770,
+   "stats": {
+    "puissance": 34,
+    "economie": 69,
+    "ressources": 79,
+    "stabilite": 69,
+    "mobilite": 76,
+    "defense": 63,
+    "expansion": 48,
+    "vitesse": 70
+   }
+  },
+  {
+   "id": "AF",
+   "atlasId": "004",
+   "iso2": "AF",
+   "name": "Afghanistan",
+   "continent": "Asie",
+   "color": "#84d039",
+   "color2": "#81da90",
+   "capital": {
+    "name": "Kaboul",
+    "lat": 34.53,
+    "lon": 69.17
+   },
+   "population": 43178576,
+   "stats": {
+    "puissance": 42,
+    "economie": 34,
+    "ressources": 43,
+    "stabilite": 41,
+    "mobilite": 49,
+    "defense": 53,
+    "expansion": 49,
+    "vitesse": 47
+   }
+  },
+  {
+   "id": "AM",
+   "atlasId": "051",
+   "iso2": "AM",
+   "name": "Arménie",
+   "continent": "Asie",
+   "color": "#39c7d0",
+   "color2": "#8199da",
+   "capital": {
+    "name": "Erevan",
+    "lat": 40.18,
+    "lon": 44.51
+   },
+   "population": 2883507,
+   "stats": {
+    "puissance": 46,
+    "economie": 58,
+    "ressources": 66,
+    "stabilite": 59,
+    "mobilite": 56,
+    "defense": 61,
+    "expansion": 51,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "AZ",
+   "atlasId": "031",
+   "iso2": "AZ",
+   "name": "Azerbaïdjan",
+   "continent": "Asie",
+   "color": "#3954d0",
+   "color2": "#ac81da",
+   "capital": {
+    "name": "Bakou",
+    "lat": 40.41,
+    "lon": 49.87
+   },
+   "population": 10042632,
+   "stats": {
+    "puissance": 54,
+    "economie": 59,
+    "ressources": 66,
+    "stabilite": 60,
+    "mobilite": 71,
+    "defense": 63,
+    "expansion": 50,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "BH",
+   "atlasId": "048",
+   "iso2": "BH",
+   "name": "Bahreïn",
+   "continent": "Asie",
+   "color": "#50d039",
+   "color2": "#81daae",
+   "capital": {
+    "name": "Manama",
+    "lat": 26.23,
+    "lon": 50.59
+   },
+   "population": 1526448,
+   "stats": {
+    "puissance": 55,
+    "economie": 67,
+    "ressources": 63,
+    "stabilite": 71,
+    "mobilite": 67,
+    "defense": 57,
+    "expansion": 45,
+    "vitesse": 70
+   }
+  },
+  {
+   "id": "BD",
+   "atlasId": "050",
+   "iso2": "BD",
+   "name": "Bangladesh",
+   "continent": "Asie",
+   "color": "#3d39d0",
+   "color2": "#bf81da",
+   "capital": {
+    "name": "Dacca",
+    "lat": 23.81,
+    "lon": 90.41
+   },
+   "population": 161105600,
+   "stats": {
+    "puissance": 63,
+    "economie": 50,
+    "ressources": 64,
+    "stabilite": 49,
+    "mobilite": 64,
+    "defense": 58,
+    "expansion": 40,
+    "vitesse": 49
+   }
+  },
+  {
+   "id": "BT",
+   "atlasId": "064",
+   "iso2": "BT",
+   "name": "Bhoutan",
+   "continent": "Asie",
+   "color": "#3959d0",
+   "color2": "#a981da",
+   "capital": {
+    "name": "Thimphou",
+    "lat": 27.47,
+    "lon": 89.64
+   },
+   "population": 809091,
+   "stats": {
+    "puissance": 32,
+    "economie": 44,
+    "ressources": 62,
+    "stabilite": 63,
+    "mobilite": 61,
+    "defense": 50,
+    "expansion": 37,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "BN",
+   "atlasId": "096",
+   "iso2": "BN",
+   "name": "Brunei",
+   "continent": "Asie",
+   "color": "#d039b7",
+   "color2": "#da818f",
+   "capital": {
+    "name": "Bandar Seri Begawan",
+    "lat": 4.9,
+    "lon": 114.94
+   },
+   "population": 436694,
+   "stats": {
+    "puissance": 47,
+    "economie": 68,
+    "ressources": 71,
+    "stabilite": 75,
+    "mobilite": 68,
+    "defense": 60,
+    "expansion": 58,
+    "vitesse": 61
+   }
+  },
+  {
+   "id": "KH",
+   "atlasId": "116",
+   "iso2": "KH",
+   "name": "Cambodge",
+   "continent": "Asie",
+   "color": "#d0ad39",
+   "color2": "#b3da81",
+   "capital": {
+    "name": "Phnom Penh",
+    "lat": 11.56,
+    "lon": 104.93
+   },
+   "population": 16594176,
+   "stats": {
+    "puissance": 51,
+    "economie": 44,
+    "ressources": 58,
+    "stabilite": 57,
+    "mobilite": 50,
+    "defense": 60,
+    "expansion": 41,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "CN",
+   "atlasId": "156",
+   "iso2": "CN",
+   "name": "Chine",
+   "continent": "Asie",
+   "color": "#de2910",
+   "color2": "#ff6f5b",
+   "capital": {
+    "name": "Pékin",
+    "lat": 39.9,
+    "lon": 116.4
+   },
+   "population": 1439621280,
+   "stats": {
+    "puissance": 80,
+    "economie": 80,
+    "ressources": 78,
+    "stabilite": 64,
+    "mobilite": 66,
+    "defense": 70,
+    "expansion": 66,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "CY",
+   "atlasId": "196",
+   "iso2": "CY",
+   "name": "Chypre",
+   "continent": "Asie",
+   "color": "#39d0cc",
+   "color2": "#81a1da",
+   "capital": {
+    "name": "Nicosie",
+    "lat": 35.17,
+    "lon": 33.37
+   },
+   "population": 1245020,
+   "stats": {
+    "puissance": 50,
+    "economie": 68,
+    "ressources": 64,
+    "stabilite": 84,
+    "mobilite": 66,
+    "defense": 65,
+    "expansion": 49,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "GE",
+   "atlasId": "268",
+   "iso2": "GE",
+   "name": "Géorgie",
+   "continent": "Asie",
+   "color": "#39d0c8",
+   "color2": "#81a3da",
+   "capital": {
+    "name": "Tbilissi",
+    "lat": 41.72,
+    "lon": 44.79
+   },
+   "population": 3665013,
+   "stats": {
+    "puissance": 46,
+    "economie": 54,
+    "ressources": 71,
+    "stabilite": 64,
+    "mobilite": 63,
+    "defense": 56,
+    "expansion": 60,
+    "vitesse": 65
+   }
+  },
+  {
+   "id": "IN",
+   "atlasId": "356",
+   "iso2": "IN",
+   "name": "Inde",
+   "continent": "Asie",
+   "color": "#ff9933",
+   "color2": "#ffc27a",
+   "capital": {
+    "name": "New Delhi",
+    "lat": 28.61,
+    "lon": 77.21
+   },
+   "population": 1480276160,
+   "stats": {
+    "puissance": 74,
+    "economie": 69,
+    "ressources": 70,
+    "stabilite": 58,
+    "mobilite": 62,
+    "defense": 66,
+    "expansion": 64,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "ID",
+   "atlasId": "360",
+   "iso2": "ID",
+   "name": "Indonésie",
+   "continent": "Asie",
+   "color": "#e04040",
+   "color2": "#f08a8a",
+   "capital": {
+    "name": "Jakarta",
+    "lat": -6.21,
+    "lon": 106.85
+   },
+   "population": 286121056,
+   "stats": {
+    "puissance": 62,
+    "economie": 64,
+    "ressources": 62,
+    "stabilite": 56,
+    "mobilite": 56,
+    "defense": 60,
+    "expansion": 56,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "IR",
+   "atlasId": "364",
+   "iso2": "IR",
+   "name": "Iran",
+   "continent": "Asie",
+   "color": "#239f40",
+   "color2": "#6ccf80",
+   "capital": {
+    "name": "Téhéran",
+    "lat": 35.69,
+    "lon": 51.39
+   },
+   "population": 84293680,
+   "stats": {
+    "puissance": 66,
+    "economie": 60,
+    "ressources": 66,
+    "stabilite": 54,
+    "mobilite": 58,
+    "defense": 68,
+    "expansion": 58,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "IQ",
+   "atlasId": "368",
+   "iso2": "IQ",
+   "name": "Irak",
+   "continent": "Asie",
+   "color": "#ce1126",
+   "color2": "#f06072",
+   "capital": {
+    "name": "Bagdad",
+    "lat": 33.31,
+    "lon": 44.37
+   },
+   "population": 44235136,
+   "stats": {
+    "puissance": 56,
+    "economie": 62,
+    "ressources": 60,
+    "stabilite": 44,
+    "mobilite": 54,
+    "defense": 58,
+    "expansion": 54,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "IL",
+   "atlasId": "376",
+   "iso2": "IL",
+   "name": "Israël",
+   "continent": "Asie",
+   "color": "#4a39d0",
+   "color2": "#c681da",
+   "capital": {
+    "name": "Jérusalem",
+    "lat": 31.77,
+    "lon": 35.21
+   },
+   "population": 10045630,
+   "stats": {
+    "puissance": 74,
+    "economie": 85,
+    "ressources": 77,
+    "stabilite": 86,
+    "mobilite": 69,
+    "defense": 74,
+    "expansion": 49,
+    "vitesse": 68
+   }
+  },
+  {
+   "id": "JP",
+   "atlasId": "392",
+   "iso2": "JP",
+   "name": "Japon",
+   "continent": "Asie",
+   "color": "#bc002d",
+   "color2": "#e8557a",
+   "capital": {
+    "name": "Tokyo",
+    "lat": 35.69,
+    "lon": 139.69
+   },
+   "population": 124599168,
+   "stats": {
+    "puissance": 70,
+    "economie": 89,
+    "ressources": 70,
+    "stabilite": 76,
+    "mobilite": 66,
+    "defense": 66,
+    "expansion": 54,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "JO",
+   "atlasId": "400",
+   "iso2": "JO",
+   "name": "Jordanie",
+   "continent": "Asie",
+   "color": "#cad039",
+   "color2": "#9bda81",
+   "capital": {
+    "name": "Amman",
+    "lat": 31.95,
+    "lon": 35.93
+   },
+   "population": 10766976,
+   "stats": {
+    "puissance": 53,
+    "economie": 56,
+    "ressources": 60,
+    "stabilite": 67,
+    "mobilite": 57,
+    "defense": 62,
+    "expansion": 50,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "KZ",
+   "atlasId": "398",
+   "iso2": "KZ",
+   "name": "Kazakhstan",
+   "continent": "Asie",
+   "color": "#00afca",
+   "color2": "#5fd6ea",
+   "capital": {
+    "name": "Astana",
+    "lat": 51.13,
+    "lon": 71.43
+   },
+   "population": 18833248,
+   "stats": {
+    "puissance": 56,
+    "economie": 59,
+    "ressources": 64,
+    "stabilite": 60,
+    "mobilite": 58,
+    "defense": 58,
+    "expansion": 54,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "KW",
+   "atlasId": "414",
+   "iso2": "KW",
+   "name": "Koweït",
+   "continent": "Asie",
+   "color": "#bad039",
+   "color2": "#91da81",
+   "capital": {
+    "name": "Koweït",
+    "lat": 29.38,
+    "lon": 47.99
+   },
+   "population": 4345133,
+   "stats": {
+    "puissance": 59,
+    "economie": 67,
+    "ressources": 76,
+    "stabilite": 71,
+    "mobilite": 73,
+    "defense": 64,
+    "expansion": 40,
+    "vitesse": 67
+   }
+  },
+  {
+   "id": "KG",
+   "atlasId": "417",
+   "iso2": "KG",
+   "name": "Kirghizistan",
+   "continent": "Asie",
+   "color": "#d03986",
+   "color2": "#da8e81",
+   "capital": {
+    "name": "Bichkek",
+    "lat": 42.87,
+    "lon": 74.59
+   },
+   "population": 6989360,
+   "stats": {
+    "puissance": 41,
+    "economie": 47,
+    "ressources": 57,
+    "stabilite": 52,
+    "mobilite": 58,
+    "defense": 55,
+    "expansion": 54,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "LA",
+   "atlasId": "418",
+   "iso2": "LA",
+   "name": "Laos",
+   "continent": "Asie",
+   "color": "#a0d039",
+   "color2": "#82da81",
+   "capital": {
+    "name": "Vientiane",
+    "lat": 17.97,
+    "lon": 102.63
+   },
+   "population": 7517677,
+   "stats": {
+    "puissance": 46,
+    "economie": 41,
+    "ressources": 69,
+    "stabilite": 58,
+    "mobilite": 60,
+    "defense": 55,
+    "expansion": 46,
+    "vitesse": 53
+   }
+  },
+  {
+   "id": "LB",
+   "atlasId": "422",
+   "iso2": "LB",
+   "name": "Liban",
+   "continent": "Asie",
+   "color": "#d0395b",
+   "color2": "#daa881",
+   "capital": {
+    "name": "Beyrouth",
+    "lat": 33.89,
+    "lon": 35.5
+   },
+   "population": 5401616,
+   "stats": {
+    "puissance": 42,
+    "economie": 44,
+    "ressources": 46,
+    "stabilite": 54,
+    "mobilite": 53,
+    "defense": 51,
+    "expansion": 50,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "MY",
+   "atlasId": "458",
+   "iso2": "MY",
+   "name": "Malaisie",
+   "continent": "Asie",
+   "color": "#39d0bf",
+   "color2": "#81a9da",
+   "capital": {
+    "name": "Kuala Lumpur",
+    "lat": 3.14,
+    "lon": 101.69
+   },
+   "population": 36687904,
+   "stats": {
+    "puissance": 71,
+    "economie": 76,
+    "ressources": 53,
+    "stabilite": 76,
+    "mobilite": 73,
+    "defense": 67,
+    "expansion": 50,
+    "vitesse": 72
+   }
+  },
+  {
+   "id": "MV",
+   "atlasId": "462",
+   "iso2": "MV",
+   "name": "Maldives",
+   "continent": "Asie",
+   "color": "#cc39d0",
+   "color2": "#da81a1",
+   "capital": {
+    "name": "Malé",
+    "lat": 4.18,
+    "lon": 73.51
+   },
+   "population": 493376,
+   "stats": {
+    "puissance": 35,
+    "economie": 57,
+    "ressources": 51,
+    "stabilite": 69,
+    "mobilite": 64,
+    "defense": 51,
+    "expansion": 46,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "MN",
+   "atlasId": "496",
+   "iso2": "MN",
+   "name": "Mongolie",
+   "continent": "Asie",
+   "color": "#c4272f",
+   "color2": "#e8757b",
+   "capital": {
+    "name": "Oulan-Bator",
+    "lat": 47.89,
+    "lon": 106.91
+   },
+   "population": 3333360,
+   "stats": {
+    "puissance": 46,
+    "economie": 45,
+    "ressources": 50,
+    "stabilite": 58,
+    "mobilite": 62,
+    "defense": 54,
+    "expansion": 50,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "MM",
+   "atlasId": "104",
+   "iso2": "MM",
+   "name": "Birmanie",
+   "continent": "Asie",
+   "color": "#d07139",
+   "color2": "#d7da81",
+   "capital": {
+    "name": "Naypyidaw",
+    "lat": 19.76,
+    "lon": 96.08
+   },
+   "population": 57924288,
+   "stats": {
+    "puissance": 56,
+    "economie": 47,
+    "ressources": 41,
+    "stabilite": 52,
+    "mobilite": 56,
+    "defense": 61,
+    "expansion": 38,
+    "vitesse": 49
+   }
+  },
+  {
+   "id": "NP",
+   "atlasId": "524",
+   "iso2": "NP",
+   "name": "Népal",
+   "continent": "Asie",
+   "color": "#58d039",
+   "color2": "#81daaa",
+   "capital": {
+    "name": "Katmandou",
+    "lat": 27.72,
+    "lon": 85.32
+   },
+   "population": 30508320,
+   "stats": {
+    "puissance": 52,
+    "economie": 49,
+    "ressources": 46,
+    "stabilite": 53,
+    "mobilite": 55,
+    "defense": 59,
+    "expansion": 45,
+    "vitesse": 55
+   }
+  },
+  {
+   "id": "KP",
+   "atlasId": "408",
+   "iso2": "KP",
+   "name": "Corée du Nord",
+   "continent": "Asie",
+   "color": "#a5301e",
+   "color2": "#d86b5a",
+   "capital": {
+    "name": "Pyongyang",
+    "lat": 39.02,
+    "lon": 125.75
+   },
+   "population": 26740896,
+   "stats": {
+    "puissance": 60,
+    "economie": 31,
+    "ressources": 48,
+    "stabilite": 56,
+    "mobilite": 52,
+    "defense": 70,
+    "expansion": 54,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "OM",
+   "atlasId": "512",
+   "iso2": "OM",
+   "name": "Oman",
+   "continent": "Asie",
+   "color": "#39bfd0",
+   "color2": "#8194da",
+   "capital": {
+    "name": "Mascate",
+    "lat": 23.59,
+    "lon": 58.41
+   },
+   "population": 4286685,
+   "stats": {
+    "puissance": 56,
+    "economie": 66,
+    "ressources": 71,
+    "stabilite": 79,
+    "mobilite": 64,
+    "defense": 61,
+    "expansion": 50,
+    "vitesse": 71
+   }
+  },
+  {
+   "id": "PK",
+   "atlasId": "586",
+   "iso2": "PK",
+   "name": "Pakistan",
+   "continent": "Asie",
+   "color": "#01411c",
+   "color2": "#3f8a5e",
+   "capital": {
+    "name": "Islamabad",
+    "lat": 33.68,
+    "lon": 73.05
+   },
+   "population": 253536000,
+   "stats": {
+    "puissance": 62,
+    "economie": 51,
+    "ressources": 58,
+    "stabilite": 50,
+    "mobilite": 56,
+    "defense": 64,
+    "expansion": 56,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "PS",
+   "atlasId": "275",
+   "iso2": "PS",
+   "name": "Palestine",
+   "continent": "Asie",
+   "color": "#d0ba39",
+   "color2": "#acda81",
+   "capital": {
+    "name": "Ramallah",
+    "lat": 31.9,
+    "lon": 35.2
+   },
+   "population": 4995216,
+   "stats": {
+    "puissance": 44,
+    "economie": 46,
+    "ressources": 69,
+    "stabilite": 58,
+    "mobilite": 64,
+    "defense": 51,
+    "expansion": 49,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "PH",
+   "atlasId": "608",
+   "iso2": "PH",
+   "name": "Philippines",
+   "continent": "Asie",
+   "color": "#d06739",
+   "color2": "#dad881",
+   "capital": {
+    "name": "Manille",
+    "lat": 14.6,
+    "lon": 120.98
+   },
+   "population": 118576960,
+   "stats": {
+    "puissance": 69,
+    "economie": 63,
+    "ressources": 61,
+    "stabilite": 68,
+    "mobilite": 58,
+    "defense": 65,
+    "expansion": 56,
+    "vitesse": 52
+   }
+  },
+  {
+   "id": "QA",
+   "atlasId": "634",
+   "iso2": "QA",
+   "name": "Qatar",
+   "continent": "Asie",
+   "color": "#39d0c1",
+   "color2": "#81a8da",
+   "capital": {
+    "name": "Doha",
+    "lat": 25.29,
+    "lon": 51.53
+   },
+   "population": 2671445,
+   "stats": {
+    "puissance": 66,
+    "economie": 84,
+    "ressources": 61,
+    "stabilite": 93,
+    "mobilite": 83,
+    "defense": 67,
+    "expansion": 59,
+    "vitesse": 67
+   }
+  },
+  {
+   "id": "SA",
+   "atlasId": "682",
+   "iso2": "SA",
+   "name": "Arabie saoudite",
+   "continent": "Asie",
+   "color": "#006c35",
+   "color2": "#48a877",
+   "capital": {
+    "name": "Riyad",
+    "lat": 24.71,
+    "lon": 46.68
+   },
+   "population": 35721216,
+   "stats": {
+    "puissance": 64,
+    "economie": 72,
+    "ressources": 76,
+    "stabilite": 60,
+    "mobilite": 60,
+    "defense": 62,
+    "expansion": 56,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "SG",
+   "atlasId": "702",
+   "iso2": "SG",
+   "name": "Singapour",
+   "continent": "Asie",
+   "color": "#393ad0",
+   "color2": "#bc81da",
+   "capital": {
+    "name": "Singapour",
+    "lat": 1.35,
+    "lon": 103.82
+   },
+   "population": 6009693,
+   "stats": {
+    "puissance": 69,
+    "economie": 79,
+    "ressources": 78,
+    "stabilite": 90,
+    "mobilite": 80,
+    "defense": 70,
+    "expansion": 51,
+    "vitesse": 68
+   }
+  },
+  {
+   "id": "KR",
+   "atlasId": "410",
+   "iso2": "KR",
+   "name": "Corée du Sud",
+   "continent": "Asie",
+   "color": "#0047a0",
+   "color2": "#5a8fd6",
+   "capital": {
+    "name": "Séoul",
+    "lat": 37.57,
+    "lon": 126.98
+   },
+   "population": 50691264,
+   "stats": {
+    "puissance": 66,
+    "economie": 89,
+    "ressources": 70,
+    "stabilite": 70,
+    "mobilite": 68,
+    "defense": 66,
+    "expansion": 54,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "LK",
+   "atlasId": "144",
+   "iso2": "LK",
+   "name": "Sri Lanka",
+   "continent": "Asie",
+   "color": "#39add0",
+   "color2": "#8189da",
+   "capital": {
+    "name": "Sri Jayawardenepura Kotte",
+    "lat": 6.9,
+    "lon": 79.91
+   },
+   "population": 20357216,
+   "stats": {
+    "puissance": 47,
+    "economie": 44,
+    "ressources": 50,
+    "stabilite": 49,
+    "mobilite": 64,
+    "defense": 54,
+    "expansion": 63,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "SY",
+   "atlasId": "760",
+   "iso2": "SY",
+   "name": "Syrie",
+   "continent": "Asie",
+   "color": "#d0396b",
+   "color2": "#da9f81",
+   "capital": {
+    "name": "Damas",
+    "lat": 33.51,
+    "lon": 36.29
+   },
+   "population": 23635040,
+   "stats": {
+    "puissance": 43,
+    "economie": 32,
+    "ressources": 46,
+    "stabilite": 44,
+    "mobilite": 55,
+    "defense": 49,
+    "expansion": 47,
+    "vitesse": 44
+   }
+  },
+  {
+   "id": "TJ",
+   "atlasId": "762",
+   "iso2": "TJ",
+   "name": "Tadjikistan",
+   "continent": "Asie",
+   "color": "#d04039",
+   "color2": "#dac181",
+   "capital": {
+    "name": "Douchanbé",
+    "lat": 38.56,
+    "lon": 68.78
+   },
+   "population": 9840960,
+   "stats": {
+    "puissance": 33,
+    "economie": 31,
+    "ressources": 51,
+    "stabilite": 40,
+    "mobilite": 56,
+    "defense": 45,
+    "expansion": 53,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "TH",
+   "atlasId": "764",
+   "iso2": "TH",
+   "name": "Thaïlande",
+   "continent": "Asie",
+   "color": "#2d2a4a",
+   "color2": "#6b67a3",
+   "capital": {
+    "name": "Bangkok",
+    "lat": 13.76,
+    "lon": 100.5
+   },
+   "population": 64413440,
+   "stats": {
+    "puissance": 58,
+    "economie": 58,
+    "ressources": 58,
+    "stabilite": 56,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 52,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "TL",
+   "atlasId": "626",
+   "iso2": "TL",
+   "name": "Timor oriental",
+   "continent": "Asie",
+   "color": "#d0cb39",
+   "color2": "#a2da81",
+   "capital": {
+    "name": "Dili",
+    "lat": -8.56,
+    "lon": 125.57
+   },
+   "population": 1222291,
+   "stats": {
+    "puissance": 35,
+    "economie": 38,
+    "ressources": 58,
+    "stabilite": 53,
+    "mobilite": 59,
+    "defense": 50,
+    "expansion": 36,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "TR",
+   "atlasId": "792",
+   "iso2": "TR",
+   "name": "Turquie",
+   "continent": "Asie",
+   "color": "#c62828",
+   "color2": "#ef6c6c",
+   "capital": {
+    "name": "Ankara",
+    "lat": 39.93,
+    "lon": 32.86
+   },
+   "population": 83227920,
+   "stats": {
+    "puissance": 70,
+    "economie": 73,
+    "ressources": 64,
+    "stabilite": 56,
+    "mobilite": 62,
+    "defense": 68,
+    "expansion": 62,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "TM",
+   "atlasId": "795",
+   "iso2": "TM",
+   "name": "Turkménistan",
+   "continent": "Asie",
+   "color": "#d0ce39",
+   "color2": "#a0da81",
+   "capital": {
+    "name": "Achgabat",
+    "lat": 37.96,
+    "lon": 58.33
+   },
+   "population": 6553498,
+   "stats": {
+    "puissance": 43,
+    "economie": 43,
+    "ressources": 65,
+    "stabilite": 57,
+    "mobilite": 53,
+    "defense": 56,
+    "expansion": 40,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "AE",
+   "atlasId": "784",
+   "iso2": "AE",
+   "name": "Émirats arabes unis",
+   "continent": "Asie",
+   "color": "#d0a439",
+   "color2": "#b9da81",
+   "capital": {
+    "name": "Abou Dabi",
+    "lat": 24.45,
+    "lon": 54.38
+   },
+   "population": 9669517,
+   "stats": {
+    "puissance": 74,
+    "economie": 82,
+    "ressources": 72,
+    "stabilite": 83,
+    "mobilite": 82,
+    "defense": 68,
+    "expansion": 41,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "UZ",
+   "atlasId": "860",
+   "iso2": "UZ",
+   "name": "Ouzbékistan",
+   "continent": "Asie",
+   "color": "#d039ac",
+   "color2": "#da8189",
+   "capital": {
+    "name": "Tachkent",
+    "lat": 41.3,
+    "lon": 69.24
+   },
+   "population": 36913520,
+   "stats": {
+    "puissance": 54,
+    "economie": 48,
+    "ressources": 62,
+    "stabilite": 59,
+    "mobilite": 53,
+    "defense": 56,
+    "expansion": 47,
+    "vitesse": 50
+   }
+  },
+  {
+   "id": "VN",
+   "atlasId": "704",
+   "iso2": "VN",
+   "name": "Vietnam",
+   "continent": "Asie",
+   "color": "#da251d",
+   "color2": "#ff6b64",
+   "capital": {
+    "name": "Hanoï",
+    "lat": 21.03,
+    "lon": 105.85
+   },
+   "population": 98643600,
+   "stats": {
+    "puissance": 60,
+    "economie": 61,
+    "ressources": 58,
+    "stabilite": 60,
+    "mobilite": 58,
+    "defense": 66,
+    "expansion": 54,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "YE",
+   "atlasId": "887",
+   "iso2": "YE",
+   "name": "Yémen",
+   "continent": "Asie",
+   "color": "#d07e39",
+   "color2": "#cfda81",
+   "capital": {
+    "name": "Sanaa",
+    "lat": 15.37,
+    "lon": 44.19
+   },
+   "population": 32388048,
+   "stats": {
+    "puissance": 43,
+    "economie": 31,
+    "ressources": 48,
+    "stabilite": 39,
+    "mobilite": 54,
+    "defense": 54,
+    "expansion": 56,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "AG",
+   "atlasId": "028",
+   "iso2": "AG",
+   "name": "Antigua-et-Barbuda",
+   "continent": "Amérique du Nord",
+   "color": "#3999d0",
+   "color2": "#8481da",
+   "capital": {
+    "name": "Saint John's",
+    "lat": 17.12,
+    "lon": -61.85
+   },
+   "population": 97149,
+   "stats": {
+    "puissance": 28,
+    "economie": 56,
+    "ressources": 73,
+    "stabilite": 68,
+    "mobilite": 56,
+    "defense": 50,
+    "expansion": 54,
+    "vitesse": 67
+   }
+  },
+  {
+   "id": "BS",
+   "atlasId": "044",
+   "iso2": "BS",
+   "name": "Bahamas",
+   "continent": "Amérique du Nord",
+   "color": "#393ed0",
+   "color2": "#b981da",
+   "capital": {
+    "name": "Nassau",
+    "lat": 25.05,
+    "lon": -77.35
+   },
+   "population": 393638,
+   "stats": {
+    "puissance": 46,
+    "economie": 68,
+    "ressources": 64,
+    "stabilite": 70,
+    "mobilite": 72,
+    "defense": 61,
+    "expansion": 39,
+    "vitesse": 70
+   }
+  },
+  {
+   "id": "BB",
+   "atlasId": "052",
+   "iso2": "BB",
+   "name": "Barbade",
+   "continent": "Amérique du Nord",
+   "color": "#39d0cb",
+   "color2": "#81a2da",
+   "capital": {
+    "name": "Bridgetown",
+    "lat": 13.1,
+    "lon": -59.62
+   },
+   "population": 273961,
+   "stats": {
+    "puissance": 31,
+    "economie": 56,
+    "ressources": 65,
+    "stabilite": 64,
+    "mobilite": 68,
+    "defense": 50,
+    "expansion": 64,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "BZ",
+   "atlasId": "084",
+   "iso2": "BZ",
+   "name": "Belize",
+   "continent": "Amérique du Nord",
+   "color": "#39d0b0",
+   "color2": "#81b2da",
+   "capital": {
+    "name": "Belmopan",
+    "lat": 17.25,
+    "lon": -88.77
+   },
+   "population": 408736,
+   "stats": {
+    "puissance": 28,
+    "economie": 40,
+    "ressources": 48,
+    "stabilite": 56,
+    "mobilite": 60,
+    "defense": 52,
+    "expansion": 39,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "CA",
+   "atlasId": "124",
+   "iso2": "CA",
+   "name": "Canada",
+   "continent": "Amérique du Nord",
+   "color": "#d52b1e",
+   "color2": "#f07a70",
+   "capital": {
+    "name": "Ottawa",
+    "lat": 45.42,
+    "lon": -75.7
+   },
+   "population": 40467648,
+   "stats": {
+    "puissance": 64,
+    "economie": 83,
+    "ressources": 74,
+    "stabilite": 78,
+    "mobilite": 64,
+    "defense": 64,
+    "expansion": 52,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "CR",
+   "atlasId": "188",
+   "iso2": "CR",
+   "name": "Costa Rica",
+   "continent": "Amérique du Nord",
+   "color": "#39d050",
+   "color2": "#81daca",
+   "capital": {
+    "name": "San José",
+    "lat": 9.93,
+    "lon": -84.08
+   },
+   "population": 5485043,
+   "stats": {
+    "puissance": 49,
+    "economie": 55,
+    "ressources": 48,
+    "stabilite": 60,
+    "mobilite": 65,
+    "defense": 57,
+    "expansion": 64,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "CU",
+   "atlasId": "192",
+   "iso2": "CU",
+   "name": "Cuba",
+   "continent": "Amérique du Nord",
+   "color": "#d08c39",
+   "color2": "#c7da81",
+   "capital": {
+    "name": "La Havane",
+    "lat": 23.11,
+    "lon": -82.37
+   },
+   "population": 11014608,
+   "stats": {
+    "puissance": 46,
+    "economie": 45,
+    "ressources": 56,
+    "stabilite": 59,
+    "mobilite": 63,
+    "defense": 58,
+    "expansion": 58,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "DM",
+   "atlasId": "212",
+   "iso2": "DM",
+   "name": "Dominique",
+   "continent": "Amérique du Nord",
+   "color": "#d08539",
+   "color2": "#cbda81",
+   "capital": {
+    "name": "Roseau",
+    "lat": 15.3,
+    "lon": -61.39
+   },
+   "population": 64902,
+   "stats": {
+    "puissance": 18,
+    "economie": 40,
+    "ressources": 69,
+    "stabilite": 56,
+    "mobilite": 58,
+    "defense": 49,
+    "expansion": 60,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "DO",
+   "atlasId": "214",
+   "iso2": "DO",
+   "name": "République dominicaine",
+   "continent": "Amérique du Nord",
+   "color": "#39d0cf",
+   "color2": "#819fda",
+   "capital": {
+    "name": "Saint-Domingue",
+    "lat": 18.49,
+    "lon": -69.93
+   },
+   "population": 11147488,
+   "stats": {
+    "puissance": 54,
+    "economie": 61,
+    "ressources": 54,
+    "stabilite": 64,
+    "mobilite": 68,
+    "defense": 62,
+    "expansion": 40,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "SV",
+   "atlasId": "222",
+   "iso2": "SV",
+   "name": "Salvador",
+   "continent": "Amérique du Nord",
+   "color": "#39d088",
+   "color2": "#81c9da",
+   "capital": {
+    "name": "San Salvador",
+    "lat": 13.69,
+    "lon": -89.22
+   },
+   "population": 6598771,
+   "stats": {
+    "puissance": 43,
+    "economie": 47,
+    "ressources": 53,
+    "stabilite": 55,
+    "mobilite": 64,
+    "defense": 54,
+    "expansion": 65,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "GD",
+   "atlasId": "308",
+   "iso2": "GD",
+   "name": "Grenade",
+   "continent": "Amérique du Nord",
+   "color": "#3986d0",
+   "color2": "#8f81da",
+   "capital": {
+    "name": "Saint-Georges",
+    "lat": 12.06,
+    "lon": -61.75
+   },
+   "population": 127069,
+   "stats": {
+    "puissance": 19,
+    "economie": 38,
+    "ressources": 42,
+    "stabilite": 59,
+    "mobilite": 49,
+    "defense": 50,
+    "expansion": 53,
+    "vitesse": 61
+   }
+  },
+  {
+   "id": "GT",
+   "atlasId": "320",
+   "iso2": "GT",
+   "name": "Guatemala",
+   "continent": "Amérique du Nord",
+   "color": "#394ed0",
+   "color2": "#b081da",
+   "capital": {
+    "name": "Guatemala",
+    "lat": 14.63,
+    "lon": -90.51
+   },
+   "population": 16134224,
+   "stats": {
+    "puissance": 51,
+    "economie": 42,
+    "ressources": 65,
+    "stabilite": 60,
+    "mobilite": 55,
+    "defense": 58,
+    "expansion": 60,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "HT",
+   "atlasId": "332",
+   "iso2": "HT",
+   "name": "Haïti",
+   "continent": "Amérique du Nord",
+   "color": "#6639d0",
+   "color2": "#d781da",
+   "capital": {
+    "name": "Port-au-Prince",
+    "lat": 18.54,
+    "lon": -72.34
+   },
+   "population": 11496064,
+   "stats": {
+    "puissance": 36,
+    "economie": 31,
+    "ressources": 53,
+    "stabilite": 48,
+    "mobilite": 44,
+    "defense": 50,
+    "expansion": 47,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "HN",
+   "atlasId": "340",
+   "iso2": "HN",
+   "name": "Honduras",
+   "continent": "Amérique du Nord",
+   "color": "#3964d0",
+   "color2": "#a381da",
+   "capital": {
+    "name": "Tegucigalpa",
+    "lat": 14.07,
+    "lon": -87.19
+   },
+   "population": 9869760,
+   "stats": {
+    "puissance": 46,
+    "economie": 43,
+    "ressources": 66,
+    "stabilite": 56,
+    "mobilite": 51,
+    "defense": 56,
+    "expansion": 60,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "JM",
+   "atlasId": "388",
+   "iso2": "JM",
+   "name": "Jamaïque",
+   "continent": "Amérique du Nord",
+   "color": "#d039cf",
+   "color2": "#da819e",
+   "capital": {
+    "name": "Kingston",
+    "lat": 18.02,
+    "lon": -76.8
+   },
+   "population": 2795789,
+   "stats": {
+    "puissance": 39,
+    "economie": 42,
+    "ressources": 48,
+    "stabilite": 49,
+    "mobilite": 55,
+    "defense": 51,
+    "expansion": 37,
+    "vitesse": 59
+   }
+  },
+  {
+   "id": "MX",
+   "atlasId": "484",
+   "iso2": "MX",
+   "name": "Mexique",
+   "continent": "Amérique du Nord",
+   "color": "#006847",
+   "color2": "#4ba37f",
+   "capital": {
+    "name": "Mexico",
+    "lat": 19.43,
+    "lon": -99.13
+   },
+   "population": 120123392,
+   "stats": {
+    "puissance": 62,
+    "economie": 61,
+    "ressources": 62,
+    "stabilite": 54,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 56,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "NI",
+   "atlasId": "558",
+   "iso2": "NI",
+   "name": "Nicaragua",
+   "continent": "Amérique du Nord",
+   "color": "#39bbd0",
+   "color2": "#8192da",
+   "capital": {
+    "name": "Managua",
+    "lat": 12.11,
+    "lon": -86.24
+   },
+   "population": 6453322,
+   "stats": {
+    "puissance": 40,
+    "economie": 42,
+    "ressources": 56,
+    "stabilite": 51,
+    "mobilite": 57,
+    "defense": 51,
+    "expansion": 54,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "PA",
+   "atlasId": "591",
+   "iso2": "PA",
+   "name": "Panama",
+   "continent": "Amérique du Nord",
+   "color": "#39d0a4",
+   "color2": "#81b9da",
+   "capital": {
+    "name": "Panama",
+    "lat": 8.98,
+    "lon": -79.52
+   },
+   "population": 4549530,
+   "stats": {
+    "puissance": 49,
+    "economie": 53,
+    "ressources": 73,
+    "stabilite": 72,
+    "mobilite": 70,
+    "defense": 61,
+    "expansion": 46,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "KN",
+   "atlasId": "659",
+   "iso2": "KN",
+   "name": "Saint-Christophe-et-Niévès",
+   "continent": "Amérique du Nord",
+   "color": "#39d086",
+   "color2": "#81cada",
+   "capital": {
+    "name": "Basseterre",
+    "lat": 17.3,
+    "lon": -62.72
+   },
+   "population": 50952,
+   "stats": {
+    "puissance": 27,
+    "economie": 54,
+    "ressources": 55,
+    "stabilite": 71,
+    "mobilite": 66,
+    "defense": 50,
+    "expansion": 50,
+    "vitesse": 64
+   }
+  },
+  {
+   "id": "LC",
+   "atlasId": "662",
+   "iso2": "LC",
+   "name": "Sainte-Lucie",
+   "continent": "Amérique du Nord",
+   "color": "#d07439",
+   "color2": "#d5da81",
+   "capital": {
+    "name": "Castries",
+    "lat": 14.01,
+    "lon": -60.99
+   },
+   "population": 179899,
+   "stats": {
+    "puissance": 22,
+    "economie": 37,
+    "ressources": 58,
+    "stabilite": 53,
+    "mobilite": 51,
+    "defense": 44,
+    "expansion": 43,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "VC",
+   "atlasId": "670",
+   "iso2": "VC",
+   "name": "Saint-Vincent-et-les-Grenadines",
+   "continent": "Amérique du Nord",
+   "color": "#d03984",
+   "color2": "#da9081",
+   "capital": {
+    "name": "Kingstown",
+    "lat": 13.16,
+    "lon": -61.22
+   },
+   "population": 97378,
+   "stats": {
+    "puissance": 24,
+    "economie": 38,
+    "ressources": 63,
+    "stabilite": 63,
+    "mobilite": 56,
+    "defense": 47,
+    "expansion": 60,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "TT",
+   "atlasId": "780",
+   "iso2": "TT",
+   "name": "Trinité-et-Tobago",
+   "continent": "Amérique du Nord",
+   "color": "#9a39d0",
+   "color2": "#da81bf",
+   "capital": {
+    "name": "Port-d'Espagne",
+    "lat": 10.65,
+    "lon": -61.51
+   },
+   "population": 1400904,
+   "stats": {
+    "puissance": 46,
+    "economie": 56,
+    "ressources": 74,
+    "stabilite": 60,
+    "mobilite": 64,
+    "defense": 58,
+    "expansion": 49,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "US",
+   "atlasId": "840",
+   "iso2": "US",
+   "name": "États-Unis",
+   "continent": "Amérique du Nord",
+   "color": "#3c5a99",
+   "color2": "#7d9bd6",
+   "capital": {
+    "name": "Washington",
+    "lat": 38.91,
+    "lon": -77.04
+   },
+   "population": 354135200,
+   "stats": {
+    "puissance": 80,
+    "economie": 89,
+    "ressources": 80,
+    "stabilite": 62,
+    "mobilite": 72,
+    "defense": 70,
+    "expansion": 66,
+    "vitesse": 66
+   }
+  },
+  {
+   "id": "AR",
+   "atlasId": "032",
+   "iso2": "AR",
+   "name": "Argentine",
+   "continent": "Amérique du Sud",
+   "color": "#6cace4",
+   "color2": "#a9d1f5",
+   "capital": {
+    "name": "Buenos Aires",
+    "lat": -34.6,
+    "lon": -58.38
+   },
+   "population": 45309632,
+   "stats": {
+    "puissance": 60,
+    "economie": 57,
+    "ressources": 62,
+    "stabilite": 54,
+    "mobilite": 60,
+    "defense": 60,
+    "expansion": 56,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "BO",
+   "atlasId": "068",
+   "iso2": "BO",
+   "name": "Bolivie",
+   "continent": "Amérique du Sud",
+   "color": "#7dd039",
+   "color2": "#81da94",
+   "capital": {
+    "name": "Sucre",
+    "lat": -19.04,
+    "lon": -65.26
+   },
+   "population": 11605824,
+   "stats": {
+    "puissance": 44,
+    "economie": 43,
+    "ressources": 64,
+    "stabilite": 64,
+    "mobilite": 52,
+    "defense": 53,
+    "expansion": 45,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "BR",
+   "atlasId": "076",
+   "iso2": "BR",
+   "name": "Brésil",
+   "continent": "Amérique du Sud",
+   "color": "#009c3b",
+   "color2": "#ffdf00",
+   "capital": {
+    "name": "Brasilia",
+    "lat": -15.79,
+    "lon": -47.88
+   },
+   "population": 208745856,
+   "stats": {
+    "puissance": 68,
+    "economie": 59,
+    "ressources": 70,
+    "stabilite": 56,
+    "mobilite": 60,
+    "defense": 62,
+    "expansion": 60,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "CL",
+   "atlasId": "152",
+   "iso2": "CL",
+   "name": "Chili",
+   "continent": "Amérique du Sud",
+   "color": "#d52b1e",
+   "color2": "#0039a6",
+   "capital": {
+    "name": "Santiago",
+    "lat": -33.45,
+    "lon": -70.67
+   },
+   "population": 18272531,
+   "stats": {
+    "puissance": 54,
+    "economie": 71,
+    "ressources": 58,
+    "stabilite": 64,
+    "mobilite": 58,
+    "defense": 60,
+    "expansion": 50,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "CO",
+   "atlasId": "170",
+   "iso2": "CO",
+   "name": "Colombie",
+   "continent": "Amérique du Sud",
+   "color": "#fcd116",
+   "color2": "#ffe676",
+   "capital": {
+    "name": "Bogota",
+    "lat": 4.71,
+    "lon": -74.07
+   },
+   "population": 51585664,
+   "stats": {
+    "puissance": 58,
+    "economie": 62,
+    "ressources": 58,
+    "stabilite": 52,
+    "mobilite": 56,
+    "defense": 60,
+    "expansion": 54,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "EC",
+   "atlasId": "218",
+   "iso2": "EC",
+   "name": "Équateur",
+   "continent": "Amérique du Sud",
+   "color": "#3940d0",
+   "color2": "#b881da",
+   "capital": {
+    "name": "Quito",
+    "lat": -0.18,
+    "lon": -78.47
+   },
+   "population": 18246816,
+   "stats": {
+    "puissance": 48,
+    "economie": 41,
+    "ressources": 55,
+    "stabilite": 63,
+    "mobilite": 55,
+    "defense": 55,
+    "expansion": 48,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "GY",
+   "atlasId": "328",
+   "iso2": "GY",
+   "name": "Guyana",
+   "continent": "Amérique du Sud",
+   "color": "#d04b39",
+   "color2": "#dac781",
+   "capital": {
+    "name": "Georgetown",
+    "lat": 6.8,
+    "lon": -58.16
+   },
+   "population": 746010,
+   "stats": {
+    "puissance": 38,
+    "economie": 58,
+    "ressources": 60,
+    "stabilite": 59,
+    "mobilite": 60,
+    "defense": 54,
+    "expansion": 47,
+    "vitesse": 67
+   }
+  },
+  {
+   "id": "PY",
+   "atlasId": "600",
+   "iso2": "PY",
+   "name": "Paraguay",
+   "continent": "Amérique du Sud",
+   "color": "#d03959",
+   "color2": "#daa981",
+   "capital": {
+    "name": "Asuncion",
+    "lat": -25.26,
+    "lon": -57.58
+   },
+   "population": 7391501,
+   "stats": {
+    "puissance": 42,
+    "economie": 47,
+    "ressources": 44,
+    "stabilite": 54,
+    "mobilite": 55,
+    "defense": 57,
+    "expansion": 46,
+    "vitesse": 63
+   }
+  },
+  {
+   "id": "PE",
+   "atlasId": "604",
+   "iso2": "PE",
+   "name": "Pérou",
+   "continent": "Amérique du Sud",
+   "color": "#d91023",
+   "color2": "#f26b77",
+   "capital": {
+    "name": "Lima",
+    "lat": -12.05,
+    "lon": -77.04
+   },
+   "population": 33807968,
+   "stats": {
+    "puissance": 54,
+    "economie": 60,
+    "ressources": 56,
+    "stabilite": 54,
+    "mobilite": 54,
+    "defense": 58,
+    "expansion": 52,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "SR",
+   "atlasId": "740",
+   "iso2": "SR",
+   "name": "Suriname",
+   "continent": "Amérique du Sud",
+   "color": "#3ad039",
+   "color2": "#81dabc",
+   "capital": {
+    "name": "Paramaribo",
+    "lat": 5.85,
+    "lon": -55.2
+   },
+   "population": 595716,
+   "stats": {
+    "puissance": 30,
+    "economie": 42,
+    "ressources": 47,
+    "stabilite": 54,
+    "mobilite": 54,
+    "defense": 47,
+    "expansion": 41,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "UY",
+   "atlasId": "858",
+   "iso2": "UY",
+   "name": "Uruguay",
+   "continent": "Amérique du Sud",
+   "color": "#39d092",
+   "color2": "#81c3da",
+   "capital": {
+    "name": "Montevideo",
+    "lat": -34.9,
+    "lon": -56.16
+   },
+   "population": 3293811,
+   "stats": {
+    "puissance": 56,
+    "economie": 68,
+    "ressources": 79,
+    "stabilite": 74,
+    "mobilite": 68,
+    "defense": 59,
+    "expansion": 62,
+    "vitesse": 66
+   }
+  },
+  {
+   "id": "VE",
+   "atlasId": "862",
+   "iso2": "VE",
+   "name": "Venezuela",
+   "continent": "Amérique du Sud",
+   "color": "#cf142b",
+   "color2": "#f0677a",
+   "capital": {
+    "name": "Caracas",
+    "lat": 10.49,
+    "lon": -66.9
+   },
+   "population": 29524544,
+   "stats": {
+    "puissance": 54,
+    "economie": 45,
+    "ressources": 60,
+    "stabilite": 42,
+    "mobilite": 54,
+    "defense": 56,
+    "expansion": 52,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "AU",
+   "atlasId": "036",
+   "iso2": "AU",
+   "name": "Australie",
+   "continent": "Océanie",
+   "color": "#00247d",
+   "color2": "#4a6cc2",
+   "capital": {
+    "name": "Canberra",
+    "lat": -35.28,
+    "lon": 149.13
+   },
+   "population": 26287456,
+   "stats": {
+    "puissance": 66,
+    "economie": 84,
+    "ressources": 74,
+    "stabilite": 76,
+    "mobilite": 66,
+    "defense": 62,
+    "expansion": 56,
+    "vitesse": 60
+   }
+  },
+  {
+   "id": "FJ",
+   "atlasId": "242",
+   "iso2": "FJ",
+   "name": "Fidji",
+   "continent": "Océanie",
+   "color": "#39d082",
+   "color2": "#81cdda",
+   "capital": {
+    "name": "Suva",
+    "lat": -18.14,
+    "lon": 178.44
+   },
+   "population": 977765,
+   "stats": {
+    "puissance": 34,
+    "economie": 39,
+    "ressources": 50,
+    "stabilite": 62,
+    "mobilite": 63,
+    "defense": 43,
+    "expansion": 39,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "KI",
+   "atlasId": "296",
+   "iso2": "KI",
+   "name": "Kiribati",
+   "continent": "Océanie",
+   "color": "#9539d0",
+   "color2": "#da81c2",
+   "capital": {
+    "name": "Tarawa",
+    "lat": 1.33,
+    "lon": 172.98
+   },
+   "population": 137586,
+   "stats": {
+    "puissance": 11,
+    "economie": 28,
+    "ressources": 44,
+    "stabilite": 39,
+    "mobilite": 43,
+    "defense": 41,
+    "expansion": 46,
+    "vitesse": 48
+   }
+  },
+  {
+   "id": "MH",
+   "atlasId": "584",
+   "iso2": "MH",
+   "name": "Îles Marshall",
+   "continent": "Océanie",
+   "color": "#cfd039",
+   "color2": "#9dda81",
+   "capital": {
+    "name": "Majuro",
+    "lat": 7.09,
+    "lon": 171.38
+   },
+   "population": 38764,
+   "stats": {
+    "puissance": 17,
+    "economie": 41,
+    "ressources": 44,
+    "stabilite": 53,
+    "mobilite": 58,
+    "defense": 45,
+    "expansion": 62,
+    "vitesse": 53
+   }
+  },
+  {
+   "id": "FM",
+   "atlasId": "583",
+   "iso2": "FM",
+   "name": "Micronésie",
+   "continent": "Océanie",
+   "color": "#39d0b1",
+   "color2": "#81b1da",
+   "capital": {
+    "name": "Palikir",
+    "lat": 6.92,
+    "lon": 158.16
+   },
+   "population": 112098,
+   "stats": {
+    "puissance": 24,
+    "economie": 37,
+    "ressources": 42,
+    "stabilite": 59,
+    "mobilite": 61,
+    "defense": 47,
+    "expansion": 54,
+    "vitesse": 49
+   }
+  },
+  {
+   "id": "NR",
+   "atlasId": "520",
+   "iso2": "NR",
+   "name": "Nauru",
+   "continent": "Océanie",
+   "color": "#d0ae39",
+   "color2": "#b3da81",
+   "capital": {
+    "name": "Yaren",
+    "lat": -0.55,
+    "lon": 166.92
+   },
+   "population": 12874,
+   "stats": {
+    "puissance": 17,
+    "economie": 39,
+    "ressources": 53,
+    "stabilite": 54,
+    "mobilite": 54,
+    "defense": 45,
+    "expansion": 60,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "NZ",
+   "atlasId": "554",
+   "iso2": "NZ",
+   "name": "Nouvelle-Zélande",
+   "continent": "Océanie",
+   "color": "#1b2a5c",
+   "color2": "#5a6ea8",
+   "capital": {
+    "name": "Wellington",
+    "lat": -41.29,
+    "lon": 174.78
+   },
+   "population": 5598029,
+   "stats": {
+    "puissance": 50,
+    "economie": 83,
+    "ressources": 58,
+    "stabilite": 80,
+    "mobilite": 58,
+    "defense": 56,
+    "expansion": 44,
+    "vitesse": 54
+   }
+  },
+  {
+   "id": "PW",
+   "atlasId": "585",
+   "iso2": "PW",
+   "name": "Palaos",
+   "continent": "Océanie",
+   "color": "#39d0a3",
+   "color2": "#81b9da",
+   "capital": {
+    "name": "Ngerulmud",
+    "lat": 7.5,
+    "lon": 134.62
+   },
+   "population": 19112,
+   "stats": {
+    "puissance": 26,
+    "economie": 57,
+    "ressources": 73,
+    "stabilite": 70,
+    "mobilite": 69,
+    "defense": 57,
+    "expansion": 53,
+    "vitesse": 58
+   }
+  },
+  {
+   "id": "PG",
+   "atlasId": "598",
+   "iso2": "PG",
+   "name": "Papouasie-Nouvelle-Guinée",
+   "continent": "Océanie",
+   "color": "#3967d0",
+   "color2": "#a181da",
+   "capital": {
+    "name": "Port Moresby",
+    "lat": -9.44,
+    "lon": 147.18
+   },
+   "population": 10264640,
+   "stats": {
+    "puissance": 33,
+    "economie": 32,
+    "ressources": 50,
+    "stabilite": 47,
+    "mobilite": 48,
+    "defense": 50,
+    "expansion": 58,
+    "vitesse": 44
+   }
+  },
+  {
+   "id": "WS",
+   "atlasId": "882",
+   "iso2": "WS",
+   "name": "Samoa",
+   "continent": "Océanie",
+   "color": "#d0394f",
+   "color2": "#daaf81",
+   "capital": {
+    "name": "Apia",
+    "lat": -13.83,
+    "lon": -171.76
+   },
+   "population": 230641,
+   "stats": {
+    "puissance": 23,
+    "economie": 44,
+    "ressources": 59,
+    "stabilite": 63,
+    "mobilite": 61,
+    "defense": 51,
+    "expansion": 36,
+    "vitesse": 62
+   }
+  },
+  {
+   "id": "SB",
+   "atlasId": "090",
+   "iso2": "SB",
+   "name": "Îles Salomon",
+   "continent": "Océanie",
+   "color": "#39d055",
+   "color2": "#81dacd",
+   "capital": {
+    "name": "Honiara",
+    "lat": -9.43,
+    "lon": 159.95
+   },
+   "population": 670429,
+   "stats": {
+    "puissance": 21,
+    "economie": 27,
+    "ressources": 35,
+    "stabilite": 48,
+    "mobilite": 44,
+    "defense": 40,
+    "expansion": 58,
+    "vitesse": 57
+   }
+  },
+  {
+   "id": "TO",
+   "atlasId": "776",
+   "iso2": "TO",
+   "name": "Tonga",
+   "continent": "Océanie",
+   "color": "#8639d0",
+   "color2": "#da81ca",
+   "capital": {
+    "name": "Nuku'alofa",
+    "lat": -21.14,
+    "lon": -175.2
+   },
+   "population": 105410,
+   "stats": {
+    "puissance": 23,
+    "economie": 40,
+    "ressources": 41,
+    "stabilite": 59,
+    "mobilite": 58,
+    "defense": 51,
+    "expansion": 50,
+    "vitesse": 51
+   }
+  },
+  {
+   "id": "TV",
+   "atlasId": "798",
+   "iso2": "TV",
+   "name": "Tuvalu",
+   "continent": "Océanie",
+   "color": "#a539d0",
+   "color2": "#da81b8",
+   "capital": {
+    "name": "Funafuti",
+    "lat": -8.52,
+    "lon": 179.2
+   },
+   "population": 11764,
+   "stats": {
+    "puissance": 9,
+    "economie": 31,
+    "ressources": 47,
+    "stabilite": 45,
+    "mobilite": 55,
+    "defense": 42,
+    "expansion": 61,
+    "vitesse": 49
+   }
+  },
+  {
+   "id": "VU",
+   "atlasId": "548",
+   "iso2": "VU",
+   "name": "Vanuatu",
+   "continent": "Océanie",
+   "color": "#d039a5",
+   "color2": "#da8185",
+   "capital": {
+    "name": "Port-Vila",
+    "lat": -17.73,
+    "lon": 168.32
+   },
+   "population": 331236,
+   "stats": {
+    "puissance": 15,
+    "economie": 28,
+    "ressources": 50,
+    "stabilite": 48,
+    "mobilite": 46,
+    "defense": 45,
+    "expansion": 41,
+    "vitesse": 56
+   }
+  },
+  {
+   "id": "GL",
+   "atlasId": "304",
+   "iso2": "GL",
+   "name": "Groenland",
+   "continent": "Amérique du Nord",
+   "color": "#39d0b6",
+   "color2": "#81aeda",
+   "capital": {
+    "name": "Nuuk",
+    "lat": 64.18,
+    "lon": -51.72
+   },
+   "population": 57082,
+   "stats": {
+    "puissance": 26,
+    "economie": 57,
+    "ressources": 54,
+    "stabilite": 70,
+    "mobilite": 58,
+    "defense": 53,
+    "expansion": 56,
+    "vitesse": 63
+   }
+  }
+ ]
+}

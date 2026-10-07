@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Simulator — Mode classique 2D</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <canvas id="map"></canvas>
+
+  <!-- ============ MENU PRINCIPAL ============ -->
+  <section id="menu" class="screen">
+    <div class="menu-card glass">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <h1>FRONTIÈRES <em>VIVES</em></h1>
+          <p class="tagline">Simulation territoriale dynamique</p>
+        </div>
+      </div>
+
+      <div class="versus-select">
+        <div class="pick-col">
+          <label>PAYS A</label>
+          <div class="country-picker" id="pickA"></div>
+        </div>
+        <button class="vs-badge" id="swapBtn" title="Inverser les pays">VS</button>
+        <div class="pick-col">
+          <label>PAYS B</label>
+          <div class="country-picker" id="pickB"></div>
+        </div>
+      </div>
+      <div class="menu-row small">
+        <button class="ghost" id="randomPairBtn">🎲 Pays voisins au hasard</button>
+        <span class="hint" id="menuHint"></span>
+      </div>
+
+      <button class="btn-launch" id="launchBtn">LANCER LA SIMULATION</button>
+
+      <div class="menu-grid">
+        <button class="btn-secondary" id="customBtn"><b>MODE PERSONNALISÉ</b><small>Puissance, durée, événements, statistiques…</small></button>
+        <button class="btn-secondary" id="spectatorBtn"><b>MODE SPECTATEUR</b><small>Caméra automatique, parties en boucle</small></button>
+        <button class="btn-secondary" id="loadBtn"><b>CHARGER</b><small>Paramètres sauvegardés</small></button>
+        <button class="btn-secondary" id="quitBtn"><b>← WORLD SIMULATOR</b><small>Revenir au globe 3D</small></button>
+      </div>
+      <p class="disclaimer">Simulation automatique : choisissez deux pays et regardez les territoires évoluer. Les résultats sont fictifs et ne constituent en aucun cas une prédiction réelle.</p>
+    </div>
+    <div class="menu-help glass">
+      <b>Contrôles</b>
+      <span><kbd>Molette</kbd> zoom</span>
+      <span><kbd>Glisser</kbd> déplacer</span>
+      <span><kbd>Clic</kbd> infos parcelle</span>
+      <span><kbd>Espace</kbd> pause</span>
+      <span><kbd>R</kbd> recommencer</span>
+      <span><kbd>Échap</kbd> menu</span>
+      <span><kbd>+</kbd><kbd>−</kbd> zoom</span>
+      <span><kbd>F11</kbd> plein écran</span>
+    </div>
+  </section>
+
+  <!-- ============ MODE PERSONNALISÉ ============ -->
+  <section id="custom" class="screen hidden">
+    <div class="custom-card glass">
+      <header class="custom-head">
+        <h2>MODE PERSONNALISÉ</h2>
+        <div class="custom-matchup" id="customMatchup"></div>
+      </header>
+      <div class="custom-body">
+        <div class="custom-col">
+          <h3>Paramètres de la partie</h3>
+          <div class="field"><label><span>Puissance — <b data-name="0"></b></span><output id="outPowA"></output></label><input type="range" id="powA" min="0.5" max="2" step="0.05"></div>
+          <div class="field"><label><span>Puissance — <b data-name="1"></b></span><output id="outPowB"></output></label><input type="range" id="powB" min="0.5" max="2" step="0.05"></div>
+          <div class="field"><label>Vitesse de départ</label>
+            <div class="seg" id="segSpeed"></div></div>
+          <div class="field"><label>Quantité d'événements</label>
+            <div class="seg" id="segEvents"></div></div>
+          <div class="field"><label>Taille des territoires (parcelles)</label>
+            <div class="seg" id="segRes"></div></div>
+          <div class="field"><label><span>Durée maximale de simulation</span><output id="outDur"></output></label><input type="range" id="dur" min="60" max="900" step="30"></div>
+          <div class="field"><label><span>Niveau d'aléatoire</span><output id="outRand"></output></label><input type="range" id="rand" min="0" max="1" step="0.05"></div>
+          <div class="field"><label><span>Victoire quand l'adversaire ne garde que … de son territoire initial</span><output id="outVict"></output></label><input type="range" id="vict" min="0.05" max="0.6" step="0.05"></div>
+          <div class="field"><label>Seed aléatoire</label>
+            <div class="seed-row"><input type="text" id="seed" maxlength="24" spellcheck="false"><button class="ghost" id="seedDice" title="Nouvelle seed">🎲</button></div></div>
+        </div>
+        <div class="custom-col">
+          <h3>Statistiques des pays</h3>
+          <div class="stats-editor" id="statsEditor"></div>
+          <button class="ghost small" id="statsReset">Rétablir les statistiques d'origine</button>
+        </div>
+      </div>
+      <footer class="custom-foot">
+        <button class="ghost" id="customBack">← Retour</button>
+        <button class="ghost" id="customSave">💾 Sauvegarder les paramètres</button>
+        <button class="btn-launch compact" id="customLaunch">LANCER</button>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ============ HUD EN PARTIE ============ -->
+  <section id="hud" class="hidden">
+    <header class="topbar">
+      <div class="side-card" id="sideA">
+        <img class="flag-lg" alt="">
+        <div class="side-info">
+          <div class="side-line"><span class="side-name"></span><span class="side-pct">50 %</span></div>
+          <div class="bar"><div class="bar-fill"></div></div>
+          <div class="side-sub"></div>
+        </div>
+      </div>
+      <div class="center-card">
+        <div class="vs">VS</div>
+        <div class="tug"><div class="tug-a"></div><div class="tug-b"></div><div class="tug-mid"></div></div>
+        <div class="clock"><span id="clock">00:00</span><span id="speedLabel">1×</span></div>
+      </div>
+      <div class="side-card right" id="sideB">
+        <img class="flag-lg" alt="">
+        <div class="side-info">
+          <div class="side-line"><span class="side-pct">50 %</span><span class="side-name"></span></div>
+          <div class="bar"><div class="bar-fill"></div></div>
+          <div class="side-sub"></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="stats-panel glass" id="statsPanel">
+      <div class="panel-title">STATISTIQUES EN DIRECT <button class="ghost tiny" id="statsToggle">–</button></div>
+      <div id="statsBody"></div>
+    </aside>
+
+    <aside class="log-panel glass" id="logPanel">
+      <div class="panel-title">JOURNAL</div>
+      <ul id="logList"></ul>
+    </aside>
+
+    <div id="toasts"></div>
+    <div id="spectatorBadge" class="hidden">● MODE SPECTATEUR</div>
+    <div id="tooltip" class="glass hidden"></div>
+
+    <footer class="controls glass">
+      <button id="playBtn" class="ctrl wide" title="Pause / reprendre (Espace)">⏸ PAUSE</button>
+      <div class="speeds" id="speeds"></div>
+      <span class="sep"></span>
+      <button class="ctrl" id="restartBtn" title="Recommencer (R)">↻ Recommencer</button>
+      <span class="sep"></span>
+      <button class="ctrl icon" id="zoomOutBtn" title="Zoom arrière (−)">−</button>
+      <button class="ctrl icon" id="zoomInBtn" title="Zoom avant (+)">+</button>
+      <button class="ctrl" id="fitBtn" title="Vue complète (V)">⤢ Vue complète</button>
+      <button class="ctrl" id="camBtn" title="Caméra automatique (C)">🎥 Caméra auto</button>
+      <button class="ctrl" id="markersBtn" title="Afficher / masquer les marqueurs (M)">🚩 Marqueurs</button>
+      <span class="sep"></span>
+      <button class="ctrl" id="menuBtn" title="Menu (Échap)">☰ Menu</button>
+    </footer>
+  </section>
+
+  <!-- ============ PAUSE / MENU EN JEU ============ -->
+  <section id="pause" class="overlay hidden">
+    <div class="dialog glass">
+      <h2>PAUSE</h2>
+      <button class="btn-launch compact" id="resumeBtn">▶ REPRENDRE</button>
+      <button class="btn-secondary" id="pauseRestart">↻ Recommencer (même seed)</button>
+      <button class="btn-secondary" id="pauseNew">🎲 Recommencer (nouvelle seed)</button>
+      <button class="btn-secondary" id="pauseSave">💾 Sauvegarder les paramètres</button>
+      <button class="btn-secondary" id="pauseMenu">☰ Menu principal</button>
+      <p class="hint" id="pauseSeed"></p>
+    </div>
+  </section>
+
+  <!-- ============ RÉSULTATS ============ -->
+  <section id="results" class="overlay hidden">
+    <div class="dialog results glass">
+      <h2>SIMULATION TERMINÉE</h2>
+      <p class="winner-line" id="winnerLine"></p>
+      <div class="result-sides">
+        <div class="result-side" id="resA"></div>
+        <div class="result-side" id="resB"></div>
+      </div>
+      <canvas id="historyChart" width="560" height="140"></canvas>
+      <p class="result-meta" id="resultMeta"></p>
+      <div class="result-buttons">
+        <button class="btn-launch compact" id="replayBtn">REJOUER</button>
+        <button class="btn-secondary" id="newSimBtn">NOUVELLE SIMULATION</button>
+        <button class="btn-secondary" id="mainMenuBtn">MENU PRINCIPAL</button>
+      </div>
+      <button class="ghost small" id="sameSeedBtn">Revoir exactement la même partie (même seed)</button>
+      <p class="disclaimer">Résultat produit uniquement par le système de simulation du jeu. Ce n'est pas une prédiction du monde réel.</p>
+      <p class="hint" id="spectatorNext"></p>
+    </div>
+  </section>
+
+  <!-- ============ CHARGER ============ -->
+  <section id="loadDialog" class="overlay hidden">
+    <div class="dialog wide glass">
+      <h2>PARAMÈTRES SAUVEGARDÉS</h2>
+      <ul id="slotList" class="slot-list"></ul>
+      <button class="btn-secondary" id="loadClose">Fermer</button>
+    </div>
+  </section>
+
+  <!-- ============ SAUVEGARDER ============ -->
+  <section id="saveDialog" class="overlay hidden">
+    <div class="dialog glass">
+      <h2>SAUVEGARDER</h2>
+      <p class="hint">Pays, statistiques, paramètres, vitesse et seed seront enregistrés sur cet ordinateur.</p>
+      <input type="text" id="saveName" maxlength="40" placeholder="Nom de la sauvegarde">
+      <div class="result-buttons">
+        <button class="btn-launch compact" id="saveConfirm">ENREGISTRER</button>
+        <button class="btn-secondary" id="saveCancel">Annuler</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="loading" class="hidden"><div class="spinner"></div><span>Préparation de la carte…</span></div>
+  <div id="notice" class="hidden"></div>
+
+  <script src="classic.js"></script>
+</body>
+</html>

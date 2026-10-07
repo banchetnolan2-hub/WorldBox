@@ -1,0 +1,72 @@
+{
+  "name": "world-simulator",
+  "productName": "WorldSimulator",
+  "version": "3.0.0",
+  "description": "World Simulator — simulation mondiale 3D (195 pays), équipes, mondes persistants, Contrôle total",
+  "main": "electron/main.js",
+  "author": "JeuSimulation",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "bundle": "node scripts/build-renderer.js",
+    "dev": "node scripts/build-renderer.js && electron .",
+    "start": "electron .",
+    "web": "node scripts/build-renderer.js && node scripts/serve.js",
+    "test": "node tests/v3-sim.test.js 3 && node tests/v3-war.test.js && node tests/v3-nation.test.js && node tests/v3-rules.test.js && node tests/v3-geometry.test.js && node tests/v3-naval.test.js && node tests/v3-coalitions.test.js && node tests/v3-tech.test.js && node tests/v3-borderedit.test.js && node tests/v3-crises.test.js && node tests/v3-warend.test.js && node tests/v3-multi.test.js && node tests/v3-world.test.js && node tests/simulation.test.js 20",
+    "build": "node scripts/build-renderer.js --minify && electron-builder --win portable nsis --x64",
+    "build:portable": "node scripts/build-renderer.js --minify && electron-builder --win portable --x64",
+    "build:dir": "node scripts/build-renderer.js --minify && electron-builder --win dir --x64",
+    "borders": "node scripts/build-borders.js",
+    "world": "node scripts/build-world.js",
+    "countries": "node scripts/gen-countries.js && node scripts/build-world.js"
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "d3-geo": "^3.1.1",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "flag-icons": "^7.5.0",
+    "lucide-static": "^1.48.0",
+    "three": "^0.186.1",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "build": {
+    "appId": "fr.worldsimulator.jeu",
+    "productName": "WorldSimulator",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "app/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "WorldSimulator.exe"
+    },
+    "nsis": {
+      "artifactName": "WorldSimulator-Setup-${version}.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "World Simulator",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "createDesktopShortcut": true
+    },
+    "publish": null
+  },
+  "dependencies": {
+    "earcut": "^2.2.4",
+    "polygon-clipping": "^0.15.7"
+  }
+}

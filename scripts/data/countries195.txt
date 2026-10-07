@@ -1,0 +1,197 @@
+# num|iso2|nom|continent|capitale|lat|lon|population(M)|niveau éco (1-5)
+012|DZ|Algérie|Afrique|Alger|36.75|3.06|45|3
+024|AO|Angola|Afrique|Luanda|-8.84|13.23|35|2
+204|BJ|Bénin|Afrique|Porto-Novo|6.50|2.60|13|1
+072|BW|Botswana|Afrique|Gaborone|-24.65|25.91|2.6|3
+854|BF|Burkina Faso|Afrique|Ouagadougou|12.37|-1.52|22|1
+108|BI|Burundi|Afrique|Gitega|-3.43|29.93|13|1
+132|CV|Cap-Vert|Afrique|Praia|14.93|-23.51|0.6|2
+120|CM|Cameroun|Afrique|Yaoundé|3.87|11.52|28|2
+140|CF|Centrafrique|Afrique|Bangui|4.39|18.56|5.5|1
+148|TD|Tchad|Afrique|N'Djaména|12.13|15.06|18|1
+174|KM|Comores|Afrique|Moroni|-11.70|43.26|0.9|1
+178|CG|Congo|Afrique|Brazzaville|-4.27|15.28|6|2
+180|CD|RD Congo|Afrique|Kinshasa|-4.44|15.27|100|1
+384|CI|Côte d'Ivoire|Afrique|Yamoussoukro|6.83|-5.29|28|2
+262|DJ|Djibouti|Afrique|Djibouti|11.59|43.15|1.1|2
+818|EG|Égypte|Afrique|Le Caire|30.04|31.24|110|3
+226|GQ|Guinée équatoriale|Afrique|Malabo|3.75|8.78|1.7|2
+232|ER|Érythrée|Afrique|Asmara|15.32|38.93|3.7|1
+748|SZ|Eswatini|Afrique|Mbabane|-26.31|31.14|1.2|2
+231|ET|Éthiopie|Afrique|Addis-Abeba|9.03|38.75|125|1
+266|GA|Gabon|Afrique|Libreville|0.39|9.45|2.4|3
+270|GM|Gambie|Afrique|Banjul|13.45|-16.58|2.7|1
+288|GH|Ghana|Afrique|Accra|5.60|-0.19|33|2
+324|GN|Guinée|Afrique|Conakry|9.64|-13.58|14|1
+624|GW|Guinée-Bissau|Afrique|Bissau|11.86|-15.60|2.1|1
+404|KE|Kenya|Afrique|Nairobi|-1.29|36.82|55|2
+426|LS|Lesotho|Afrique|Maseru|-29.31|27.48|2.3|1
+430|LR|Liberia|Afrique|Monrovia|6.30|-10.80|5.3|1
+434|LY|Libye|Afrique|Tripoli|32.89|13.19|7|3
+450|MG|Madagascar|Afrique|Antananarivo|-18.88|47.51|30|1
+454|MW|Malawi|Afrique|Lilongwe|-13.96|33.79|20|1
+466|ML|Mali|Afrique|Bamako|12.64|-8.00|22|1
+478|MR|Mauritanie|Afrique|Nouakchott|18.08|-15.98|4.7|2
+480|MU|Maurice|Afrique|Port-Louis|-20.16|57.50|1.3|3
+504|MA|Maroc|Afrique|Rabat|34.02|-6.84|37|3
+508|MZ|Mozambique|Afrique|Maputo|-25.97|32.57|33|1
+516|NA|Namibie|Afrique|Windhoek|-22.56|17.08|2.6|3
+562|NE|Niger|Afrique|Niamey|13.51|2.11|26|1
+566|NG|Nigeria|Afrique|Abuja|9.06|7.49|220|2
+646|RW|Rwanda|Afrique|Kigali|-1.95|30.06|14|1
+678|ST|Sao Tomé-et-Principe|Afrique|São Tomé|0.34|6.73|0.23|1
+686|SN|Sénégal|Afrique|Dakar|14.72|-17.47|18|2
+690|SC|Seychelles|Afrique|Victoria|-4.62|55.45|0.1|3
+694|SL|Sierra Leone|Afrique|Freetown|8.48|-13.23|8.6|1
+706|SO|Somalie|Afrique|Mogadiscio|2.05|45.32|18|1
+710|ZA|Afrique du Sud|Afrique|Pretoria|-25.75|28.19|60|3
+728|SS|Soudan du Sud|Afrique|Djouba|4.85|31.58|11|1
+729|SD|Soudan|Afrique|Khartoum|15.50|32.56|47|1
+834|TZ|Tanzanie|Afrique|Dodoma|-6.16|35.75|65|1
+768|TG|Togo|Afrique|Lomé|6.13|1.22|9|1
+788|TN|Tunisie|Afrique|Tunis|36.81|10.18|12|3
+800|UG|Ouganda|Afrique|Kampala|0.35|32.58|47|1
+894|ZM|Zambie|Afrique|Lusaka|-15.39|28.32|20|1
+716|ZW|Zimbabwe|Afrique|Harare|-17.83|31.05|16|1
+008|AL|Albanie|Europe|Tirana|41.33|19.82|2.8|3
+020|AD|Andorre|Europe|Andorre-la-Vieille|42.51|1.52|0.08|4
+040|AT|Autriche|Europe|Vienne|48.21|16.37|9|5
+112|BY|Biélorussie|Europe|Minsk|53.90|27.56|9.2|3
+056|BE|Belgique|Europe|Bruxelles|50.85|4.35|11.7|5
+070|BA|Bosnie-Herzégovine|Europe|Sarajevo|43.86|18.41|3.2|3
+100|BG|Bulgarie|Europe|Sofia|42.70|23.32|6.5|3
+191|HR|Croatie|Europe|Zagreb|45.81|15.98|3.9|4
+203|CZ|Tchéquie|Europe|Prague|50.08|14.42|10.8|4
+208|DK|Danemark|Europe|Copenhague|55.68|12.57|5.9|5
+233|EE|Estonie|Europe|Tallinn|59.44|24.75|1.3|4
+246|FI|Finlande|Europe|Helsinki|60.17|24.94|5.6|5
+250|FR|France|Europe|Paris|48.86|2.35|68|5
+276|DE|Allemagne|Europe|Berlin|52.52|13.40|84|5
+300|GR|Grèce|Europe|Athènes|37.98|23.73|10.4|4
+348|HU|Hongrie|Europe|Budapest|47.50|19.04|9.6|4
+352|IS|Islande|Europe|Reykjavik|64.15|-21.94|0.38|5
+372|IE|Irlande|Europe|Dublin|53.35|-6.26|5.1|5
+380|IT|Italie|Europe|Rome|41.90|12.50|59|5
+428|LV|Lettonie|Europe|Riga|56.95|24.11|1.9|4
+438|LI|Liechtenstein|Europe|Vaduz|47.14|9.52|0.04|5
+440|LT|Lituanie|Europe|Vilnius|54.69|25.28|2.8|4
+442|LU|Luxembourg|Europe|Luxembourg|49.61|6.13|0.66|5
+470|MT|Malte|Europe|La Valette|35.90|14.51|0.53|4
+498|MD|Moldavie|Europe|Chisinau|47.01|28.86|2.5|2
+492|MC|Monaco|Europe|Monaco|43.73|7.42|0.04|5
+499|ME|Monténégro|Europe|Podgorica|42.44|19.26|0.62|3
+528|NL|Pays-Bas|Europe|Amsterdam|52.37|4.90|17.9|5
+807|MK|Macédoine du Nord|Europe|Skopje|42.00|21.43|1.8|3
+578|NO|Norvège|Europe|Oslo|59.91|10.75|5.5|5
+616|PL|Pologne|Europe|Varsovie|52.23|21.01|37.6|4
+620|PT|Portugal|Europe|Lisbonne|38.72|-9.14|10.3|4
+642|RO|Roumanie|Europe|Bucarest|44.43|26.10|19|3
+643|RU|Russie|Europe|Moscou|55.75|37.62|144|4
+674|SM|Saint-Marin|Europe|Saint-Marin|43.94|12.45|0.034|4
+688|RS|Serbie|Europe|Belgrade|44.82|20.46|6.7|3
+703|SK|Slovaquie|Europe|Bratislava|48.15|17.11|5.4|4
+705|SI|Slovénie|Europe|Ljubljana|46.06|14.51|2.1|4
+724|ES|Espagne|Europe|Madrid|40.42|-3.70|48|5
+752|SE|Suède|Europe|Stockholm|59.33|18.07|10.5|5
+756|CH|Suisse|Europe|Berne|46.95|7.45|8.8|5
+804|UA|Ukraine|Europe|Kiev|50.45|30.52|38|3
+826|GB|Royaume-Uni|Europe|Londres|51.51|-0.13|68|5
+336|VA|Saint-Siège|Europe|Cité du Vatican|41.90|12.45|0.0008|4
+004|AF|Afghanistan|Asie|Kaboul|34.53|69.17|41|1
+051|AM|Arménie|Asie|Erevan|40.18|44.51|2.8|3
+031|AZ|Azerbaïdjan|Asie|Bakou|40.41|49.87|10.1|3
+048|BH|Bahreïn|Asie|Manama|26.23|50.59|1.5|4
+050|BD|Bangladesh|Asie|Dacca|23.81|90.41|170|2
+064|BT|Bhoutan|Asie|Thimphou|27.47|89.64|0.78|2
+096|BN|Brunei|Asie|Bandar Seri Begawan|4.90|114.94|0.45|4
+116|KH|Cambodge|Asie|Phnom Penh|11.56|104.93|17|2
+156|CN|Chine|Asie|Pékin|39.90|116.40|1410|4
+196|CY|Chypre|Asie|Nicosie|35.17|33.37|1.25|4
+268|GE|Géorgie|Asie|Tbilissi|41.72|44.79|3.7|3
+356|IN|Inde|Asie|New Delhi|28.61|77.21|1420|3
+360|ID|Indonésie|Asie|Jakarta|-6.21|106.85|277|3
+364|IR|Iran|Asie|Téhéran|35.69|51.39|89|3
+368|IQ|Irak|Asie|Bagdad|33.31|44.37|44|3
+376|IL|Israël|Asie|Jérusalem|31.77|35.21|9.7|5
+392|JP|Japon|Asie|Tokyo|35.69|139.69|124|5
+400|JO|Jordanie|Asie|Amman|31.95|35.93|11|3
+398|KZ|Kazakhstan|Asie|Astana|51.13|71.43|19.6|3
+414|KW|Koweït|Asie|Koweït|29.38|47.99|4.3|4
+417|KG|Kirghizistan|Asie|Bichkek|42.87|74.59|7|2
+418|LA|Laos|Asie|Vientiane|17.97|102.63|7.6|2
+422|LB|Liban|Asie|Beyrouth|33.89|35.50|5.5|2
+458|MY|Malaisie|Asie|Kuala Lumpur|3.14|101.69|34|4
+462|MV|Maldives|Asie|Malé|4.18|73.51|0.52|3
+496|MN|Mongolie|Asie|Oulan-Bator|47.89|106.91|3.4|2
+104|MM|Birmanie|Asie|Naypyidaw|19.76|96.08|54|2
+524|NP|Népal|Asie|Katmandou|27.72|85.32|30|2
+408|KP|Corée du Nord|Asie|Pyongyang|39.02|125.75|26|1
+512|OM|Oman|Asie|Mascate|23.59|58.41|4.6|4
+586|PK|Pakistan|Asie|Islamabad|33.68|73.05|240|2
+275|PS|Palestine|Asie|Ramallah|31.90|35.20|5.4|2
+608|PH|Philippines|Asie|Manille|14.60|120.98|115|3
+634|QA|Qatar|Asie|Doha|25.29|51.53|2.7|5
+682|SA|Arabie saoudite|Asie|Riyad|24.71|46.68|36|4
+702|SG|Singapour|Asie|Singapour|1.35|103.82|5.9|5
+410|KR|Corée du Sud|Asie|Séoul|37.57|126.98|52|5
+144|LK|Sri Lanka|Asie|Sri Jayawardenepura Kotte|6.90|79.91|22|2
+760|SY|Syrie|Asie|Damas|33.51|36.29|22|1
+762|TJ|Tadjikistan|Asie|Douchanbé|38.56|68.78|10|1
+764|TH|Thaïlande|Asie|Bangkok|13.76|100.50|70|3
+626|TL|Timor oriental|Asie|Dili|-8.56|125.57|1.3|2
+792|TR|Turquie|Asie|Ankara|39.93|32.86|85|4
+795|TM|Turkménistan|Asie|Achgabat|37.96|58.33|6.4|2
+784|AE|Émirats arabes unis|Asie|Abou Dabi|24.45|54.38|9.4|5
+860|UZ|Ouzbékistan|Asie|Tachkent|41.30|69.24|35|2
+704|VN|Vietnam|Asie|Hanoï|21.03|105.85|99|3
+887|YE|Yémen|Asie|Sanaa|15.37|44.19|33|1
+028|AG|Antigua-et-Barbuda|Amérique du Nord|Saint John's|17.12|-61.85|0.1|3
+044|BS|Bahamas|Amérique du Nord|Nassau|25.05|-77.35|0.4|4
+052|BB|Barbade|Amérique du Nord|Bridgetown|13.10|-59.62|0.28|3
+084|BZ|Belize|Amérique du Nord|Belmopan|17.25|-88.77|0.4|2
+124|CA|Canada|Amérique du Nord|Ottawa|45.42|-75.70|39|5
+188|CR|Costa Rica|Amérique du Nord|San José|9.93|-84.08|5.2|3
+192|CU|Cuba|Amérique du Nord|La Havane|23.11|-82.37|11|2
+212|DM|Dominique|Amérique du Nord|Roseau|15.30|-61.39|0.07|2
+214|DO|République dominicaine|Amérique du Nord|Saint-Domingue|18.49|-69.93|11|3
+222|SV|Salvador|Amérique du Nord|San Salvador|13.69|-89.22|6.3|2
+308|GD|Grenade|Amérique du Nord|Saint-Georges|12.06|-61.75|0.12|2
+320|GT|Guatemala|Amérique du Nord|Guatemala|14.63|-90.51|17|2
+332|HT|Haïti|Amérique du Nord|Port-au-Prince|18.54|-72.34|11.6|1
+340|HN|Honduras|Amérique du Nord|Tegucigalpa|14.07|-87.19|10|2
+388|JM|Jamaïque|Amérique du Nord|Kingston|18.02|-76.80|2.8|2
+484|MX|Mexique|Amérique du Nord|Mexico|19.43|-99.13|128|3
+558|NI|Nicaragua|Amérique du Nord|Managua|12.11|-86.24|6.9|2
+591|PA|Panama|Amérique du Nord|Panama|8.98|-79.52|4.4|3
+659|KN|Saint-Christophe-et-Niévès|Amérique du Nord|Basseterre|17.30|-62.72|0.05|3
+662|LC|Sainte-Lucie|Amérique du Nord|Castries|14.01|-60.99|0.18|2
+670|VC|Saint-Vincent-et-les-Grenadines|Amérique du Nord|Kingstown|13.16|-61.22|0.1|2
+780|TT|Trinité-et-Tobago|Amérique du Nord|Port-d'Espagne|10.65|-61.51|1.5|3
+840|US|États-Unis|Amérique du Nord|Washington|38.91|-77.04|335|5
+032|AR|Argentine|Amérique du Sud|Buenos Aires|-34.60|-58.38|46|3
+068|BO|Bolivie|Amérique du Sud|Sucre|-19.04|-65.26|12|2
+076|BR|Brésil|Amérique du Sud|Brasilia|-15.79|-47.88|216|3
+152|CL|Chili|Amérique du Sud|Santiago|-33.45|-70.67|19.6|4
+170|CO|Colombie|Amérique du Sud|Bogota|4.71|-74.07|52|3
+218|EC|Équateur|Amérique du Sud|Quito|-0.18|-78.47|18|2
+328|GY|Guyana|Amérique du Sud|Georgetown|6.80|-58.16|0.8|3
+600|PY|Paraguay|Amérique du Sud|Asuncion|-25.26|-57.58|6.9|2
+604|PE|Pérou|Amérique du Sud|Lima|-12.05|-77.04|34|3
+740|SR|Suriname|Amérique du Sud|Paramaribo|5.85|-55.20|0.62|2
+858|UY|Uruguay|Amérique du Sud|Montevideo|-34.90|-56.16|3.4|4
+862|VE|Venezuela|Amérique du Sud|Caracas|10.49|-66.90|28|2
+036|AU|Australie|Océanie|Canberra|-35.28|149.13|26|5
+242|FJ|Fidji|Océanie|Suva|-18.14|178.44|0.93|2
+296|KI|Kiribati|Océanie|Tarawa|1.33|172.98|0.13|1
+584|MH|Îles Marshall|Océanie|Majuro|7.09|171.38|0.04|2
+583|FM|Micronésie|Océanie|Palikir|6.92|158.16|0.11|2
+520|NR|Nauru|Océanie|Yaren|-0.55|166.92|0.012|2
+554|NZ|Nouvelle-Zélande|Océanie|Wellington|-41.29|174.78|5.2|5
+585|PW|Palaos|Océanie|Ngerulmud|7.50|134.62|0.018|3
+598|PG|Papouasie-Nouvelle-Guinée|Océanie|Port Moresby|-9.44|147.18|10|1
+882|WS|Samoa|Océanie|Apia|-13.83|-171.76|0.22|2
+090|SB|Îles Salomon|Océanie|Honiara|-9.43|159.95|0.72|1
+776|TO|Tonga|Océanie|Nuku'alofa|-21.14|-175.20|0.1|2
+798|TV|Tuvalu|Océanie|Funafuti|-8.52|179.20|0.011|1
+548|VU|Vanuatu|Océanie|Port-Vila|-17.73|168.32|0.33|1
+304|GL|Groenland|Amérique du Nord|Nuuk|64.18|-51.72|0.057|3

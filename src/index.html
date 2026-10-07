@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; media-src 'self' blob:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Simulator</title>
+  <link rel="stylesheet" href="styles/v3.css">
+</head>
+<body>
+  <canvas id="globe"></canvas>
+  <div id="labels"></div>
+
+  <!-- ================= CHARGEMENT ================= -->
+  <div id="boot"><div class="boot-card"><div class="boot-mark"></div><b>World Simulator</b><span id="bootText">Chargement du globe…</span><div class="boot-bar"><i></i></div><span class="font-warm" aria-hidden="true"><em>Aa</em><b>Aa</b></span></div></div>
+
+  <!-- ================= MENU PRINCIPAL ================= -->
+  <section id="menu" class="screen hidden">
+    <div class="mm-spine">
+      <header class="mm-brand">
+        <div class="brand-mark"></div>
+        <div><h1>World Simulator</h1><p>Simulation géopolitique de 196 pays sur un globe réel</p></div>
+      </header>
+      <nav class="mm-main" id="mmMain"></nav>
+      <div class="world-card" id="worldCard">
+        <i data-icon="earth"></i>
+        <div><small>Monde actuel</small><b id="worldName">Monde original</b><span id="worldMeta"></span></div>
+        <button class="btn ghost sm icon" id="menuHistoryBtn" title="Histoire du monde"><i data-icon="book-open"></i></button>
+        <button class="btn ghost sm icon" id="menuWarsBtn" title="Guerres et rapports"><i data-icon="swords"></i></button>
+      </div>
+    </div>
+    <div class="mm-sub panel hidden" id="mmSub"></div>
+    <div class="menu-help">
+      <span><kbd>Glisser</kbd> tourner</span><span><kbd>Molette</kbd> zoom</span><span><kbd>Clic</kbd> fiche pays</span><span><kbd>F11</kbd> plein écran</span>
+    </div>
+  </section>
+
+  <!-- ================= CRÉATEUR DE PARTIE ================= -->
+  <section id="creator" class="screen hidden">
+    <div class="creator panel">
+      <header class="creator-head">
+        <div>
+          <small class="eyebrow">Nouvelle simulation</small>
+          <h2>Préparer la partie</h2>
+          <span class="hint" id="creatorWorld"></span>
+        </div>
+        <div class="mode-tabs" id="modeTabs">
+          <button data-mode="1v1">1 vs 1</button>
+          <button data-mode="multi">Multi-pays</button>
+          <button data-mode="teams">Équipes</button>
+          <button data-mode="world">Monde</button>
+          <button data-mode="custom">Personnalisé</button>
+        </div>
+      </header>
+      <div class="creator-body">
+        <div class="creator-left">
+          <div class="preset-row" id="presetRow">
+            <span class="hint">Scénarios</span>
+            <button class="chip" data-preset="europe">Europe</button>
+            <button class="chip" data-preset="asie">Asie</button>
+            <button class="chip" data-preset="afrique">Afrique</button>
+            <button class="chip" data-preset="ameriques">Amériques</button>
+            <button class="chip" data-preset="oceanie">Océanie</button>
+            <button class="chip" data-preset="monde">Monde entier</button>
+            <button class="chip" data-preset="random">Aléatoire</button>
+          </div>
+          <div class="teams-bar">
+            <span id="participantsCount">0 pays</span>
+            <span class="sep"></span>
+            <button class="btn ghost sm" id="addTeamBtn"><i data-icon="plus"></i><span>Équipe</span></button>
+            <button class="btn ghost sm" id="clearBtn">Tout retirer</button>
+          </div>
+          <div class="teams" id="teams"></div>
+        </div>
+        <div class="creator-right">
+          <h3>Paramètres</h3>
+          <div class="field"><label><span>Vitesse de départ</span></label><div class="seg" id="cSpeed"></div></div>
+          <div class="field"><label><span>Événements</span></label><div class="seg" id="cEvents"></div></div>
+          <div class="field"><label><span>Niveau d'aléatoire</span><output id="oRand"></output></label><input type="range" id="cRand" min="0" max="1" step="0.05"></div>
+          <div class="field"><label><span>Durée maximale</span><output id="oDur"></output></label><input type="range" id="cDur" min="60" max="1200" step="30"></div>
+          <div class="field"><label><span>Début</span></label><div class="seg" id="cWarStart"></div></div>
+          <div class="war-end">
+            <h4>Fin de guerre</h4>
+            <div class="field"><label><span>Victoire territoriale</span></label><div class="seg" id="cTerr"></div></div>
+            <div class="field" id="cPctRow"><label><span>Territoire adverse à conquérir</span><output id="oPct"></output></label><input type="range" id="cPct" min="0.1" max="1" step="0.05"></div>
+            <label class="check"><input type="checkbox" id="cCapit"><span>Capitulation automatique <small>capitale perdue, armée détruite, moral effondré</small></span></label>
+            <label class="check"><input type="checkbox" id="cEcon"><span>Conditions économiques <small>effondrement financier du perdant</small></span></label>
+            <label class="check"><input type="checkbox" id="cPeace"><span>Paix négociée par les IA</span></label>
+            <label class="check"><input type="checkbox" id="cAiWars"><span>Les IA peuvent déclarer de nouvelles guerres</span></label>
+            <p class="hint" id="cWarHint"></p>
+          </div>
+          <div class="field"><label><span>Puissance (tous les pays)</span><output id="oPow"></output></label><input type="range" id="cPow" min="0.5" max="2" step="0.05"></div>
+          <div class="field"><label><span>Population (tous les pays)</span><output id="oPop"></output></label><input type="range" id="cPop" min="0.25" max="4" step="0.05"></div>
+          <div class="field"><label><span>Ressources (tous les pays)</span><output id="oRes"></output></label><input type="range" id="cRes" min="0.5" max="1.5" step="0.05"></div>
+          <div class="field"><label><span>Territoire de départ</span></label><div class="seg" id="cStart"></div></div>
+          <label class="check"><input type="checkbox" id="cNeutral"><span>Zones grises (sans pays) conquérables</span></label>
+          <label class="check"><input type="checkbox" id="cNaval"><span>Déplacements maritimes et aériens</span></label>
+          <div class="field"><label><span>Seed</span></label><div class="row"><input type="text" id="cSeed" maxlength="24" spellcheck="false"><button class="btn ghost sm icon" id="cSeedDice" title="Nouvelle seed"><i data-icon="dice-5"></i></button></div></div>
+          <div class="field"><label><span>Règles de la partie</span></label><button class="btn ghost sm" id="cRulesBtn"><i data-icon="sliders-horizontal"></i><span id="cRulesTxt">Tous les systèmes actifs</span></button></div>
+          <p class="hint" id="creatorSummary"></p>
+        </div>
+      </div>
+      <footer class="creator-foot">
+        <button class="btn ghost" id="creatorBack"><i data-icon="chevron-right" class="flip"></i><span>Menu</span></button>
+        <span class="hint warn" id="creatorWarn"></span>
+        <button class="btn primary" id="creatorLaunch"><i data-icon="play"></i><span>Lancer la simulation</span></button>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ================= SÉLECTEUR DE PAYS ================= -->
+  <section id="picker" class="overlay hidden">
+    <div class="dialog wide panel picker">
+      <h2 id="pickerTitle">Ajouter des pays</h2>
+      <div class="picker-tools">
+        <div class="search"><i data-icon="search"></i><input type="text" id="pickerSearch" placeholder="Rechercher un pays…" spellcheck="false"></div>
+        <div class="seg" id="pickerCont"></div>
+      </div>
+      <div class="picker-grid" id="pickerGrid"></div>
+      <div class="dialog-foot">
+        <button class="btn ghost" id="pickerCancel">Annuler</button>
+        <button class="btn primary" id="pickerOk">Ajouter</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INTERFACE EN PARTIE ================= -->
+  <section id="hud" class="hidden">
+    <div id="vsbar" class="panel hidden">
+      <div class="vs-side" id="vsA"><i class="dot a"></i><span class="n"></span><b class="p"></b></div>
+      <div class="vs-mid"><div class="tug"><i></i></div></div>
+      <div class="vs-side right" id="vsB"><b class="p"></b><span class="n"></span><i class="dot b"></i></div>
+    </div>
+    <div class="clockbox panel"><span id="scenarioName"></span><b id="simDate" class="date"></b><b id="clock">00:00</b><span class="dim">/ <span id="clockMax">05:00</span></span><span id="speedLabel">1×</span></div>
+    <aside id="ranking" class="panel">
+      <div class="panel-title"><span>Classement</span><button class="btn ghost xs icon" id="rankToggle" title="Réduire"><i data-icon="chevron-down"></i></button></div>
+      <div id="rankBody"></div>
+    </aside>
+    <aside id="journal" class="panel">
+      <div class="panel-title"><span>Journal</span><button class="btn ghost xs icon" id="journalToggle" title="Réduire"><i data-icon="chevron-down"></i></button></div>
+      <ul id="logList"></ul>
+    </aside>
+    <div id="toasts"></div>
+    <div id="specBadge" class="hidden"><i></i>Mode spectateur</div>
+    <footer class="dock panel" id="controls">
+      <button class="dbtn wide" id="playBtn" title="Pause / reprendre (Espace)"><i data-icon="pause"></i><span>Pause</span></button>
+      <button class="dbtn icon" id="stepBtn" title="Avancer d'une étape (N)"><i data-icon="skip-forward"></i></button>
+      <div class="speeds" id="speeds"></div>
+      <span class="sep"></span>
+      <button class="dbtn" id="camAutoBtn" title="Caméra automatique (C)"><i data-icon="video"></i><span>Auto</span></button>
+      <button class="dbtn" id="camFreeBtn" title="Caméra libre (C)"><i data-icon="hand"></i><span>Libre</span></button>
+      <button class="dbtn icon" id="zoomOutBtn" title="Zoom arrière (−)"><i data-icon="zoom-out"></i></button>
+      <button class="dbtn icon" id="zoomInBtn" title="Zoom avant (+)"><i data-icon="zoom-in"></i></button>
+      <button class="dbtn icon" id="fitBtn" title="Vue d'ensemble (V)"><i data-icon="scan"></i></button>
+      <span class="sep"></span>
+      <button class="dbtn" id="warsBtn" title="Guerres, fronts et rapports (G)"><i data-icon="swords"></i><span id="warsCount">0</span></button>
+      <span class="sep"></span>
+      <button class="dbtn icon" id="markersBtn" title="Unités (M)"><i data-icon="users"></i></button>
+      <button class="dbtn icon" id="labelsBtn" title="Noms et capitales (L)"><i data-icon="tag"></i></button>
+      <button class="dbtn icon" id="audioBtn" title="Son (S)"><i data-icon="volume-2"></i></button>
+      <span class="sep"></span>
+      <button class="dbtn icon" id="restartBtn" title="Recommencer (R)"><i data-icon="rotate-ccw"></i></button>
+      <button class="dbtn" id="menuBtn" title="Menu (Échap)"><i data-icon="menu"></i><span>Menu</span></button>
+    </footer>
+  </section>
+
+  <aside id="countryPanel" class="panel hidden"></aside>
+
+  <!-- ================= CREATE WORLD ================= -->
+  <section id="editor" class="hidden">
+    <header class="ed-top panel">
+      <div class="ed-title"><small class="eyebrow">Create World</small><input type="text" id="edName" maxlength="40" spellcheck="false" placeholder="Nom du monde"></div>
+      <div class="ed-actions">
+        <button class="btn ghost sm" id="edNewBtn"><i data-icon="plus"></i><span>Nouveau</span></button>
+        <button class="btn ghost sm icon" id="edUndo" title="Annuler (Ctrl+Z)"><i data-icon="undo-2"></i></button>
+        <button class="btn ghost sm icon" id="edRedo" title="Rétablir (Ctrl+Y)"><i data-icon="redo-2"></i></button>
+        <span class="sep"></span>
+        <button class="btn ghost sm" id="edSave"><i data-icon="save"></i><span>Sauvegarder</span></button>
+        <button class="btn primary sm" id="edSimulate"><i data-icon="play"></i><span>Simuler ce monde</span></button>
+        <button class="btn ghost sm icon" id="edExit" title="Quitter l'éditeur"><i data-icon="x"></i></button>
+      </div>
+    </header>
+    <nav class="ed-rail panel" id="edTools"></nav>
+    <div class="ed-options panel" id="edBrushOpts">
+      <div class="field"><label><span>Taille du pinceau</span><output id="oEdRadius"></output></label><input type="range" id="edRadius" min="40" max="1500" step="10"></div>
+      <div class="field" id="edStrengthRow"><label><span>Intensité</span><output id="oEdStrength"></output></label><input type="range" id="edStrength" min="0.1" max="1" step="0.05"></div>
+      <p class="hint" id="edHint"></p>
+      <div id="edActions" class="ed-tool-actions"></div>
+    </div>
+    <aside class="ed-side panel">
+      <div class="ed-side-head"><span class="eyebrow">Pays · <span id="edCount"></span></span><button class="btn ghost xs" id="edNewCountry"><i data-icon="plus"></i><span>Créer</span></button></div>
+      <div class="search"><i data-icon="search"></i><input type="text" id="edSearch" placeholder="Rechercher…" spellcheck="false"></div>
+      <ul class="ed-list" id="edList"></ul>
+      <div class="ed-country" id="edCountry"></div>
+    </aside>
+  </section>
+
+  <section id="edStart" class="overlay hidden">
+    <div class="dialog wide panel">
+      <small class="eyebrow">Create World</small>
+      <h2>Point de départ</h2>
+      <p class="hint">Dessinez ensuite vos continents, îles et océans, puis placez vos pays et leurs capitales.</p>
+      <div class="start-grid">
+        <button data-start="ocean"><i data-icon="waves"></i><b>Planète océan</b><small>Une Terre entièrement recouverte d'eau : tout est à dessiner.</small></button>
+        <button data-start="random"><i data-icon="sparkles"></i><b>Continents aléatoires</b><small>Des terres générées avec leur relief, prêtes à être remodelées.</small></button>
+        <button data-start="earth"><i data-icon="earth"></i><b>Partir de la Terre</b><small>La vraie géographie et ses 196 pays, à modifier librement.</small></button>
+      </div>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn ghost" id="edStartCancel">Annuler</button></div>
+    </div>
+  </section>
+
+  <!-- ================= CONTRÔLE TOTAL ================= -->
+  <section id="control" class="hidden">
+    <aside class="ctl-panel panel" id="ctlPanel">
+      <div class="ctl-head"><small class="eyebrow">Contrôle total</small><b id="ctlWorld"></b></div>
+      <div class="row">
+        <button class="btn ghost sm" id="undoBtn" title="Annuler (Ctrl+Z)"><i data-icon="undo-2"></i><span>Annuler</span></button>
+        <button class="btn ghost sm" id="redoBtn" title="Rétablir (Ctrl+Y)"><i data-icon="redo-2"></i><span>Rétablir</span></button>
+        <button class="btn ghost sm" id="ctlSaveWorld"><i data-icon="save"></i><span>Sauvegarder</span></button>
+      </div>
+      <div class="ctl-section">
+        <h4>Outils de carte</h4>
+        <div class="tool-grid" id="toolGrid">
+          <button data-tool="select"><i data-icon="mouse-pointer-2"></i>Sélection</button>
+          <button data-tool="give" title="Peindre des parcelles pour le pays actif"><i data-icon="paintbrush"></i>Donner un territoire</button>
+          <button data-tool="remove" title="Rend des parcelles sans propriétaire"><i data-icon="eraser"></i>Retirer un territoire</button>
+          <button data-tool="transfer" title="Cliquez un pays : tout son territoire passe au pays actif"><i data-icon="layers"></i>Transférer</button>
+        </div>
+        <div class="field"><label><span>Taille du pinceau</span><output id="oBrush"></output></label><input type="range" id="brush" min="0" max="12" step="1" value="3"></div>
+        <label class="check"><input type="checkbox" id="brushSame"><span>Ne peindre que dans le pays cliqué au départ</span></label>
+        <div class="brush-target" id="brushTarget">Pays actif : <b>aucun</b></div>
+        <div class="row">
+          <button class="btn ghost sm" id="ctlPickCountry">Choisir le pays actif…</button>
+          <button class="btn ghost sm" id="ctlNewCountry"><i data-icon="plus"></i><span>Créer un pays</span></button>
+        </div>
+      </div>
+      <div class="ctl-section" id="ctlCountry"></div>
+      <div class="ctl-section">
+        <h4>Équipes</h4>
+        <div id="ctlTeams"></div>
+        <button class="btn ghost sm" id="ctlAddTeam"><i data-icon="plus"></i><span>Créer une équipe</span></button>
+      </div>
+      <div class="ctl-section">
+        <h4>Simulation</h4>
+        <div id="ctlSimInfo" class="hint"></div>
+        <div class="row wrap">
+          <button class="btn ghost sm" id="ctlSimStart"><i data-icon="play"></i><span>Lancer</span></button>
+          <button class="btn ghost sm" id="ctlPause"><i data-icon="pause"></i><span>Pause</span></button>
+          <button class="btn ghost sm" id="ctlResume"><i data-icon="play"></i><span>Reprendre</span></button>
+          <button class="btn ghost sm" id="ctlStep"><i data-icon="skip-forward"></i><span>Étape</span></button>
+          <button class="btn ghost sm" id="ctlSlower">Ralentir</button>
+          <button class="btn ghost sm" id="ctlFaster">Accélérer</button>
+          <button class="btn ghost sm" id="ctlEnd">Terminer</button>
+        </div>
+        <div class="field"><label><span>Événements aléatoires</span><output id="oCtlEv"></output></label><input type="range" id="ctlEvents" min="0" max="3" step="0.1"></div>
+        <div class="field"><label><span>Niveau d'aléatoire</span><output id="oCtlRand"></output></label><input type="range" id="ctlRand" min="0" max="1" step="0.05"></div>
+      </div>
+      <div class="ctl-section">
+        <h4>Événements</h4>
+        <p class="hint">S'appliquent au pays actif (simulation en cours).</p>
+        <div class="event-grid" id="ctlEventsGrid"></div>
+      </div>
+      <div class="row"><button class="btn ghost sm" id="ctlExit"><i data-icon="log-out"></i><span>Quitter le Contrôle total</span></button></div>
+    </aside>
+  </section>
+
+  <!-- ================= FENÊTRES ================= -->
+  <section id="pause" class="overlay hidden">
+    <div class="dialog panel">
+      <h2>Pause</h2>
+      <button class="btn primary" id="resumeBtn"><i data-icon="play"></i><span>Reprendre</span></button>
+      <div class="list-btns">
+        <button id="pSaveGame"><i data-icon="save"></i><span>Sauvegarder la partie</span></button>
+        <button id="pRestartSame"><i data-icon="rotate-ccw"></i><span>Recommencer (même seed)</span></button>
+        <button id="pRestartNew"><i data-icon="dice-5"></i><span>Recommencer (nouvelle seed)</span></button>
+        <button id="pCreator"><i data-icon="sliders-horizontal"></i><span>Modifier la partie</span></button>
+        <button id="pMenu"><i data-icon="menu"></i><span>Menu principal</span></button>
+      </div>
+      <p class="hint center" id="pSeed"></p>
+    </div>
+  </section>
+
+  <section id="results" class="overlay hidden">
+    <div class="dialog results panel">
+      <small class="eyebrow center">Simulation terminée</small>
+      <p class="winner-line" id="winnerLine"></p>
+      <div class="result-table" id="resultTable"></div>
+      <canvas id="historyChart" width="640" height="150"></canvas>
+      <div id="resultWars" class="result-wars"></div>
+      <p class="result-meta" id="resultMeta"></p>
+      <div class="result-buttons">
+        <button class="btn primary" id="replayBtn"><i data-icon="rotate-ccw"></i><span>Rejouer</span></button>
+        <button class="btn ghost" id="rNewSim"><span>Nouvelle simulation</span></button>
+        <button class="btn ghost" id="rMenu"><span>Menu principal</span></button>
+      </div>
+      <div class="result-buttons two">
+        <button class="btn accent" id="rSaveWorld"><i data-icon="save"></i><span>Sauvegarder le monde</span></button>
+        <button class="btn accent" id="rContinue"><i data-icon="history"></i><span>Continuer le monde</span></button>
+      </div>
+      <button class="btn ghost sm center" id="rViewMap"><i data-icon="eye"></i><span>Voir la carte finale</span></button>
+      <p class="disclaimer center">Résultat produit uniquement par le système de simulation du jeu : ce n'est pas une prédiction du monde réel.</p>
+      <p class="hint center" id="spectatorNext"></p>
+    </div>
+  </section>
+
+  <section id="worlds" class="overlay hidden">
+    <div class="dialog wide panel">
+      <small class="eyebrow">Bibliothèque</small>
+      <h2>Mondes</h2>
+      <p class="hint">Chaque monde garde sa géométrie exacte, ses frontières parcelle par parcelle, ses pays, capitales, équipes et son historique.</p>
+      <ul class="slot-list" id="worldList"></ul>
+      <div id="worldHistory" class="history hidden"></div>
+      <div class="dialog-foot">
+        <button class="btn ghost" id="worldImport"><i data-icon="upload"></i><span>Importer</span></button>
+        <button class="btn ghost" id="worldCreate"><i data-icon="sparkles"></i><span>Create World</span></button>
+        <span class="grow"></span>
+        <button class="btn primary" id="worldsClose">Fermer</button>
+      </div>
+      <input type="file" id="worldFile" accept=".simworld,.json" class="hidden">
+    </div>
+  </section>
+
+  <section id="saveWorldDialog" class="overlay hidden">
+    <div class="dialog panel">
+      <h2>Sauvegarder le monde</h2>
+      <p class="hint" id="swInfo"></p>
+      <div class="field"><label><span>Nom du monde</span></label><input type="text" id="swName" maxlength="40" placeholder="Mon monde"></div>
+      <label class="check"><input type="checkbox" id="swOverwrite"><span>Remplacer le monde enregistré (sinon : nouveau fichier)</span></label>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn ghost" id="swCancel">Annuler</button><button class="btn primary" id="swOk">Enregistrer</button></div>
+    </div>
+  </section>
+
+  <section id="loadGame" class="overlay hidden">
+    <div class="dialog wide panel">
+      <h2>Parties sauvegardées</h2>
+      <ul class="slot-list" id="gameList"></ul>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn primary" id="loadGameClose">Fermer</button></div>
+    </div>
+  </section>
+
+  <section id="settings" class="overlay hidden">
+    <div class="dialog panel">
+      <h2>Paramètres</h2>
+      <h4>Son</h4>
+      <div class="field"><label><span>Volume musique</span><output id="oMusic"></output></label><input type="range" id="sMusic" min="0" max="1" step="0.05"></div>
+      <div class="field"><label><span>Volume effets</span><output id="oSfx"></output></label><input type="range" id="sSfx" min="0" max="1" step="0.05"></div>
+      <label class="check"><input type="checkbox" id="sMute"><span>Couper le son</span></label>
+      <h4>Carte</h4>
+      <div class="field"><label><span>Vitesse des transitions de frontière</span></label><div class="seg" id="sTransition"></div></div>
+      <label class="check"><input type="checkbox" id="sFlags"><span>Ombres portées du relief <small>à désactiver sur un ordinateur peu puissant</small></span></label>
+      <label class="check"><input type="checkbox" id="sLabels"><span>Noms des pays</span></label>
+      <label class="check"><input type="checkbox" id="sCapitals"><span>Capitales</span></label>
+      <label class="check"><input type="checkbox" id="sDetails"><span>Carte détaillée <small>régions, villes, ports, lacs et routes en rapprochant la caméra</small></span></label>
+      <label class="check"><input type="checkbox" id="sMarkers"><span>Unités sur la carte</span></label>
+      <label class="check"><input type="checkbox" id="sGeo"><span>Biomes et rivières <small>forêts, déserts, toundra et réseau de rivières sur le relief</small></span></label>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn primary" id="settingsClose">Terminé</button></div>
+    </div>
+  </section>
+
+  <section id="newCountry" class="overlay hidden">
+    <div class="dialog wide panel">
+      <h2 id="ncTitle">Créer un pays</h2>
+      <p class="hint" id="ncInfo"></p>
+      <div class="nc-grid">
+        <div>
+          <div class="field"><label><span>Nom</span></label><input type="text" id="ncName" maxlength="30" placeholder="Nova"></div>
+          <div class="field"><label><span>Capitale</span></label><input type="text" id="ncCapital" maxlength="30" placeholder="Nova City"></div>
+          <div class="field"><label><span>Couleur</span></label><div class="swatches" id="ncSwatches"></div><input type="color" id="ncColor" value="#8b5cf6"></div>
+          <div class="field"><label><span>Drapeau / logo (facultatif)</span></label><div class="seg wrap" id="ncLayout"></div></div>
+          <div class="field"><label><span>Couleurs du drapeau</span></label><div class="nc-colors"><input type="color" id="ncC1" value="#1d4ed8"><input type="color" id="ncC2" value="#f8fafc"><input type="color" id="ncC3" value="#dc2626"></div></div>
+          <div class="field"><label><span>Région</span></label><select id="ncCont"></select></div>
+        </div>
+        <div>
+          <canvas id="ncPreview" width="240" height="160"></canvas>
+          <div class="field"><label><span>Population</span><output id="oNcPop"></output></label><input type="range" id="ncPop" min="0.1" max="400" step="0.1" value="20"></div>
+          <div class="field"><label><span>Puissance</span><output id="oNcPow"></output></label><input type="range" id="ncPow" min="5" max="95" step="1" value="55"></div>
+          <div class="field"><label><span>Économie</span><output id="oNcEco"></output></label><input type="range" id="ncEco" min="5" max="95" step="1" value="55"></div>
+          <div class="field"><label><span>Ressources</span><output id="oNcRes"></output></label><input type="range" id="ncRes" min="5" max="95" step="1" value="55"></div>
+          <div class="field"><label><span>Stabilité</span><output id="oNcStab"></output></label><input type="range" id="ncStab" min="5" max="95" step="1" value="60"></div>
+        </div>
+      </div>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn ghost" id="ncCancel">Annuler</button><button class="btn primary" id="ncOk">Créer le pays</button></div>
+    </div>
+  </section>
+
+  <!-- FIN DE GUERRE -->
+  <section id="warEnded" class="overlay war-ended hidden">
+    <div class="we-card panel">
+      <small class="eyebrow">Guerre terminée</small>
+      <h1 class="we-big">WAR ENDED</h1>
+      <p class="we-war" id="weWar"></p>
+      <div class="we-winner" id="weWinner"></div>
+      <div class="we-title" id="weTitle">Victoire</div>
+      <p class="we-reason" id="weReason"></p>
+      <div class="we-stats">
+        <div><small>Territoire</small><b id="weTerritory"></b></div>
+        <div><small>Durée</small><b id="weDuration"></b></div>
+      </div>
+      <p class="hint center" id="weDates"></p>
+      <h4>Changements majeurs</h4>
+      <ul class="we-changes" id="weChanges"></ul>
+      <div class="we-buttons">
+        <button class="btn primary" id="weReport"><i data-icon="scroll-text"></i><span>Voir le rapport de guerre</span></button>
+        <button class="btn ghost" id="weBorders"><i data-icon="map"></i><span>Voir les nouvelles frontières</span></button>
+        <button class="btn accent" id="weContinue"><i data-icon="play"></i><span>Continuer la simulation</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAPPORT DE GUERRE -->
+  <aside id="warReport" class="panel hidden">
+    <div class="wr-head">
+      <div><small class="eyebrow">War report · rapport de guerre</small><h2 id="wrName"></h2><span class="pill" id="wrResult"></span></div>
+      <button class="btn ghost sm icon" id="wrClose" title="Fermer"><i data-icon="x"></i></button>
+    </div>
+    <div class="wr-meta" id="wrMeta"></div>
+    <div class="wr-sides" id="wrSides"></div>
+    <div class="seg" id="wrMap"><button data-map="before">Avant</button><button data-map="after">Après</button><button data-map="changes">Changements</button><button data-map="now">Actuelle</button></div>
+    <div class="tabs" id="wrTabs"><button data-tab="summary">Résumé</button><button data-tab="territory">Territoires</button><button data-tab="timeline">Chronologie</button><button data-tab="battles">Batailles</button><button data-tab="treaty">Traité</button><button data-tab="compare">Avant / Après</button></div>
+    <div class="wr-body" id="wrBody"></div>
+  </aside>
+
+  <section id="warsPanel" class="overlay hidden">
+    <div class="dialog wide panel">
+      <h2>Guerres</h2>
+      <div id="warsBody" class="wars-body"></div>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn primary" id="warsClose">Fermer</button></div>
+    </div>
+  </section>
+
+  <section id="worldHistoryPanel" class="overlay hidden">
+    <div class="dialog wide panel wh">
+      <h2>Histoire du monde</h2>
+      <div class="row"><div class="seg wrap" id="whFilters"></div></div>
+      <div class="search"><i data-icon="search"></i><input type="text" id="whSearch" placeholder="Rechercher un pays, une guerre…" spellcheck="false"></div>
+      <div id="whBody" class="wh-body"></div>
+      <div class="dialog-foot"><span class="grow"></span><button class="btn primary" id="whClose">Fermer</button></div>
+    </div>
+  </section>
+
+  <div id="tooltip" class="panel hidden"></div>
+  <div id="notice" class="hidden"></div>
+  <script src="bundle.js"></script>
+</body>
+</html>
