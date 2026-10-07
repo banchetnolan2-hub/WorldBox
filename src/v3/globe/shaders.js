@@ -15,14 +15,16 @@ uniform sampler2D uTerrPrev;   // état précédent
 uniform sampler2D uTerrF;      // instant de capture normalisé (grille de simulation, filtrage linéaire)
 uniform float uMix;            // avancement de l'animation 0..1
 uniform vec2 uTerrSize;
-float terrKey(ivec2 tc, out float moving) {
+float terrKey(ivec2 tc, out float moving, out float fresh) {
   vec2 n = texelFetch(uTerr, tc, 0).rg, q = texelFetch(uTerrPrev, tc, 0).rg;
   float kn = floor(n.r * 255.0 + 0.5) + floor(n.g * 255.0 + 0.5) * 256.0;
   float kp = floor(q.r * 255.0 + 0.5) + floor(q.g * 255.0 + 0.5) * 256.0;
-  moving = 0.0;
+  moving = 0.0; fresh = 0.0;
   if (kn == kp || uMix >= 1.0) return kn;
   moving = 1.0;
   float f = texture(uTerrF, (vec2(tc) + 0.5) / uTerrSize).r;
+  // parcelle tout juste prise : éclat qui s'estompe derrière le front (fondu côté attaquant)
+  if (uMix > f) fresh = 1.0 - smoothstep(0.0, 0.35, uMix - f);
   return uMix > f ? kn : kp;
 }
 `;
@@ -265,7 +267,7 @@ void main() {
   float cellOwn[16]; float cellOcc[16]; float cellWo[16];
   for (int a = 0; a < 16; a++) { cellOwn[a] = -1.0; cellOcc[a] = 0.0; cellWo[a] = 0.0; }
   float changedW = 0.0, contested = 0.0, freshSum = 0.0, totW = 0.0, officialFx = 0.0;
-  float occNum = 0.0, occDen = 0.0;
+  float occNum = 0.0, occDen = 0.0, frontGlow = 0.0;
   vec2 q = gp;
   if (useField) {
   vec2 wq = gp * 0.017;
@@ -333,26 +335,32 @@ void main() {
     float sp = max(1.0, floor(pxAng / tTex));
     vec2 tp = uv * uTerrSize / sp - 0.5;
     ivec2 t0 = ivec2(floor(tp)); vec2 tf = fract(tp);
-    float moving = 0.0;
+    float moving = 0.0, frT = 0.0, frW = 0.0;
     resetVotes();
     for (int j = -1; j <= 2; j++) for (int i = -1; i <= 2; i++) {
       ivec2 tc = ivec2(float(t0.x + i) * sp, float(t0.y + j) * sp);
       tc.x = (tc.x % int(uTerrSize.x) + int(uTerrSize.x)) % int(uTerrSize.x); tc.y = clamp(tc.y, 0, int(uTerrSize.y) - 1);
-      float mv;
-      float key = terrKey(tc, mv);
+      float mv, fr;
+      float key = terrKey(tc, mv, fr);
       moving = max(moving, mv);
       if (key < 0.5) continue;
       key -= 1.0;
       float oc = key >= 32767.5 ? 1.0 : 0.0;
-      vote(key - oc * 32768.0, kern(tf - vec2(float(i), float(j)), 1.1), oc);
+      float kw = kern(tf - vec2(float(i), float(j)), 1.1);
+      vote(key - oc * 32768.0, kw, oc);
+      frT += kw * fr; frW += kw;
     }
     best2(o, wA, oA, o2, wB, oB);
     occA = oA / max(wA, 1e-5); occB = oB / max(wB, 1e-5);
     isOcc = smoothstep(0.45, 0.55, occA);
     // front en mouvement (animation entre deux états) : trait antialiasé sur la limite affichée
     float rT = (wA - wB) / (wA + wB + 1e-5);
-    edge = (moving > 0.5 && o2 >= 0.0 && o2 != o) ? 1.0 - smoothstep(0.0, fwidth(rT) * 1.1 + 1e-4, rT) : 0.0;
-    occEdge = 0.0; freshSum = 0.0; officialFx = 0.0; contested = 0.0;
+    bool front = moving > 0.5 && o2 >= 0.0 && o2 != o;
+    edge = front ? 1.0 - smoothstep(0.0, fwidth(rT) * 1.1 + 1e-4, rT) : 0.0;
+    // halo lumineux le long du front actif (quelques pixels de part et d'autre du trait)
+    frontGlow = front ? 1.0 - smoothstep(0.0, fwidth(rT) * 7.0 + 1e-4, rT) : 0.0;
+    occEdge = 0.0; officialFx = 0.0; contested = 0.0;
+    freshSum = frT; totW = frW;
   }
 
   // ---------- couleur de territoire (par-dessus le terrain) ----------
@@ -386,6 +394,7 @@ void main() {
   // passage de front : légère lueur ; intégration officielle : éclat bref
   float fresh = totW > 0.0 ? freshSum / totW : 0.0;
   base += vec3(1.0, 0.95, 0.8) * fresh * 0.14;
+  base += vec3(1.0, 0.82, 0.45) * frontGlow * (0.16 + 0.06 * sin(uTime * 6.0));
   base += vec3(1.0, 1.0, 0.9) * (totW > 0.0 ? officialFx / totW : 0.0) * 0.12;
   if (totW > 0.0 && contested / totW > 0.3) base = mix(base, vec3(1.0, 0.9, 0.6), 0.08 + 0.06 * sin(uTime * 5.0 + n * 6.0));
   if (abs(o - uSelected) < 0.5) base += vec3(0.10, 0.10, 0.08) * (0.6 + 0.4 * sin(uTime * 4.0));

@@ -1159,6 +1159,9 @@ export class GlobeRenderer {
     // formation en colonne : chef devant, rangs derrière (représentation agrégée des forces)
     const FORM = [[0, 0], [-1.0, -0.8], [-1.0, 0.8], [-2.0, 0], [-2.9, -0.8], [-2.9, 0.8], [-3.8, 0]];
     const horizonDot = 1 / camLen - 0.02;
+    if (!this.dispPos) this.dispPos = new Map();
+    const fdt = Math.min(0.1, Math.max(0, this.time - (this.dispT ?? this.time))); this.dispT = this.time;
+    const smoothK = 1 - Math.exp(-fdt * 14);
     if (sim && this.showMarkers) {
       const seen = new Set();
       for (const sd of sim.sides) {
@@ -1177,6 +1180,13 @@ export class GlobeRenderer {
           const born = sim.time - a.bornAt;
           if (born < 0) continue;
           let x = a.px + (a.x - a.px) * alpha, y = a.py + (a.y - a.py) * alpha, z = a.pz + (a.z - a.pz) * alpha;
+          // lissage d'affichage : la position montrée rejoint la position simulée en douceur
+          // (pas d'à-coup entre deux pas ni lors d'un redéploiement) ; affichage seulement
+          const dp = this.dispPos.get(a.id);
+          if (dp && Math.hypot(dp[0] - x, dp[1] - y, dp[2] - z) < 0.08) {
+            dp[0] += (x - dp[0]) * smoothK; dp[1] += (y - dp[1]) * smoothK; dp[2] += (z - dp[2]) * smoothK;
+            x = dp[0]; y = dp[1]; z = dp[2];
+          } else this.dispPos.set(a.id, [x, y, z]);
           const l = Math.hypot(x, y, z); x /= l; y /= l; z /= l;
           if ((x * camP.x + y * camP.y + z * camP.z) / camLen < horizonDot) continue; // face cachée
           seen.add(a.id);
@@ -1195,6 +1205,7 @@ export class GlobeRenderer {
         }
       }
       if (this.headings.size > seen.size + 200) for (const id of [...this.headings.keys()]) if (!seen.has(id)) this.headings.delete(id);
+      if (this.dispPos.size > seen.size + 200) for (const id of [...this.dispPos.keys()]) if (!seen.has(id)) this.dispPos.delete(id);
     }
     // micro-pays (pastilles de couleur)
     for (const mi of micro) {

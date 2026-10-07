@@ -25,7 +25,7 @@ const VS = `
     ivec2 c = ivec2(floor(uv * uTerrSize));
     c.x = (c.x % int(uTerrSize.x) + int(uTerrSize.x)) % int(uTerrSize.x); c.y = clamp(c.y, 0, int(uTerrSize.y) - 1);
     float mv;
-    return terrKey(c, mv);
+    float fr; return terrKey(c, mv, fr);
   }
   void main() {
     vec3 P = onSurface(position);

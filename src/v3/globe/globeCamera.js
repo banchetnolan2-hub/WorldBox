@@ -71,11 +71,15 @@ export class GlobeCamera {
     this.zoomGoal = null;
     this.target = { lat, lon, dist: Math.max(this.minDist, Math.min(MAX_DIST, dist)) };
     this.flySpeed = speed;
+    this.flyAge = 0;
   }
 
   update(dt) {
     if (this.target) {
-      const k = 1 - Math.exp(-dt * this.flySpeed);
+      // départ progressif (pas d'à-coup), puis approche exponentielle
+      this.flyAge = (this.flyAge || 0) + dt;
+      const ramp = Math.min(1, this.flyAge / 0.45);
+      const k = 1 - Math.exp(-dt * this.flySpeed * ramp * ramp * (3 - 2 * ramp));
       let dl = ((this.target.lon - this.lon + 540) % 360) - 180;
       this.lon += dl * k;
       this.lat += (this.target.lat - this.lat) * k;
