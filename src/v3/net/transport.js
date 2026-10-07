@@ -60,12 +60,12 @@ export function memoryPair() {
 // ---------------- WebRTC : codes d'invitation ----------------
 const b64u = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const unb64u = (str) => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
-async function deflate(str) {
+export async function deflate(str) {
   if (typeof CompressionStream === 'undefined') return new TextEncoder().encode(str);
   const cs = new Blob([str]).stream().pipeThrough(new CompressionStream('deflate-raw'));
   return new Uint8Array(await new Response(cs).arrayBuffer());
 }
-async function inflate(bytes) {
+export async function inflate(bytes) {
   if (typeof DecompressionStream === 'undefined') return new TextDecoder().decode(bytes);
   const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
   return new Response(ds).text();

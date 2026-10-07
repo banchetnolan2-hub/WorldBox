@@ -63,6 +63,7 @@ const common = {
   bundle: true, format: 'iife', target: ['chrome120'],
   minify: process.argv.includes('--minify'), sourcemap: !process.argv.includes('--minify'),
   loader: { '.json': 'json', '.bin': 'binary', '.svg': 'text' }, logLevel: 'warning',
+  define: { __APP_VERSION__: JSON.stringify(require('../package.json').version) },
 };
 if (fs.existsSync(path.join(src, 'devtest.html'))) {
   fs.copyFileSync(path.join(src, 'devtest.html'), path.join(out, 'devtest.html'));

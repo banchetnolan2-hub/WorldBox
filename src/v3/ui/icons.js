@@ -28,6 +28,9 @@ import i_info from 'lucide-static/icons/info.svg';
 import i_landmark from 'lucide-static/icons/landmark.svg';
 import i_layers from 'lucide-static/icons/layers.svg';
 import i_list from 'lucide-static/icons/list.svg';
+import i_key_round from 'lucide-static/icons/key-round.svg';
+import i_log_in from 'lucide-static/icons/log-in.svg';
+import i_refresh_cw from 'lucide-static/icons/refresh-cw.svg';
 import i_locate from 'lucide-static/icons/locate.svg';
 import i_log_out from 'lucide-static/icons/log-out.svg';
 import i_map_pin from 'lucide-static/icons/map-pin.svg';
@@ -191,6 +194,9 @@ const ICONS = {
   'landmark': i_landmark,
   'layers': i_layers,
   'list': i_list,
+  'key': i_key_round,
+  'log-in': i_log_in,
+  'refresh-cw': i_refresh_cw,
   'locate': i_locate,
   'log-out': i_log_out,
   'map-pin': i_map_pin,

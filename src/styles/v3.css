@@ -1467,6 +1467,14 @@ body.be-on .map-legend { display: none; }
 .dialog.mp #mpPort { width: 86px; }
 .mp-code { display: flex; gap: 6px; align-items: flex-start; }
 .mp-code textarea { flex: 1; }
+/* code de partie (relais) */
+.mp-main { border-color: color-mix(in srgb, var(--ac) 45%, transparent); }
+.mp-codein { flex: 1; font: 600 20px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }
+.mp-gamecode { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--ac) 14%, transparent); border: 1px solid color-mix(in srgb, var(--ac) 40%, transparent); }
+.mp-gamecode b { flex: 1; font: 700 22px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 0.14em; color: var(--gold-text, var(--tx)); user-select: all; }
+.mp-other { margin-top: 10px; }
+.mp-other > summary { cursor: pointer; color: var(--tx2, var(--tx)); opacity: 0.85; padding: 6px 0; font-size: 13px; }
+.mp-other[open] > summary { margin-bottom: 6px; }
 .mp-countries { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; max-height: 52vh; overflow: auto; padding-right: 4px; }
 .mp-countries button { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: rgba(var(--hl), 0.02); color: var(--text); cursor: pointer; }
 .mp-countries button .flag { grid-row: span 2; }

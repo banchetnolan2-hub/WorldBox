@@ -4,7 +4,7 @@
 // Un invité qui rejoint reçoit l'état complet de la partie. Une empreinte de l'état est comparée tous les
 // HASH_EVERY pas : en cas d'écart (désynchronisation), l'hôte renvoie l'état complet à l'invité concerné.
 
-export const NET_VERSION = 'worldsim-mp-1';
+export const NET_VERSION = 'worldsim-mp-2';
 export const HASH_EVERY = 200;      // pas de simulation entre deux vérifications (10 s de simulation)
 const MAX_LAG = 160;                // l'hôte attend un invité en retard de plus de MAX_LAG pas
 const GUEST_MAX_STEPS = 160;        // rattrapage maximal par image chez un invité

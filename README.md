@@ -12,13 +12,38 @@ classement en direct, musique générée, mondes persistants sur plusieurs gén�
 Double-cliquez sur **`WorldSimulator.exe`** (version portable, hors connexion). Si la carte graphique ne gère pas la 3D,
 le jeu bascule sur un rendu logiciel (plus lent) ; le **mode classique 2D** de la V2 reste accessible depuis le menu.
 
+## VERSION 3.1 — ce qui a changé
+
+| Élément | Ce qu'il fait | Où |
+|---|---|---|
+| **Mon pays** (tableau de bord) | situation en un coup d'œil : économie, budget, population, stabilité, armée, guerres et fronts, ravitaillement, recherche, occupation, diplomatie ; alertes cliquables qui ouvrent le bon onglet | `sim/insights.js`, `ui/dashboard.js` |
+| **Conseiller** | conseils contextuels (économie, armée, ravitaillement, recherche, occupation, stabilité, diplomatie) et explication des derniers refus des IA ; lecture seule, n'influence jamais la simulation | `sim/insights.js` |
+| **Guide** et tutoriel | 16 chapitres (`F1`, menu, barre de gauche) ; tutoriel en 8 étapes à la première partie Nation | `ui/guide.js` |
+| **Récapitulatif annuel** | chaque 1er janvier (désactivable) : PIB, population, territoire, guerres, traités, technologies, faits marquants ; aussi dans l'onglet Chronologie | `ui/recap.js` |
+| **Thèmes** | Salle des cartes, Nuit polaire, État-major, Atlas clair, Contraste élevé ; taille de l'interface | `ui/themes.js`, Paramètres → Interface |
+| Vitesses et notifications | vitesses 1×, 2×, 3×, 5×, 10× (×10 au maximum, aussi en multijoueur) ; notifications groupées, niveau réglable, pause automatique au choix (guerre, paix, alliance, révolte…) ; `R` désactivé en Mode Nation et en multijoueur | `ui/notify.js`, `game/session.js` |
+| **Réglages avancés** | 32 paramètres en 7 catégories, 6 profils (Équilibré, Réaliste, Guerre totale, Diplomatique, Bâtisseur, Arcade) et profils personnels ; « Équilibré » = comportement d'origine à l'identique ; modifiables en partie (hôte seulement), sauvegardés | `sim/tuning.js`, `ui/tuningUI.js` |
+| **Armée** | composition (infanterie, blindés, artillerie, reconnaissance, aviation, forces spéciales) avec reconversion progressive et effets réels ; groupes d'armée (nombre, mission, front visé, défense de la capitale, réserve) ; ordres de flotte (automatique, aller à, points de passage, patrouille, escorte des convois, retour au port) ; fiches flottantes des groupes, flottes et pays | `sim/military.js`, `ui/forcesUI.js` |
+| **Occupation** | 4 états : contrôlé, semi-occupé, occupé, contesté (ravitaillement insuffisant) ; partisans ; état visible au survol | `worldSim._occState` |
+| **Paix proportionnée** | une exigence est jugée selon ce que l'adversaire a réellement perdu (capacité de cession, jauge dans le formulaire) ; contre-offre ramenée à ce qui est acceptable, refus expliqués | `sim/diplomacy.js`, `sim/territoryValue.js` |
+| **Diplomatie territoriale** | échange, rectification de frontière, cession, achat, vente, don, restitution, indépendance, nouvel État, séparation, annexion, fusion ; régions voisines seulement, capitale jamais cédée, prix équitable calculé | `sim/territorial.js` |
+| **Technologies** | 181 technologies en 12 branches, 24 choix exclusifs (une voie ferme l'autre), IA cohérente ; arbre navigable (zoom, glisser, recherche, filtre « Conseillé ») ; anciennes sauvegardes converties | `sim/techTree.js` |
+| **Nations formables** | 32 nations (Union européenne, Grande Colombie, Corée unifiée…) par conquête, vote des États ou union d'alliés ; proclamation, nouvelle identité, éditeur de nations ; l'IA en forme aussi (rarement) | `sim/formables.js`, `ui/formablesUI.js` |
+| **8 pays et territoires** | Kosovo, Taïwan, Sahara occidental, Chypre du Nord, Nouvelle-Calédonie, Porto Rico, Hong Kong, Somaliland (204 jouables) | `scripts/data/promoted.txt` |
+| Interface | barre de gauche par sections (Mon pays, Gouvernement, Militaire, Diplomatie & Territoire, Identité, Carte du monde, Réglages…) ; pastilles colorées en haut (PIB, budget, population, stabilité, armée, guerres, alertes) ; fiche flottante d'un pays au clic | `ui/gameNav.js`, `ui/nationUI.js` |
+| Identité visuelle | couleur secondaire, forme des unités (disque, carré, losange, hexagone), style des navires, couleur des autres pays (normale, pastel, grisée, assombrie), préréglages enregistrés | `nationUI.js`, `globe/shaders.js` |
+| Carte | front de conquête lumineux, parcelles prises qui s'illuminent puis se fondent dans la couleur du conquérant, déplacements des unités lissés, départ progressif de la caméra | `globe/shaders.js`, `globeRenderer.js`, `globeCamera.js` |
+| Mode Nation | le crayon de frontières n'est plus disponible en Mode Nation (il reste en Sandbox / Contrôle total) | `sim/borderEdit.js` |
+| **Multijoueur par code** | voir ci-dessous | `net/relay.js` |
+
 ## Développement
 
 ```bash
 npm install
 npm run dev        # construit l'interface et ouvre le jeu (Electron)
 npm run build      # release/WorldSimulator.exe (portable) + installateur Windows
-npm test           # moteur mondial, guerres/IA, Nation, règles/transport/paix/détails, mondes, moteur 2D
+npm test           # moteur, guerres/IA, Nation, règles, géométrie, naval, coalitions, technologies, crises, fins de guerre,
+                   # multijoueur, mondes, tableau de bord/conseiller, interface, mécaniques Nation 3.1, relais, moteur 2D
 npm run web        # version navigateur de test : http://localhost:5173
 ```
 
@@ -87,7 +112,7 @@ Données : `npm run countries` régénère `src/data/countries.json` (196 pays) 
 | Mode histoire | 7 scénarios (crise de la dette, tensions, développement rapide, conflit régional, reconstruction, montée technologique, monde des deux blocs), objectifs suivis, 4 fins possibles | `src/v3/sim/scenarios.js` |
 | Rapports de guerre | onglet AVANT / APRÈS : population, territoire, PIB, budget, effectifs, relations, pertes statistiques (personnel, estimation des blessés, matériel agrégé, impact économique) | `wars.statSnap`, `warUI.js` |
 
-Vitesses en mode Nation : Pause, 1×, 2×, 5×, 10× (touches `Espace`, `1`–`4`) ; `P` gestion du pays, `D` diplomatie. Début : 1er janvier 2026.
+Vitesses en mode Nation : Pause, 1×, 2×, 3×, 5×, 10× (touches `Espace`, `1`–`5`) ; `P` gestion du pays, `D` diplomatie. Début : 1er janvier 2026.
 
 Calendrier : 1 seconde simulée = 3 jours. Tests : `npm test` (moteur, guerres/IA/économie, mondes créés, mode classique).
 
@@ -127,8 +152,8 @@ titres en Cormorant Garamond, texte en Inter ; animations courtes (0,15 à 0,45 
 | Déplacements réalistes | itinéraires terrestres (A*) par son territoire, celui des alliés (en guerre) ou la zone du front ennemi ; jamais à pied sur la mer, jamais à travers un pays neutre ; « zones terrestres » praticables par pays | `worldSim._landPath`, `_lab` |
 | Transport maritime | bateau seulement sans route terrestre praticable (îles, exclaves, territoire séparé par un neutre) ; navire à quai pendant l'embarquement, traversée, débarquement ; bassins maritimes précalculés ; routes déterministes | `worldSim._orderSea`, `navigation.js` |
 | Coalitions | formation face aux agresseurs ou aux menaces, chef, intérêts de chaque membre (agressé, sécurité, revendications, alliance, économie, revanche, opportunisme), objectif (libérer, vaincre, contenir), cohésion, offensives coordonnées, aide aux membres du front, entrées et départs, paix séparée, négociation par le chef ; jouable en Nation (fonder, inviter, objectif, offensive, quitter) | `sim/coalitions.js`, `ui/coalitionUI.js` |
-| Arbres technologiques | 157 technologies : 14 branches civiles et 13 militaires, jusqu'à 6 paliers, prérequis croisés, coûts et durées, effets réels (combat, défense aérienne, convois, débarquements, renseignement, forces spéciales, pertes…) et conséquences (entretien, inquiétude des voisins, stabilité) ; spécialisations par pays (maritime, continentale, montagne, désert, industrielle, technologique, petit État…) avec coûts réduits et technologies propres | `sim/techTree.js`, onglet Technologies |
-| Éditeur de frontières | Mode Nation : crayon, gomme, annuler/rétablir, précision, zoom très proche, accrochage aux frontières, avant/après, validation ; le tracé modifie les parcelles ET la géométrie (frontière exactement sur la ligne) ; capitales protégées, nettoyage topologique, réactions des voisins | `sim/borderEdit.js`, `ui/borderEditor.js` |
+| Arbres technologiques | (3.1 : 181 technologies regroupées en 12 branches, 24 choix exclusifs) 27 lignes : 14 civiles et 13 militaires, jusqu'à 6 paliers, prérequis croisés, coûts et durées, effets réels (combat, défense aérienne, convois, débarquements, renseignement, forces spéciales, pertes…) et conséquences (entretien, inquiétude des voisins, stabilité) ; spécialisations par pays (maritime, continentale, montagne, désert, industrielle, technologique, petit État…) avec coûts réduits et technologies propres | `sim/techTree.js`, onglet Technologies |
+| Éditeur de frontières | (3.1 : retiré du Mode Nation) crayon, gomme, annuler/rétablir, précision, zoom très proche, accrochage aux frontières, avant/après, validation ; le tracé modifie les parcelles ET la géométrie (frontière exactement sur la ligne) ; capitales protégées, nettoyage topologique, réactions des voisins | `sim/borderEdit.js`, `ui/borderEditor.js` |
 | Crises et sanctions | crises bilatérales (incident frontalier, différend territorial…) puis conférence internationale avec médiateurs (accord, statu quo, guerre) ; le joueur choisit sa ligne ; crises mondiales de l'énergie et alimentaire ; sanctions économiques (joueur et IA, coalitions) | `sim/crises.js` |
 | Vues du monde | classement mondial (11 mesures, évolution sur un an), comparateur de pays (tableau + courbes), crises et sanctions, cartes thématiques (`K`) : économie, richesse, puissance, technologie, stabilité, croissance, population, relations, blocs, sanctions | `ui/worldViews.js` |
 | Corrections | effets militaires de l'arbre et de plusieurs décisions jamais appliqués (else ambigu) ; régions annexées par traité supprimées par le nettoyage ; vainqueur bloqué qui ne proposait jamais la paix | |
@@ -136,7 +161,7 @@ titres en Cormorant Garamond, texte en Inter ; animations courtes (0,15 à 0,45 
 ## Contrôles
 
 `Glisser` tourner le globe · `Molette` / `+` `−` zoom · `Flèches` rotation · `Clic` fiche du pays · `Espace` pause ·
-`N` avancer d'une étape · `1`–`5` vitesse (0,5× à 8×) · `C` caméra auto/libre · `V` vue d'ensemble · `R` recommencer ·
+`N` avancer d'une étape · `1`–`5` vitesse (Mode Nation : 1× à 10×) · `F1` guide · `C` caméra auto/libre · `V` vue d'ensemble · `R` recommencer (hors Mode Nation et multijoueur) ·
 `G` guerres et rapports · `K` cartes thématiques · `H` histoire du monde · `M` marqueurs · `L` noms · `S` son · `Échap` menu · `F11` plein écran. En Contrôle total : clic gauche + glisser = peindre,
 clic droit + glisser = tourner, `Ctrl+Z` / `Ctrl+Y` = annuler / rétablir.
 
@@ -183,10 +208,17 @@ Musiques, sons, interface et code : originaux.
 ## MISE À JOUR : multijoueur (Mode Nation)
 
 - **Menu principal → Multijoueur** : héberger ou rejoindre. En partie : barre de gauche → **Multijoueur**.
-- **Sans ouvrir de port** : l'hôte crée un **code d'invitation** (WSI-…), l'ami le colle et renvoie son **code de réponse** (WSR-…) ; la connexion passe directement entre les PC (WebRTC, comme un appel vidéo).
-- **Par adresse IP** (application Windows) : réseau local ou réseau virtuel **Tailscale / ZeroTier / Radmin VPN** ; port 47615 (autoriser WorldSimulator dans le pare-feu Windows à la première ouverture).
+- **Code de partie (3.1)** : l'hôte ouvre la partie et obtient un code court, par exemple `H7KQ2-M9XAPQ` ; chaque joueur va dans **Menu → Multijoueur → Rejoindre**, saisit ce code et choisit son pays. **Un même code sert à plusieurs joueurs.**
+  - Connexion par des **relais publics** (MQTT sur WebSocket sécurisé : EMQX, HiveMQ, Mosquitto, Shiftr) : aucun port à ouvrir, aucun serveur à installer.
+  - **Chiffrement de bout en bout** : le salon et la clé AES-GCM 256 sont dérivés du code (PBKDF2) ; les relais ne voient que des octets chiffrés ; une trame altérée ou forgée sans le code est ignorée.
+  - **Bascule automatique** : l'hôte écoute sur tous les relais joignables ; si celui d'un joueur tombe, il repasse par un autre et la partie est resynchronisée.
+  - Message explicite si aucune partie ne répond au bout de **15 s**, si aucun relais n'est joignable, ou si les **versions du jeu diffèrent** (la connexion est alors refusée).
+  - Relais personnalisés (avancé) : liste JSON `[{"name":"…","url":"wss://…"}]` dans le stockage local `ws-relays`.
+- **Autres méthodes** (repliées sous « Autres méthodes ») :
+  - **Code d'invitation direct** : l'hôte crée un **code d'invitation** (WSI-…), l'ami le colle et renvoie son **code de réponse** (WSR-…) ; la connexion passe directement entre les PC (WebRTC, comme un appel vidéo).
+  - **Par adresse IP** (application Windows) : réseau local ou réseau virtuel **Tailscale / ZeroTier / Radmin VPN** ; port 47615 (autoriser WorldSimulator dans le pare-feu Windows à la première ouverture).
 - L'invité **choisit son pays** (dirigé jusque-là par l'IA) et reçoit la partie en cours ; il peut arriver à tout moment.
 - Simulation identique sur chaque PC (**lockstep**) : seuls les ordres des joueurs circulent. Empreinte comparée toutes les 10 s de simulation ; en cas d'écart, l'hôte renvoie l'état complet automatiquement.
 - **Diplomatie entre joueurs** : commerce, pactes, alliances, aide, paix, contre-propositions, coalitions — c'est l'autre joueur qui décide, pas l'IA. Guerres entre joueurs, capitulations proposées au joueur vaincu.
 - **Pause et vitesse communes** ; **messagerie** ; un joueur qui part laisse son pays « en attente » (il peut revenir) ou l'hôte le **confie à l'IA**. Seul l'hôte sauvegarde ; une partie sauvegardée garde tous les joueurs.
-- Code : `src/v3/net/` (transport, netGame, commands), `src/v3/ui/netUI.js` ; tests : `tests/v3-multi.test.js`.
+- Code : `src/v3/net/` (relay, transport, netGame, commands), `src/v3/ui/netUI.js` ; tests : `tests/v3-multi.test.js`, `tests/v3-relay.test.js` (vrais serveurs MQTT locaux : chiffrement, plusieurs joueurs, bascule, version, délai, partie complète sans désynchronisation).

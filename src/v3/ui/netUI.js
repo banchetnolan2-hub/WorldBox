@@ -1,14 +1,20 @@
-// UI — MULTIJOUEUR : héberger une partie Nation, inviter des amis (code d'invitation ou adresse IP),
-// rejoindre une partie, choisir son pays, liste des joueurs, messagerie, quitter.
+// UI — MULTIJOUEUR : héberger une partie Nation, inviter des amis (code de partie par relais chiffré ;
+// autres méthodes : code d'invitation WebRTC ou adresse IP), rejoindre une partie, choisir son pays,
+// liste des joueurs, messagerie, quitter.
 import { $, show, isShown, esc, notice, flagImg } from './util.js';
 import { icon } from './icons.js';
-import { NetGame, stateHash } from '../net/netGame.js';
+import { NetGame, stateHash, NET_VERSION } from '../net/netGame.js';
+import { relayHost, relayJoin, normalizeCode } from '../net/relay.js';
 import { rtcInvite, rtcAnswer, tcpListen, tcpStop, tcpConnect, hasTcp, DEFAULT_PORT } from '../net/transport.js';
 import { execCommand } from '../net/commands.js';
 import { activeOverrides } from '../sim/borderEdit.js';
 
 const NAME_KEY = 'ws-mp-name';
+/* global __APP_VERSION__ */
+export const GAME_VERSION = (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev') + ' (' + NET_VERSION + ')';
 const loadName = () => { try { return localStorage.getItem(NAME_KEY) || ''; } catch (_) { return ''; } };
+// relais personnalisés (avancé) : liste JSON [{ name, url, user?, pass? }] dans le stockage local
+const customRelays = () => { try { const r = JSON.parse(localStorage.getItem('ws-relays') || 'null'); return Array.isArray(r) && r.length ? r : undefined; } catch (_) { return undefined; } };
 const saveName = (v) => { try { localStorage.setItem(NAME_KEY, v); } catch (_) { /* stockage indisponible */ } };
 
 export class NetUI {
@@ -82,7 +88,7 @@ export class NetUI {
     $('mpBox').querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => this.openMenu(b.dataset.tab));
     const box = $('mpTab');
     if (tab === 'host') {
-      box.innerHTML = `<ol class="mp-steps"><li>Lancez une partie <b>Nation Simulator</b> (nouvelle ou sauvegardée).</li><li>Ouvrez le panneau <b>Multijoueur</b> (barre de gauche) et créez une invitation pour chaque ami.</li><li>Envoyez-lui le code (Discord, WhatsApp…), collez sa réponse : il choisit son pays et vous rejoint.</li></ol>
+      box.innerHTML = `<ol class="mp-steps"><li>Lancez une partie <b>Nation Simulator</b> (nouvelle ou sauvegardée).</li><li>Ouvrez le panneau <b>Multijoueur</b> : un <b>code de partie</b> s'affiche (ex. H7KQ2-M9XAPQ).</li><li>Envoyez ce code à vos amis (Discord, WhatsApp…) : chacun le saisit dans Multijoueur → Rejoindre, choisit son pays et vous rejoint.</li></ol>
         <div class="row"><button class="btn primary" id="mpNew">${icon('play')}<span>Nouvelle partie à héberger</span></button><button class="btn ghost" id="mpLoad">${icon('folder-open')}<span>Héberger une partie sauvegardée</span></button></div>
         ${this.sim && this.sim.nation ? `<p class="hint">Une partie Nation est en cours : <a href="#" id="mpNow">l'ouvrir aux autres joueurs maintenant</a>.</p>` : ''}`;
       $('mpNew').onclick = () => { this.app.pendingHost = true; show('mpDialog', false); this.app.nationUI.openPick(); notice('Choisissez votre pays : la partie sera ouverte aux autres joueurs.', 3500); };
@@ -90,15 +96,24 @@ export class NetUI {
       const now = $('mpNow'); if (now) now.onclick = (e) => { e.preventDefault(); show('mpDialog', false); this.host(); };
     } else {
       box.innerHTML = `
-        <div class="mp-method"><h4>${icon('link')}<span>Avec un code d'invitation (par Internet)</span></h4>
+        <div class="mp-method mp-main"><h4>${icon('key')}<span>Code de partie</span></h4>
+          <p class="hint">Saisissez le code donné par l'hôte. La connexion passe par des relais publics, chiffrée de bout en bout : aucun port à ouvrir.</p>
+          <div class="row"><input type="text" id="mpCode" class="mp-codein" placeholder="H7KQ2-M9XAPQ" maxlength="16" spellcheck="false" autocomplete="off"><button class="btn primary" id="mpJoinCode">${icon('log-in')}<span>Rejoindre</span></button></div></div>
+        <div id="mpJoinStatus" class="hint"></div>
+        <details class="mp-other"><summary>Autres méthodes</summary>
+        <div class="mp-method"><h4>${icon('link')}<span>Avec un code d'invitation direct (WebRTC)</span></h4>
           <p class="hint">Collez le code reçu de l'hôte (il commence par WSI-), puis renvoyez-lui le code de réponse.</p>
           <textarea id="mpInvite" rows="3" placeholder="WSI-…" spellcheck="false"></textarea>
           <div class="row"><button class="btn primary" id="mpAnswer">${icon('repeat')}<span>Créer ma réponse</span></button></div>
           <div id="mpReply"></div></div>
         <div class="mp-method"><h4>${icon('wifi')}<span>Par adresse IP (réseau local, Tailscale, ZeroTier, Radmin VPN)</span></h4>
           ${tcp ? `<div class="row"><input type="text" id="mpHost" placeholder="ex. 100.64.12.7 ou 192.168.1.20" spellcheck="false"><input type="number" id="mpPort" value="${DEFAULT_PORT}" min="1" max="65535"><button class="btn ghost" id="mpConnect">${icon('plug')}<span>Se connecter</span></button></div>` : '<p class="hint">Disponible dans l\'application Windows.</p>'}</div>
-        <div id="mpJoinStatus" class="hint"></div>`;
+        </details>`;
       $('mpAnswer').onclick = () => this._answer();
+      $('mpJoinCode').onclick = () => this._codeJoin();
+      $('mpCode').onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') this._codeJoin(); };
+      $('mpCode').oninput = () => { const v = normalizeCode($('mpCode').value); if (v && v !== $('mpCode').value) $('mpCode').value = v; };
+      setTimeout(() => { const c = $('mpCode'); if (c) c.focus(); }, 50);
       if (tcp) $('mpConnect').onclick = () => this._tcpJoin();
     }
     show('mpDialog');
@@ -122,6 +137,22 @@ export class NetUI {
       $('mpCopyReply').onclick = () => this._copy(r.code);
       this._joinStatus('En attente de la connexion de l\'hôte…');
     } catch (e) { this._joinStatus(e.message, true); }
+  }
+  async _codeJoin() {
+    const raw = $('mpCode').value, code = normalizeCode(raw);
+    if (!code) { this._joinStatus('Code invalide : il a la forme H7KQ2-M9XAPQ (11 lettres et chiffres).', true); return; }
+    if (this._joining) return;
+    this._joining = true;
+    const btn = $('mpJoinCode'); if (btn) btn.disabled = true;
+    this._joinStatus(`Recherche de la partie ${code}… (15 s au maximum)`);
+    try {
+      const link = await relayJoin(code, { version: GAME_VERSION, name: this.name, relays: customRelays() });
+      const net = this._newGuest();
+      link.onresume = (relay) => { notice(`Connexion rétablie par un autre relais (${relay}) : resynchronisation.`, 3500); if (net.loaded) net._requestResync(); };
+      net.connect(link);
+      this._joinStatus(`Connecté par le relais ${link.relay} : choix du pays…`);
+    } catch (e) { this._joinStatus(e.message, true); }
+    finally { this._joining = false; const b = $('mpJoinCode'); if (b) b.disabled = false; }
   }
   async _tcpJoin() {
     const host = $('mpHost').value.trim(), port = Number($('mpPort').value) || DEFAULT_PORT;
@@ -163,9 +194,26 @@ export class NetUI {
     app.act({ op: 'rename', k: sim.nation.player, name: this.name });
     app.session.net = this.net;
     if (hasTcp()) tcpListen(DEFAULT_PORT, (link) => this.net && this.net.isHost && this.net.addLink(link)).then((r) => { this.tcpInfo = r; this.render(); });
+    this._openRelay();
     this.app.gameNav.render();
     this.openPanel();
-    notice('Partie ouverte aux autres joueurs. Créez une invitation pour chaque ami.', 4200);
+    notice('Partie ouverte aux autres joueurs : donnez-leur le code de partie.', 4200);
+  }
+  // code de partie : écoute sur les relais publics (nouvelle tentative possible si aucun n'est joignable)
+  _openRelay() {
+    const net = this.net;
+    this.relay = { state: 'opening' };
+    this.render();
+    relayHost((link) => { if (this.net === net && net.isHost) net.addLink(link); else link.close(); }, { version: GAME_VERSION, code: this.lastCode, relays: customRelays() })
+      .then((h) => {
+        if (this.net !== net) { h.close(); return; }
+        this.relay = { state: 'open', h, code: h.code };
+        this.lastCode = h.code;            // même code si la partie est rouverte
+        this.render();
+      })
+      .catch((e) => { if (this.net === net) { this.relay = { state: 'error', text: e.message }; this.render(); } });
+  }
+  _closeRelay() { if (this.relay && this.relay.h) this.relay.h.close(); this.relay = null;
   }
   async _createInvite() {
     try {
@@ -217,12 +265,15 @@ export class NetUI {
       <h4>Joueurs (${players.length})</h4>
       <ul class="mp-players">${players.map(row).join('')}</ul>
       ${absent.length ? `<h4>Pays de joueurs absents</h4><ul class="mp-players">${absent.map((k) => `<li>${flagImg(ents[sim.sides[k].e], 'flag sm')}<div><b>${esc(sim.sides[k].name)}</b><small>${esc((n.humans[k] && n.humans[k].pname) || 'joueur')} peut revenir et le reprendre</small></div><button class="btn ghost xs" data-ai="${k}">Confier à l'IA</button></li>`).join('')}</ul>` : ''}
-      ${net.isHost ? `<h4>Inviter un joueur</h4>
+      ${net.isHost ? `<h4>Code de partie</h4>
+        ${this._relayHtml()}
+        <details class="mp-other"><summary>Autres méthodes (invitation directe, adresse IP)</summary>
         <div class="mp-invites">${this.invites.map((inv, i) => `<div class="mp-inv"><small>Invitation ${i + 1} · ${esc(inv.state)}</small>
           <div class="mp-code"><textarea readonly rows="2">${esc(inv.code)}</textarea><button class="btn accent xs" data-copy="${i}">${icon('copy')}<span>Copier</span></button></div>
           <div class="mp-code"><textarea rows="2" id="mpRep${i}" placeholder="Collez ici le code de réponse (WSR-…)" spellcheck="false"></textarea><button class="btn primary xs" data-acc="${i}">${icon('plug')}<span>Connecter</span></button></div></div>`).join('')}</div>
         <button class="btn ghost sm" id="mpInv">${icon('plus')}<span>Créer une invitation</span></button>
-        ${this.tcpInfo && this.tcpInfo.ok ? `<p class="hint">Par adresse IP (réseau local, Tailscale, ZeroTier…) : port ${this.tcpInfo.port}, adresses ${this.tcpInfo.addresses.map((a) => `<b>${esc(a.address)}</b>`).join(', ') || '—'}.</p>` : ''}` : ''}
+        ${this.tcpInfo && this.tcpInfo.ok ? `<p class="hint">Par adresse IP (réseau local, Tailscale, ZeroTier…) : port ${this.tcpInfo.port}, adresses ${this.tcpInfo.addresses.map((a) => `<b>${esc(a.address)}</b>`).join(', ') || '—'}.</p>` : ''}
+        </details>` : ''}
       <h4>Messagerie</h4>
       <div class="mp-chat" id="mpChat"></div>
       <div class="row"><input type="text" id="mpMsg" maxlength="400" placeholder="Écrire aux autres joueurs…"><button class="btn primary sm" id="mpSend">${icon('send')}</button></div>
@@ -233,11 +284,20 @@ export class NetUI {
     $('mpSend').onclick = send;
     msg.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') send(); };
     $('mpQuit').onclick = () => this.leave();
+    if ($('mpCopyCode')) $('mpCopyCode').onclick = () => this._copy(this.relay.code);
+    if ($('mpRetryRelay')) $('mpRetryRelay').onclick = () => this._openRelay();
     if ($('mpInv')) $('mpInv').onclick = () => this._createInvite();
     body.querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => this._copy(this.invites[Number(b.dataset.copy)].code));
     body.querySelectorAll('[data-acc]').forEach((b) => b.onclick = () => this._acceptInvite(Number(b.dataset.acc)));
     body.querySelectorAll('[data-kick]').forEach((b) => b.onclick = () => { if (window.confirm('Retirer ce joueur de la partie ?')) net.kick(Number(b.dataset.kick)); });
     body.querySelectorAll('[data-ai]').forEach((b) => b.onclick = () => { this.app.act({ op: 'leave', k: Number(b.dataset.ai) }); this.render(); });
+  }
+  _relayHtml() {
+    const r = this.relay;
+    if (!r || r.state === 'opening') return `<p class="hint">Connexion aux relais publics…</p>`;
+    if (r.state === 'error') return `<p class="bad">${esc(r.text)}</p><button class="btn ghost sm" id="mpRetryRelay">${icon('refresh-cw')}<span>Réessayer</span></button>`;
+    return `<div class="mp-gamecode"><b>${esc(r.code)}</b><button class="btn accent sm" id="mpCopyCode">${icon('copy')}<span>Copier</span></button></div>
+      <p class="hint">Chaque joueur saisit ce code dans Multijoueur → Rejoindre. Connexion chiffrée de bout en bout · relais : ${esc(r.h.relays.join(', ') || '—')}.</p>`;
   }
   _renderChat() {
     const el = $('mpChat');
@@ -253,7 +313,7 @@ export class NetUI {
     if (!window.confirm(this.net.isHost ? 'Fermer la partie partagée ? Les autres joueurs seront déconnectés ; vous continuez seul.' : 'Quitter la partie ? Vous pourrez la rejoindre de nouveau.')) return;
     const wasHost = this.net.isHost;
     this.net.close();
-    if (wasHost) { tcpStop(); this._fallbackSolo(); }
+    if (wasHost) { tcpStop(); this._closeRelay(); this._fallbackSolo(); }
     else { this.net = null; this.app.session.net = null; this.app.goMenu(); }
     this.render();
   }
@@ -263,6 +323,7 @@ export class NetUI {
     if (this.net) this.net.active = false;
     this.net = null;
     this.invites = [];
+    this._closeRelay();
     this.app.session.net = null;
     if (sim) { sim.cmdSink = (cmd) => this.app.act(cmd); }
     this.app.gameNav.render();
