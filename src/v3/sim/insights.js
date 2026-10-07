@@ -78,6 +78,18 @@ export function diplomacyOf(sim, k, n) {
   return { allies, rivals, partners, tense, offers };
 }
 
+// états d'occupation des territoires tenus par le pays k (semi-occupé, occupé, contesté)
+export function occupationOf(sim, k) {
+  const out = { semi: 0, occupied: 0, contested: 0 };
+  const e = sim.sides[k].e;
+  for (const i of sim.occList || []) {
+    if (sim.owner[i] !== e) continue;
+    const l = sim.occupied[i];
+    if (l === 1) out.semi++; else if (l === 2) out.occupied++; else if (l === 3) out.contested++;
+  }
+  return out;
+}
+
 // ======================= TABLEAU DE BORD =======================
 // Toutes les données utiles à la décision, regroupées par thème. Chaque thème porte un état
 // (good / warn / bad) pour que l'écran mette en avant ce qui demande une action.
@@ -132,7 +144,8 @@ export function dashboard(sim, k, n = null) {
     logistics: { supply: sup, supplyLvl: sd.supplyLvl ?? 0.5, roads: p.infra.roads, rail: p.infra.rail, ports: p.infra.ports, stock: sd.resources, tone: tone(sup < 0.55, sup < 0.8) },
     territory: {
       cells: sd.cells, km2: sd.km2 || 0, initial: sd.initial, occupied: sd.occupiedCells || 0, foreign: sd.heldForeign || 0,
-      change: (sd.cells - sd.initial) / Math.max(1, sd.initial), tone: tone(sd.cells < sd.initial * 0.85, sd.cells < sd.initial),
+      change: (sd.cells - sd.initial) / Math.max(1, sd.initial), occ: occupationOf(sim, k),
+      tone: tone(sd.cells < sd.initial * 0.85, sd.cells < sd.initial || occupationOf(sim, k).contested > 0),
     },
     recent,
   };
@@ -153,6 +166,7 @@ export function alerts(sim, k, n = null) {
   if (d.budget.debtRatio > 1.1) add(2, `Dette élevée : ${Math.round(d.budget.debtRatio * 100)} % du PIB.`, 'eco');
   if (d.economy.growthKnown && d.economy.growth < -0.005) add(2, `Récession : ${pctTxt(d.economy.growth)} sur un an.`, 'eco');
   if (d.resources.military < 15) add(2, 'Stocks militaires presque épuisés.', 'mil');
+  if (d.territory.occ.contested) add(2, `${d.territory.occ.contested} zone(s) occupée(s) contestée(s) : partisans actifs, ravitaillement insuffisant.`, 'def');
   if (d.research.list.some((x) => x.stalled)) add(1, 'Un projet de recherche est suspendu faute de financement.', 'dev');
   if (!d.research.list.length && sim.rules.techTree !== false) add(1, 'Aucune recherche en cours.', 'dev');
   if (d.diplomacy.offers) add(1, `${d.diplomacy.offers} proposition(s) diplomatique(s) en attente.`, 'offers');
@@ -241,6 +255,20 @@ export function advise(sim, k, n = null) {
     }
     topics.push({ id: 'supply', title: 'Ravitaillement', icon: 'truck', state: d.logistics.supply < 0.55 ? 'bad' : d.logistics.supply < 0.8 ? 'warn' : 'good',
       summary: `Ravitaillement estimé au front : ${Math.round(d.logistics.supply * 100)} %.`, causes, recs });
+  }
+
+  // ---- occupations ----
+  {
+    const o = d.territory.occ;
+    const causes = [], recs = [];
+    if (o.contested) {
+      causes.push(`${o.contested} zone(s) contestée(s) : le ravitaillement n'y suffit pas, des partisans s'y soulèvent et peuvent les reprendre.`);
+      recs.push({ text: 'Améliorer la logistique (technologies, routes) ou réduire la profondeur des conquêtes.', target: 'dev' });
+      recs.push({ text: 'Renforcer les forces spéciales dans la composition de l\'armée (lutte contre les partisans).', target: 'def' });
+    }
+    if (o.semi) causes.push(`${o.semi} zone(s) semi-occupée(s) : elles deviendront occupées si elles restent calmes et ravitaillées.`);
+    if (o.semi || o.occupied || o.contested) topics.push({ id: 'occupation', title: 'Occupations', icon: 'map-pin', state: o.contested ? 'warn' : 'good',
+      summary: `Semi-occupé ${o.semi} · occupé ${o.occupied} · contesté ${o.contested} (parcelles).`, causes, recs });
   }
 
   // ---- stabilité ----

@@ -1655,3 +1655,4 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .tn-row .hint { font-size: 11px; }
 #tnName { width: 160px; }
 @media (max-width: 800px) { .tn-list { grid-template-columns: 1fr; } }
+.occ-contested { color: var(--bad) !important; } .occ-semi { color: var(--gold) !important; }

@@ -836,7 +836,11 @@ class App {
     const orig = g.origin[cell];
     const sim = this.session.sim;
     let extra = '';
-    if (sim && sim.occupied && sim.occupied[cell]) extra += '<small>Zone occupée · pas encore intégrée</small>';
+    if (sim && sim.occupied && sim.occupied[cell]) {
+      const st = sim.occupationState ? sim.occupationState(cell) : { label: 'Occupé' };
+      const hint = { semi: 'conquête récente, contrôle fragile', occupied: 'calme et ravitaillé, sera intégré', contested: 'ravitaillement insuffisant, partisans actifs' }[st.id] || 'pas encore intégré';
+      extra += `<small class="occ-${st.id}">${st.label} · ${hint}</small>`;
+    } else if (sim && sim.nation && cell >= 0 && sim.owner[cell] !== 65535) extra += '<small>Contrôlé</small>';
     if (sim && sim.origin[cell] !== o && this.entities()[sim.origin[cell]]) extra += `<small>Territoire d'origine : ${esc(this.entities()[sim.origin[cell]].name)}</small>`;
     else if (!sim && orig !== o && orig !== NONE && this.entities()[orig]) extra += `<small>Frontière d'origine : ${esc(this.entities()[orig].name)}</small>`;
     tip.innerHTML = `<div class="tt-head"><i class="dot" style="background:${ent.color}"></i><b>${esc(ent.name)}</b></div>${ent.capital ? `<small>Capitale : ${esc(ent.capital.name)}</small>` : ''}${extra}`;

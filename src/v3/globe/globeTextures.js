@@ -144,7 +144,7 @@ export class TerritoryTextures {
     const n = this.grid.n;
     for (let i = 0; i < n; i++) {
       const o = owner[i];
-      const oc = occupied ? occupied[i] === 1 : false;
+      const oc = occupied ? occupied[i] > 0 : false;   // 1 semi-occupé, 2 occupé, 3 contesté
       this._mirror(i, o, oc);
       this._cellPixels(i, (p, land) => { this._writePix(p, i, o, o, 0, land, oc); this.b[p * 4 + 2] = 0; });
     }

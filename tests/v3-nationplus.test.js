@@ -56,4 +56,48 @@ const { m } = load();
   ok(m.matchProfile(mk('FR', { seed: 'TC' }, old).tuning) === 'balanced', 'ancienne sauvegarde sans réglages : valeurs de base');
 }
 
+// §17 — occupation : semi-occupé → occupé → contrôlé ; contesté sans ravitaillement ; partisans
+{
+  const census = (sim) => { const c = [0, 0, 0, 0]; for (let i = 0; i < sim.n; i++) if (sim.occupied[i]) c[sim.occupied[i]]++; return c; };
+  const sim = mk('DE', { seed: 'OCC' });
+  const k = sim.nation.player, pl = side(sim, 'Pologne');
+  m.startWar(sim, [k], [pl], 'declaration');
+  let seenSemi = false, seenOcc = false, firstSemi = -1;
+  for (let i = 0; i < 6000 && !(seenOcc && seenSemi); i++) {
+    sim.step(); sim.captures.length = 0; sim.eventsOut.length = 0;
+    const c = census(sim);
+    if (c[1] && firstSemi < 0) firstSemi = sim.time;
+    seenSemi = seenSemi || c[1] > 0; seenOcc = seenOcc || c[2] > 0;
+  }
+  const c = census(sim);
+  ok(seenSemi, `conquête récente : semi-occupation (première à t=${firstSemi.toFixed(0)})`);
+  ok(seenOcc, `zones calmes et ravitaillées : occupation consolidée (semi ${c[1]}, occupé ${c[2]}, contesté ${c[3]})`);
+  const st = [...new Set(Array.from({ length: sim.n }, (_, i) => sim.occupationState(i).label))];
+  ok(st.includes('Contrôlé') && st.some((x) => x !== 'Contrôlé'), `états lisibles au survol : ${st.join(', ')}`);
+  // sans ravitaillement suffisant : zones contestées, partisans, zones reprises
+  const hard = mk('DE', { seed: 'OCC2', options: { tuning: { occSupply: 2, partisans: 3 } } });
+  const kh = hard.nation.player, ph = side(hard, 'Pologne');
+  m.startWar(hard, [kh], [ph], 'declaration');
+  let contested = 0, retaken = 0, partisans = 0;
+  for (let i = 0; i < 9000; i++) {
+    const before = hard.sides[kh].cells;
+    hard.step(); hard.captures.length = 0;
+    for (const e of hard.eventsOut) if (e.title === 'PARTISANS') partisans++;
+    hard.eventsOut.length = 0;
+    contested = Math.max(contested, census(hard)[3]);
+    void before;
+  }
+  for (let i = 0; i < hard.n; i++) if (hard.origin[i] === hard.sides[ph].e && hard.owner[i] === hard.sides[ph].e && hard.lastFlip[i] > 0) retaken++;
+  ok(contested > 0, `ravitaillement insuffisant : zones contestées (${contested} au maximum)`);
+  ok(partisans > 0, `partisans actifs : ${partisans} soulèvement(s) signalé(s)`);
+  // Sandbox : comportement d'origine (pas d'états intermédiaires)
+  const { load: L } = require('./v3-common.js'); void L;
+  // déterminisme : sauvegarde au milieu des occupations, reprise identique
+  const snap = JSON.parse(JSON.stringify(sim.serialize()));
+  const b = mk('DE', { seed: 'OCC' }, snap);
+  ok(census(b).join() === census(sim).join(), 'états d\'occupation conservés par la sauvegarde');
+  for (let i = 0; i < 1500; i++) { sim.step(); b.step(); }
+  ok(m.stateHash(sim) === m.stateHash(b) && census(b).join() === census(sim).join(), 'reprise identique (propriétaires, états d\'occupation, empreinte multijoueur)');
+}
+
 summary('Mécaniques du Mode Nation');

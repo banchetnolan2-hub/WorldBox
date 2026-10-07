@@ -1810,6 +1810,8 @@ export class WorldSim {
       if (s < 0) { this.occupied[i] = 0; continue; }
       const sd = this.sides[s];
       const held = this.time - this.lastFlip[i];
+      // Mode Nation : états d'occupation (semi-occupé → occupé → contrôlé ; contesté sans ravitaillement)
+      if (this.nation && this._occState(i, s, sd, held, base) === false) { keep.push(i); continue; }
       let ok = held >= base * (1.25 - sd.stability * 0.5) * (1.2 - 0.4 * sd.p.politics.admin / 100) && this.borderPos[i] < 0 && this.contest[i] <= this.time;
       if (ok && held < base * 3) {
         let touch = false;
@@ -1838,6 +1840,52 @@ export class WorldSim {
           text: `${sd.name} intègre officiellement une partie des territoires qu'il occupait.` });
       }
     }
+  }
+
+  // ---------------- occupation (Mode Nation) ----------------
+  // occupied[i] : 0 contrôlé · 1 semi-occupé (conquête récente) · 2 occupé (calme et ravitaillé) · 3 contesté.
+  // Retourne false si la parcelle ne peut pas encore devenir officielle (seul l'état « occupé » le peut).
+  // Ordre de parcours déterministe (occList) et tirages sur le générateur de la partie : aucune désynchronisation.
+  _occState(i, s, sd, held, base) {
+    const lvl = this.occupied[i];
+    const calm = this.borderPos[i] < 0 && this.contest[i] <= this.time;
+    const q = this.rules.logistics === false ? 1 : this.supply(s, i);
+    const need = 0.62 * tn(this, 'occSupply');
+    if (lvl === 1) {
+      if (q < need * 0.85 && held > base * 0.15) { this.occupied[i] = 3; return false; }
+      if (calm && q >= need && held >= base * 0.3) this.occupied[i] = 2;
+      return false;
+    }
+    if (lvl === 3) {
+      if (q >= need && calm) { this.occupied[i] = 1; return false; }
+      // partisans : soulèvements, plus fréquents si le ravitaillement est mauvais ; les forces spéciales les répriment
+      const p = 0.0025 * tn(this, 'partisans') * (1 + Math.max(0, need - q) * 3) * (1 - Math.min(0.7, sd.sof || 0));
+      if (p > 0 && this.rng.next() < p) {
+        const oe = this.origin[i], os = this.sideOf[oe];
+        applyLosses(sd, sd.units * 0.002, false);
+        if (os >= 0 && !this.sides[os].eliminated && this.atWar[s * this.S + os]) {
+          this.flip(i, oe, true);                     // zone reprise par les partisans
+          this._partisanNote(s, os, i);
+        }
+      }
+      return false;
+    }
+    // occupé : redevient contesté si le ravitaillement s'effondre
+    if (q < need * 0.7) { this.occupied[i] = 3; return false; }
+    return true;
+  }
+  _partisanNote(s, os, i) {
+    const sd = this.sides[s];
+    if (this.time - (sd.partisanAt || -99) < 30) return;   // une notification au plus toutes les 3 mois par pays
+    sd.partisanAt = this.time;
+    this._emit({ icon: '✊', title: 'PARTISANS', tone: 'bad', side: s, cell: i, text: `Des partisans reprennent une zone occupée par ${sd.name} au profit ${de(this.sides[os].name)}. Le ravitaillement de l'occupation est insuffisant.` });
+  }
+  // état d'occupation lisible (survol de la carte)
+  occupationState(i) {
+    const lvl = this.occupied[i];
+    if (!lvl) return { id: 'controlled', label: 'Contrôlé' };
+    if (!this.nation) return { id: 'occupied', label: 'Occupé' };
+    return [null, { id: 'semi', label: 'Semi-occupé' }, { id: 'occupied', label: 'Occupé' }, { id: 'contested', label: 'Contesté' }][Math.min(3, lvl)];
   }
 
   officialCells(s) { const sd = this.sides[s]; return sd.cells - sd.occupiedCells; }

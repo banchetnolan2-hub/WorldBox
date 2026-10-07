@@ -64,7 +64,7 @@ export function dashboardHtml(ui, sim, n, sd) {
     card('terr', 'Territoire', 'map', t.tone, 'mil', [
       ['Superficie', `${fmtInt(t.km2)} km²`], ['Évolution', `${sign(t.change * 100)} %`, t.change < 0 ? 'down' : t.change > 0 ? 'up' : ''],
       ['Zones occupées', t.occupied ? fmtInt(t.occupied) + ' parcelles' : 'Aucune'],
-    ]),
+    ], t.occupied ? `Semi-occupé ${t.occ.semi} · occupé ${t.occ.occupied} · contesté ${t.occ.contested}` : ''),
   ];
   const recent = d.recent.length ? `<ul class="db-recent">${d.recent.map((x) => `<li><small>${esc(fmtDate(x.t, sim.cfg.startDay, true))}</small><span>${esc(x.text)}</span></li>`).join('')}</ul>` : '<p class="hint">Aucun événement pour le moment.</p>';
   return `<div class="db">

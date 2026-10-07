@@ -14,8 +14,8 @@ export function stateHash(sim) {
   let h = 2166136261 >>> 0;
   const mix = (v) => { h ^= v & 0xffff; h = Math.imul(h, 16777619) >>> 0; h ^= (v >>> 16) & 0xffff; h = Math.imul(h, 16777619) >>> 0; };
   mix(sim.tickCount | 0); mix(sim.rng.state >>> 0);
-  const o = sim.owner;
-  for (let i = 0; i < o.length; i++) mix(o[i]);
+  const o = sim.owner, oc = sim.occupied;
+  for (let i = 0; i < o.length; i++) mix(o[i] + (oc ? oc[i] << 16 : 0));   // propriétaire et état d'occupation
   for (const s of sim.sides) { mix(s.cells | 0); mix(Math.round(s.units * 1000) | 0); mix(Math.round(s.money * 1000) | 0); mix(Math.round(s.morale * 10000) | 0); mix(s.agents ? s.agents.length : 0); }
   mix(sim.wars.length); mix(sim.transports ? sim.transports.length : 0);
   return h >>> 0;
