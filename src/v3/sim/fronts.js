@@ -100,6 +100,9 @@ export function rebuildSectors(sim, s) {
     const fm = f.posture === 'attack' ? 2.3 : f.posture === 'defend' ? 1.6 : 1;
     sec.w = size * pm * (sec.o < 0 ? 0.55 : 1);
     sec.fw = size * fm * (sec.o < 0 ? 0.35 : 1);
+    // groupes d'armée du joueur : forces concentrées sur les fronts désignés ; la réserve renforce les fronts en recul
+    if (sd.groupFocus && sec.o >= 0 && sd.groupFocus[sec.o]) { sec.w *= sd.groupFocus[sec.o]; sec.fw *= sd.groupFocus[sec.o]; }
+    if (sd.reserveK && f.status === 'retreating') sec.fw *= 1 + sd.reserveK;
     wSum += sec.w; fSum += sec.fw;
   }
   // parts d'actions (tirage pondéré) et de forces par secteur

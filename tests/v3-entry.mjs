@@ -34,3 +34,4 @@ export { memoryPair } from '../src/v3/net/transport.js';
 export { execCommand, commandView } from '../src/v3/net/commands.js';
 export * from '../src/v3/sim/insights.js';
 export * from '../src/v3/sim/tuning.js';
+export * from '../src/v3/sim/military.js';

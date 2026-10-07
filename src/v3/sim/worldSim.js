@@ -665,7 +665,7 @@ export class WorldSim {
     let v = 1;
     if (targetCell >= 0 && this.origin[targetCell] !== sd.e) {
       const frac = sd.heldForeign / Math.max(50, sd.initial);
-      v /= 1 + (1.45 - 0.7 * sd.supplyLvl) * frac * TUNE.supply / tn(this, 'supplyRange');
+      v /= 1 + (1.45 - 0.7 * sd.supplyLvl) * frac * TUNE.supply / tn(this, 'supplyRange') * (sd.compLogK || 1);
     }
     if (sd.resources < 8) v *= 0.8;
     return v * (0.8 + 0.2 * sd.readiness);
@@ -695,7 +695,7 @@ export class WorldSim {
     if (sd.techDef) v *= sd.techDef;
     if (sd.techDefT) v *= sd.techDefT[b];
     if (sd.intel) v *= 1 + sd.intel * 0.5;
-    if (sd.capital >= 0 && (cell === sd.capital || distKm(this.grid, cell, sd.capital) < 90)) v *= 1.3;
+    if (sd.capital >= 0 && (cell === sd.capital || distKm(this.grid, cell, sd.capital) < 90)) v *= 1.3 * (1 + (sd.capGuard || 0) * 0.6);   // groupes affectés à la capitale
     if (this.origin[cell] === sd.e) {
       v *= 1.1 * (1 + TUNE.desperation * (1 - this.intensity() * 0.8) * Math.max(0, 1 - sd.cells / sd.initial));
     } else v *= 0.85;
@@ -716,14 +716,15 @@ export class WorldSim {
     const dd = d >= 0 ? this.sides[d] : null;
     const slow = dd ? clamp(Math.sqrt(dd.initial / 900), 0.25, 1) : 0.7;
     if (this.rng.next() > slow) return false;
-    sd.resources = Math.max(0, sd.resources - this.attemptCost);
+    sd.resources = Math.max(0, sd.resources - this.attemptCost * (sd.compLogK || 1));   // artillerie et blindés consomment plus
     const bin = this.bins[j];
     const key = secKey(d, bin);
     const densA = sd.secDens[key] !== undefined ? sd.secDens[key] : sd.avgDens;
     const f = sd.front[key];
     let A = this.attackPower(s, j, densA);
     // forces spéciales : coups de main sur les poches isolées et autour de la capitale ennemie
-    if (sd.sof && dd && (this.isolated[j] || (dd.capital >= 0 && distKm(this.grid, j, dd.capital) < 180))) A *= 1 + sd.sof;
+    const sofE = (sd.sof || 0) + (sd.sofComp || 0);                // technologies + forces spéciales de la composition
+    if (sofE && dd && (this.isolated[j] || (dd.capital >= 0 && distKm(this.grid, j, dd.capital) < 180))) A *= 1 + sofE;
     // soutien aérien (supériorité locale) et reconnaissance
     if (dd) {
       const air = sd.airPow / (sd.airPow + dd.airPow * 1.1 + 0.5) - 0.4;
@@ -778,6 +779,7 @@ export class WorldSim {
   // puis le cœur du pays. Aucun déplacement sans raison, aucun bateau quand la terre suffit.
   _agentCount(sd) {
     let c = clamp(Math.round(2 + Math.sqrt(sd.maxUnits) / 7), 2, 8);
+    if (sd.groupPlan && sd.groupPlan.count) return sd.groupPlan.count;   // nombre de groupes choisi par le joueur
     const cap = this.cfg.maxAgents / Math.max(1, this.sides.length);
     if (c > cap) c = Math.max(1, Math.floor(cap));
     return c;
@@ -1033,6 +1035,31 @@ export class WorldSim {
       count[i]++;
       a.post = this._pickPost(sd, a, p);
     };
+    // groupes d'armée du joueur : chaque point de la carte est un groupe (ordre stable des identifiants) ;
+    // un groupe affecté (capitale, réserve, front contre un pays) rejoint directement son poste
+    const fixed = new Set();
+    const plan = sd.groupPlan;
+    if (plan && plan.count) {
+      const sorted = [...sd.agents].sort((x, y) => x.id - y.id);
+      sorted.forEach((a, q) => { a.gid = q % plan.count; });
+      const capI = byKey.get('K');
+      for (const a of agents) {
+        const gr = plan.list[a.gid];
+        if (!gr || gr.task === 'auto') continue;
+        let best = -1;
+        if (gr.task === 'front') {
+          let bw = -1;
+          posts.forEach((p, i) => { if (p.front && p.key[0] === 'S' && p.comp === aLab.get(a) && sd.sectors) { const sec = sd.sectors.find((x) => 'S' + x.key === p.key); if (sec && sec.o === gr.target && p.w > bw) { bw = p.w; best = i; } } });
+        } else if (gr.task === 'reserve') {
+          let bw = -1;
+          posts.forEach((p, i) => { if (!p.front || p.comp !== aLab.get(a)) return; const f = sd.front[p.key.slice(1)]; if (f && f.status === 'retreating' && p.w > bw) { bw = p.w; best = i; } });
+        }
+        if (best < 0 && capI !== undefined && posts[capI].comp === aLab.get(a)) best = capI;    // capitale (ou réserve sans front menacé)
+        if (best < 0) continue;
+        fixed.add(a);
+        if (a.postKey !== posts[best].key) { const old = byKey.get(a.postKey); if (old !== undefined) count[old]--; assign(a, best); }
+      }
+    }
     // groupes libres d'abord, puis déplacements progressifs (au plus un quart des groupes à la fois)
     for (const a of agents) {
       if (a.postKey) continue;
@@ -1049,7 +1076,7 @@ export class WorldSim {
       let pick = null, bd = Infinity;
       for (const a of agents) {
         const i = byKey.get(a.postKey);
-        if (i === undefined || count[i] <= base[i] || aLab.get(a) !== posts[need].comp) continue;
+        if (i === undefined || count[i] <= base[i] || aLab.get(a) !== posts[need].comp || fixed.has(a)) continue;
         const d = dist(a, posts[need]);
         if (d < bd) { bd = d; pick = a; }
       }
@@ -1253,7 +1280,7 @@ export class WorldSim {
           if (d > 350) continue;
           const od = this.sides[f.side];
           const hit = od.navPow / (od.navPow + sd.navPow + 0.5);
-          if (this.rng.next() < hit * 0.6 * (1 - (sd.convoyK || 0))) {
+          if (this.rng.next() < hit * 0.6 * (1 - (sd.convoyK || 0)) * (1 - (sd.escortK || 0))) {   // flottes d'escorte du joueur
             const lost = tr.cargo * hit * 0.18;
             applyLosses(sd, lost, false);
             const a = sd.agents.find((x) => x.id === tr.agent);
@@ -1347,15 +1374,28 @@ export class WorldSim {
   _adjustAgents(sd) {
     if (sd.eliminated) return;
     const cap = Math.max(1, Math.floor(this.cfg.maxAgents / Math.max(1, this.sides.length)));
-    const target = Math.min(cap, clamp(Math.round(1.5 + Math.sqrt(landTotal(sd)) / 6), 1, 9));
+    const plan = sd.groupPlan && sd.groupPlan.count ? sd.groupPlan.count : 0;   // nombre de groupes choisi par le joueur
+    const target = plan || Math.min(cap, clamp(Math.round(1.5 + Math.sqrt(landTotal(sd)) / 6), 1, 9));
     if (sd.agents.length < target) this._spawnAgent(sd, 0.5);
-    else if (sd.agents.length > target + 1) {
+    else if (sd.agents.length > target + (plan ? 0 : 1)) {
       const idle = sd.agents.filter((a) => !a.engaged && a.transit < 0 && !a.sea && a.op !== 'landing');
       const a = idle[idle.length - 1];
       if (a) sd.agents.splice(sd.agents.indexOf(a), 1);
     }
   }
 
+  // groupes d'armée choisis par le joueur : nombre ajusté immédiatement (ordre exécuté au même pas partout)
+  fitGroups(s) {
+    const sd = this.sides[s], plan = sd.groupPlan;
+    if (!plan || !plan.count || sd.eliminated) return;
+    for (let q = 0; q < 16 && sd.agents.length < plan.count; q++) if (!this._spawnAgent(sd, q * 0.2)) break;
+    for (let q = 0; q < 16 && sd.agents.length > plan.count; q++) {
+      const idle = sd.agents.filter((a) => a.transit < 0 && !a.sea && a.op !== 'landing');
+      const a = idle[idle.length - 1];
+      if (!a) break;
+      sd.agents.splice(sd.agents.indexOf(a), 1);
+    }
+  }
   addAgents(s, k) {
     const sd = this.sides[s];
     let added = 0;
@@ -1576,15 +1616,18 @@ export class WorldSim {
     if (this.tickCount % 40 === 7) {
       for (const sd of this.sides) {
         if (sd.eliminated) continue;
-        const want = sd.navy >= 1.2 && sd.p.infra.ports > 5 && this.isAtWar(sd.index) ? clamp(Math.floor(1 + sd.navy / 6), 1, 3) : 0;   // flottes visibles en temps de guerre
+        // flottes visibles en temps de guerre ; celles d'un joueur existent en permanence (ordres de navigation)
+        const want = sd.navy >= 1.2 && sd.p.infra.ports > 5 && (this.isAtWar(sd.index) || sd.player) ? clamp(Math.floor(1 + sd.navy / 6), 1, 3) : 0;
         const mine = this.fleets.filter((f) => f.side === sd.index);
         if (mine.length > want) { const f = mine[0]; this.fleets.splice(this.fleets.indexOf(f), 1); }
         else if (mine.length < want && this.fleets.length < this.cfg.maxFleets) this._newFleet(sd);
       }
     }
+    for (const sd of this.sides) sd.escortK = 0;
     for (const f of this.fleets) {
       f.done += f.speed * TICK;
       if (f.done >= f.length) this._routeFleet(f);
+      if (f.order && f.order.type === 'escort') this.sides[f.side].escortK = Math.min(0.45, (this.sides[f.side].escortK || 0) + 0.18);
     }
     // combats navals (toutes les 2 s)
     if (this.tickCount % 40 === 21 && this.fleets.length > 1) {
@@ -1640,6 +1683,7 @@ export class WorldSim {
   _routeFleet(f) {
     const sd = this.sides[f.side];
     const g = this.grid;
+    if (f.order && f.order.type !== 'auto' && this._orderedRoute(f, sd)) return;
     // patrouille : vers une côte ennemie (guerre) ou le long des côtes du pays
     let to = -1;
     const S = this.S;
@@ -1657,6 +1701,40 @@ export class WorldSim {
     f.length = polylineLengthKm(route);
     f.done = 0; f.speed = 330 + sd.p.tech * 1.2; f.at = to; delete f._seg; delete f._cum;
   }
+
+  // ordres du joueur à une flotte : itinéraire maritime vers la prochaine destination de l'ordre
+  _orderedRoute(f, sd) {
+    const g = this.grid, o = f.order;
+    let to = -1;
+    const stay = () => { f.path = [f.path[f.path.length - 1], f.path[f.path.length - 1]]; f.length = 1; f.done = 0; f.speed = 0.1; return true; };
+    const nearestOwnCoast = () => {
+      let best = -1, bd = Infinity;
+      const list = g.coastalList;
+      for (let t = 0; t < list.length; t += Math.max(1, (list.length / 2500) | 0)) { const i = list[t]; if (this.owner[i] !== sd.e) continue; const d = distKm(g, i, f.at); if (d < bd) { bd = d; best = i; } }
+      return best;
+    };
+    if (o.type === 'goto') { to = o.pts[0]; if (f.at === to || o.arrived) { o.arrived = true; return stay(); } }
+    else if (o.type === 'waypoints') { if (o.i >= o.pts.length) return stay(); to = o.pts[o.i]; if (to === f.at) { o.i++; return this._orderedRoute(f, sd); } o.i++; }
+    else if (o.type === 'patrol') {
+      const pts = o.pts.length ? o.pts : [];
+      if (!pts.length) { const c = this._ownCoast(sd); to = c; }
+      else { to = pts[o.i % pts.length]; o.i = (o.i + 1) % Math.max(1, pts.length + (pts.length === 1 ? 1 : 0)); if (pts.length === 1 && to === f.at) to = this._ownCoast(sd); }
+    } else if (o.type === 'escort') {
+      const tr = this.transports.find((t) => t.side === sd.index && t.to >= 0) || null;
+      to = tr ? tr.to : this._ownCoast(sd);
+    } else if (o.type === 'port') { to = nearestOwnCoast(); if (to === f.at || o.arrived) { o.arrived = true; return stay(); } }
+    if (to < 0 || to === f.at) return stay();
+    const route = this.nav.seaRoute(f.at, to);
+    if (!route || route.length < 2) { if (o.type === 'goto') o.arrived = true; return stay(); }
+    f.path = route.map((p) => [p[0], p[1], p[2]]);
+    f.length = polylineLengthKm(route);
+    f.done = 0; f.speed = 330 + sd.p.tech * 1.2; f.at = to; delete f._seg; delete f._cum;
+    if (o.type === 'goto' || o.type === 'port') o.arrived = false;
+    return true;
+  }
+  // flotte du joueur la plus proche d'un point (sélection sur la carte) et position courante
+  fleetPos(f) { return this._pathPos(f); }
+  nearestCoastTo(p) { return this._nearestCoast(p); }
 
   _updateAgents(sd) {
     const g = this.grid;
@@ -1704,7 +1782,7 @@ export class WorldSim {
         // déplacement terrestre : infrastructures et terrain ; transferts rapides (rail, route) sur les longues distances
         const terr = TERRAIN_SPEED[this.geo.biome[a.cell]] || 1;
         const ease = a.landedAt !== undefined ? Math.min(1, 0.3 + (this.time - a.landedAt) / 3) : 1;
-        const stepK = a.speed * sd.speedK * terr * ease * (distK > 1200 ? 2.6 : 1) * TICK;
+        const stepK = a.speed * sd.speedK * terr * ease * (distK > 1200 ? 2.6 : 1) * TICK * (sd.compSpeedK || 1);   // mobilité selon la composition
         const f = Math.min(1, stepK / distK);
         const s1 = Math.sin((1 - f) * ang) / Math.sin(ang), s2 = Math.sin(f * ang) / Math.sin(ang);
         a.x = a.x * s1 + tx * s2; a.y = a.y * s1 + ty * s2; a.z = a.z * s1 + tz * s2;
@@ -1859,7 +1937,7 @@ export class WorldSim {
     if (lvl === 3) {
       if (q >= need && calm) { this.occupied[i] = 1; return false; }
       // partisans : soulèvements, plus fréquents si le ravitaillement est mauvais ; les forces spéciales les répriment
-      const p = 0.0025 * tn(this, 'partisans') * (1 + Math.max(0, need - q) * 3) * (1 - Math.min(0.7, sd.sof || 0));
+      const p = 0.0025 * tn(this, 'partisans') * (1 + Math.max(0, need - q) * 3) * (1 - Math.min(0.7, (sd.sof || 0) + (sd.sofComp || 0)));
       if (p > 0 && this.rng.next() < p) {
         const oe = this.origin[i], os = this.sideOf[oe];
         applyLosses(sd, sd.units * 0.002, false);
@@ -1922,7 +2000,7 @@ export class WorldSim {
     // sanctions économiques et crises mondiales (énergie, alimentation) : perte (ou gain) de PIB
     sd.sanctionLoss = this.sanctions && this.sanctions.length ? sanctionDrag(this, s) : 0;
     sd.crisisLoss = this.crises && this.crises.length ? globalCrisisEffect(this, s) : 0;
-    const ops = sd.opsAcc * sd.unitCostBn * 0.004;
+    const ops = sd.opsAcc * sd.unitCostBn * 0.004 * (sd.compLogK || 1);
     sd.opsAcc = 0;
     if (this.nation) this.nation.preMonth(s);
     const R = this.rules;

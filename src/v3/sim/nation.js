@@ -11,6 +11,7 @@
 //  • des événements mondiaux liés aux statistiques ; la chronologie annuelle du pays ; les scénarios.
 // Tout est déterministe (générateur de la simulation) et sérialisable.
 import { PERSONALITIES, UNIT_COST } from './profile.js';
+import { applyComposition, applyGroups, normalizeGroups } from './military.js';
 import { tn } from './tuning.js';
 import { MONTH_SEC, YEAR_SEC, fmtDate, dateParts } from './calendar.js';
 import { startWar, joinWar, endWar, addRel, relationStatus } from './wars.js';
@@ -189,6 +190,9 @@ export class Nation {
     sd.policyGrowth = (pol.services - 1) * 0.012 - (pol.tax - 1) * 0.02;
     sd.p.popGrowth = clamp((sd.basePopGrowth ?? (sd.basePopGrowth = sd.p.popGrowth)) + pol.family * 0.35, -1.5, 4);
     sd.stance = pol.stance;
+    // armée du joueur : composition choisie et affectation des groupes d'armée
+    if (pol.comp) applyComposition(sd, pol.comp);
+    applyGroups(sd, pol.groups ? normalizeGroups(pol.groups, this.sim.S) : null);
   }
 
   // ---------------- chaque mois, pour chaque pays ----------------

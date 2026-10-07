@@ -100,4 +100,76 @@ const { m } = load();
   ok(m.stateHash(sim) === m.stateHash(b) && census(b).join() === census(sim).join(), 'reprise identique (propriétaires, états d\'occupation, empreinte multijoueur)');
 }
 
+// §14 — composition de l'armée : effets réels
+{
+  const base = mk('FR', { seed: 'COMP' }), heavy = mk('FR', { seed: 'COMP' });
+  const k = base.nation.player;
+  const c0 = m.currentComposition(base.sides[k]);
+  ok(Object.values(c0).reduce((a, b) => a + b, 0) === 100, `composition actuelle : ${Object.entries(c0).map(([x, v]) => x + ' ' + v + ' %').join(', ')}`);
+  const comp = { inf: 25, arm: 35, art: 25, rec: 5, air: 5, sof: 5 };
+  m.execCommand(heavy, { op: 'policy', a: k, patch: { comp } });
+  run(base, 121.67); run(heavy, 121.67);
+  const b = base.sides[k], h = heavy.sides[k];
+  ok(h.army.arm / m.landTotal(h) > b.army.arm / m.landTotal(b) * 1.3, `reconversion : blindés ${(b.army.arm / m.landTotal(b) * 100).toFixed(0)} % → ${(h.army.arm / m.landTotal(h) * 100).toFixed(0)} % de l'armée de terre`);
+  ok(h.atkT[0] / h.q > b.atkT[0] / b.q, 'puissance d\'attaque en terrain ouvert accrue (blindés)');
+  ok((h.compLogK || 1) > 1.05 && heavy.supply(k, heavy.origin.findIndex((e) => e !== h.e)) <= base.supply(k, base.origin.findIndex((e) => e !== b.e)), `consommation logistique accrue (×${(h.compLogK || 1).toFixed(2)})`);
+  ok(m.armyUpkeepSide(h) / m.landTotal(h) > m.armyUpkeepSide(b) / m.landTotal(b), 'coût d\'entretien par soldat plus élevé (blindés, artillerie)');
+  const light = mk('FR', { seed: 'COMP' });
+  m.execCommand(light, { op: 'policy', a: k, patch: { comp: { inf: 40, arm: 5, art: 5, rec: 25, air: 5, sof: 20 } } });
+  run(light, 121.67 * 0.2);
+  ok((light.sides[k].compSpeedK || 1) > 1 && (light.sides[k].sofComp || 0) > 0.3, `reconnaissance : mobilité ×${(light.sides[k].compSpeedK || 1).toFixed(2)} ; forces spéciales ${Math.round((light.sides[k].sofComp || 0) * 100)} %`);
+  const ai = side(base, 'Allemagne');
+  ok(base.sides[ai].compLogK === undefined && base.sides[ai].sofComp === undefined, 'les pays de l\'IA ne sont pas concernés');
+}
+
+// §15 — groupes d'armée : nombre, affectation, concentration réelle des forces
+{
+  const sim = mk('FR', { seed: 'GRP' });
+  const k = sim.nation.player, de = side(sim, 'Allemagne'), it = side(sim, 'Italie');
+  m.startWar(sim, [k], [de, it], 'declaration');
+  run(sim, sim.time + 20);
+  const share = (s, o) => { let t = 0, all = 0; for (const sec of s.sectors || []) { const f = s.front[sec.key]; all += f.force || 0; if (sec.o === o) t += f.force || 0; } return t / Math.max(1e-9, all); };
+  const before = share(sim.sides[k], de);
+  m.execCommand(sim, { op: 'policy', a: k, patch: { groups: { count: 6, list: [{ task: 'front', target: de }, { task: 'front', target: de }, { task: 'front', target: de }, { task: 'capital' }, { task: 'reserve' }, { task: 'auto' }] } } });
+  run(sim, sim.time + 25);
+  const after = share(sim.sides[k], de);
+  ok(sim.sides[k].agents.length === 6, `nombre de groupes choisi : ${sim.sides[k].agents.length}`);
+  ok(after > before + 0.05, `forces concentrées sur le front allemand : ${(before * 100).toFixed(0)} % → ${(after * 100).toFixed(0)} %`);
+  ok(sim.sides[k].capGuard > 0 && sim.defensePower(k, sim.sides[k].capital) > 0, 'défense de la capitale renforcée');
+  const gids = new Set(sim.sides[k].agents.map((a) => a.gid));
+  ok(gids.size === 6, 'chaque point de la carte est un groupe identifié (fiche flottante)');
+  const snap = JSON.parse(JSON.stringify(sim.serialize()));
+  const b = mk('FR', { seed: 'GRP' }, snap);
+  for (let i = 0; i < 800; i++) { sim.step(); b.step(); }
+  ok(m.stateHash(sim) === m.stateHash(b) && JSON.stringify(sim.nation.serialize().humans) === JSON.stringify(b.nation.serialize().humans), 'groupes et composition conservés et reprise identique');
+}
+
+// §16 — flottes : ordres du joueur
+{
+  const sim = mk('GB', { seed: 'FLEET' });
+  const k = sim.nation.player;
+  run(sim, 6);
+  const mine = sim.fleets.filter((f) => f.side === k);
+  ok(mine.length >= 1, `flottes du joueur présentes en temps de paix : ${mine.length}`);
+  const f = mine[0];
+  const g = load().grid;
+  const dest = g.coastalList.find((i) => Math.abs(g.lat[i] - 36.1) < 0.6 && Math.abs(g.lon[i] + 5.35) < 0.8);   // Gibraltar
+  ok(m.execCommand(sim, { op: 'fleet', a: k, id: f.id, order: { type: 'goto', pts: [dest] } }) === true, 'ordre « aller à » accepté');
+  ok(m.execCommand(sim, { op: 'fleet', a: side(sim, 'France'), id: f.id, order: { type: 'port' } }) === null, 'un autre pays ne peut pas donner d\'ordre à cette flotte');
+  run(sim, sim.time + 60);
+  const p = sim.fleetPos(f), d = Math.acos(Math.min(1, p[0] * g.xyz[dest * 3] + p[1] * g.xyz[dest * 3 + 1] + p[2] * g.xyz[dest * 3 + 2])) * 6371;
+  ok(d < 400 && f.order.arrived, `flotte arrivée à destination (${Math.round(d)} km) et à l'arrêt`);
+  m.execCommand(sim, { op: 'fleet', a: k, id: f.id, order: { type: 'escort' } });
+  run(sim, sim.time + 3);
+  ok(sim.sides[k].escortK > 0, `escorte de convois : interceptions réduites de ${Math.round(sim.sides[k].escortK * 100)} %`);
+  m.execCommand(sim, { op: 'fleet', a: k, id: f.id, order: { type: 'patrol', pts: [dest, g.coastalList.find((i) => sim.owner[i] === sim.sides[k].e)] } });
+  ok(f.order.type === 'patrol' && f.order.pts.length === 2, 'patrouille entre deux points');
+  m.execCommand(sim, { op: 'fleet', a: k, id: f.id, order: { type: 'port' } });
+  run(sim, sim.time + 80);
+  ok(sim.owner[f.at] === sim.sides[k].e, 'retour au port : la flotte rejoint une côte nationale');
+  const snap = JSON.parse(JSON.stringify(sim.serialize()));
+  const b = mk('GB', { seed: 'FLEET' }, snap);
+  ok(b.fleets.find((x) => x.id === f.id).order.type === 'port', 'ordres des flottes sauvegardés');
+}
+
 summary('Mécaniques du Mode Nation');

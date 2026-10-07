@@ -2,6 +2,7 @@
 // En solo, l'ordre est exécuté immédiatement ; en multijoueur, il est transmis à l'hôte, daté d'un pas de
 // simulation, puis exécuté au même pas sur tous les ordinateurs (simulation identique partout : lockstep).
 import { sanction, liftSanction } from '../sim/crises.js';
+import { normalizeComposition, normalizeGroups, applyGroups, normalizeFleetOrder } from '../sim/military.js';
 import { computeEdit, applyEdit } from '../sim/borderEdit.js';
 import { normalizeWarEnd } from '../sim/warEnd.js';
 import { normalizeTuning } from '../sim/tuning.js';
@@ -47,6 +48,8 @@ export function execCommand(sim, cmd, hooks = {}) {
       for (const key of ['tax', 'services', 'milPct', 'family']) if (typeof p[key] === 'number' && Number.isFinite(p[key])) pol[key] = p[key];
       if (p.invest) pol.invest = { ...pol.invest, ...p.invest };
       if (p.stance) { pol.stance = p.stance; sim.sides[a].stance = p.stance; }
+      if (p.comp) pol.comp = normalizeComposition(p.comp);                         // composition de l'armée
+      if (p.groups) { pol.groups = normalizeGroups(p.groups, sim.S); applyGroups(sim.sides[a], pol.groups); sim.fitGroups(a); }   // groupes d'armée
       if (cmd.text) v.milestone('decision', cmd.text);
       return true;
     }
@@ -76,6 +79,15 @@ export function execCommand(sim, cmd, hooks = {}) {
       if (n && !n.isHuman(a)) return null;
       sim.cfg.warEnd = normalizeWarEnd(cmd.we, !!n);
       if (hooks.onWarEnd) hooks.onWarEnd(sim.cfg.warEnd);
+      return true;
+    }
+    case 'fleet': {
+      // ordre à une flotte du joueur (aller à, points de passage, patrouille, escorte, retour au port)
+      if (!human) return null;
+      const f = sim.fleets.find((x) => x.id === cmd.id);
+      if (!f || f.side !== a) return null;
+      f.order = normalizeFleetOrder(cmd.order, sim.n);
+      f.done = f.length;                     // nouvel itinéraire au pas suivant
       return true;
     }
     case 'tuning': {
