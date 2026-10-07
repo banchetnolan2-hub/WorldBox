@@ -27,7 +27,9 @@ const occupy = (sim, from, to, share) => {
   return n;
 };
 const CN = ids.indexOf('CN'), NP = ids.indexOf('NP'), IN = ids.indexOf('IN'), BD = ids.indexOf('BD');
-const nationOpts = { nation: { player: CN }, mode: 'nation', warEnd: { territorial: 'percent', percent: 0.65, economic: true, peace: true, capitulation: true } };
+// événements aléatoires coupés : les combats sont gelés et le test contrôle seul l'occupation ; un événement
+// « perte temporaire de territoire » tiré au hasard fausserait les pourcentages mesurés (isolation du test)
+const nationOpts = { rules: { randomEvents: false }, nation: { player: CN }, mode: 'nation', warEnd: { territorial: 'percent', percent: 0.65, economic: true, peace: true, capitulation: true } };
 
 // 1. mode Nation : paix automatique OFF par défaut, la guerre continue après 70 %, 90 %
 {

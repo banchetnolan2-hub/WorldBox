@@ -69,7 +69,7 @@ const HUMAN_DEALS = ['trade', 'nap', 'alliance', 'aid', 'detente', 'peace', 'tal
 const pairKey = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
 
 // état propre à chaque joueur humain (plusieurs joueurs possibles en multijoueur)
-const HUMAN_FIELDS = ['policy', 'baseTax', 'logs', 'offers', 'decision', 'nextDecisionAt', 'decisionsTaken', 'timeline', 'milestones', 'lastYear', 'mem', 'scenario', 'lastPeaceAt', 'pname'];
+const HUMAN_FIELDS = ['policy', 'baseTax', 'logs', 'offers', 'decision', 'nextDecisionAt', 'decisionsTaken', 'timeline', 'milestones', 'lastYear', 'mem', 'scenario', 'lastPeaceAt', 'peaceRefused', 'pname'];
 
 export class Nation {
   // Le « joueur courant » (this.player) est un CONTEXTE : par défaut le joueur principal (hôte) ; with(k, fn)
@@ -662,7 +662,8 @@ export class Nation {
     }
   }
   // délai minimal entre deux propositions de paix reçues par le joueur (tous pays confondus)
-  peaceOfferReady(gap = 40) { return this.sim.time - (this.lastPeaceAt ?? -1e9) >= gap * tn(this.sim, 'peaceCooldown'); }
+  // (plus long après chaque refus du joueur : délais croissants)
+  peaceOfferReady(gap = 40) { return this.sim.time - (this.lastPeaceAt ?? -1e9) >= gap * (1 + 0.5 * (this.peaceRefused || 0)) * tn(this.sim, 'peaceCooldown'); }
   offerAllowed(type) {
     const R = this.sim.rules;
     if (R.negotiations === false && type !== 'peace') return false;
@@ -692,6 +693,8 @@ export class Nation {
     const from = o.from, B = sim.sides[from];
     const mem = this.memOf(from);
     this.log(from, 'player', expired ? '(aucune réponse)' : accept ? 'Nous acceptons.' : 'Nous refusons.', 'proposal');
+    // refus de paix mémorisés pour TOUS les pays : des alliés qui proposent chacun à leur tour n'inondent pas le joueur
+    if (o.type === 'peace' || o.type === 'surrender') this.peaceRefused = accept && !expired ? 0 : Math.min(4, (this.peaceRefused || 0) + 1);
     // vote d'un joueur sur la formation d'une nation
     if (o.type === 'formvote') {
       const fv = this.formVotes && this.formVotes[o.terms.formable];

@@ -1943,8 +1943,10 @@ export class WorldSim {
     }
     if (lvl === 3) {
       if (q >= need && calm) { this.occupied[i] = 1; return false; }
-      // partisans : soulèvements, plus fréquents si le ravitaillement est mauvais ; les forces spéciales les répriment
-      const p = 0.0025 * tn(this, 'partisans') * (1 + Math.max(0, need - q) * 3) * (1 - Math.min(0.7, (sd.sof || 0) + (sd.sofComp || 0)));
+      // partisans : la résistance s'organise d'abord (≈ 2 mois d'occupation), puis soulèvements ponctuels,
+      // plus fréquents si le ravitaillement est mauvais ; les forces spéciales les répriment
+      if (held < base) return false;
+      const p = 0.0006 * tn(this, 'partisans') * (1 + Math.max(0, need - q) * 3) * (1 - Math.min(0.7, (sd.sof || 0) + (sd.sofComp || 0)));
       if (p > 0 && this.rng.next() < p) {
         const oe = this.origin[i], os = this.sideOf[oe];
         applyLosses(sd, sd.units * 0.002, false);
