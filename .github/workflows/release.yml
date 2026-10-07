@@ -1,0 +1,45 @@
+# Construit WorldSimulator.exe (portable) et l'installateur sous Windows, puis les publie dans une release GitHub.
+# Déclenchement : manuel (Actions → Release Windows → Run workflow) ou en poussant un tag v*.
+name: Release Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag de la release (ex. v3.1.0)'
+        required: true
+        default: 'v3.1.0'
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Construire WorldSimulator.exe et l'installateur
+        run: npm run build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Publier la release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: WorldSimulator ${{ github.event.inputs.tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          body: |
+            WorldSimulator pour Windows (64 bits).
+            - **WorldSimulator.exe** : version portable, à lancer directement (aucune installation).
+            - **WorldSimulator-Setup-*.exe** : installateur (raccourci sur le bureau).
+            Nouveautés : voir la section « VERSION 3.1 » du README.
+          files: |
+            release/WorldSimulator.exe
+            release/WorldSimulator-Setup-*.exe
