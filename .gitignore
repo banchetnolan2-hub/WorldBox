@@ -5,3 +5,4 @@ tests/.sim-bundle.cjs
 tests/.v3-bundle.cjs
 *.log
 tests/diag/
+tests/.ui-bundle.cjs

@@ -39,6 +39,7 @@ import { NetUI, commandHooks } from './ui/netUI.js';
 import { execCommand } from './net/commands.js';
 import { GuideUI } from './ui/guide.js';
 import { RecapUI } from './ui/recap.js';
+import { applyTheme, themePickerHtml, UI_SIZES } from './ui/themes.js';
 
 const DEG = 180 / Math.PI;
 // vitesse des transitions de frontière (durée en secondes)
@@ -96,6 +97,7 @@ class App {
     const saved = await Store.read('reglages', 'settings');
     if (saved) Object.assign(this.settings, saved);
     audio.setSettings(this.settings);
+    applyTheme(this.settings);
     this.applyDisplaySettings();
     if (this.settings.lastWorld && this.settings.lastWorld !== 'original') {
       try { await this.worldsUI.load(this.settings.lastWorld, true); } catch (_) { /* monde supprimé */ }
@@ -690,7 +692,7 @@ class App {
     $('rContinue').onclick = () => this.continueWorld();
     $('rViewMap').onclick = () => { show('results', false); notice('Carte finale — ☰ MENU pour revenir.', 3000); };
     $('loadGameClose').onclick = () => show('loadGame', false);
-    $('settingsClose').onclick = () => show('settings', false);
+    $('settingsClose').onclick = () => { show('settings', false); this.resumeAfterOverlay(); };
     const upd = () => {
       this.settings.music = Number($('sMusic').value); this.settings.sfx = Number($('sSfx').value); this.settings.mute = $('sMute').checked;
       this.settings.flags = $('sFlags').checked; this.settings.labels = $('sLabels').checked; this.settings.markers = $('sMarkers').checked;
@@ -714,7 +716,13 @@ class App {
       this.settings.transition = v; this.applyDisplaySettings(); this.saveSettings();
     });
     $('oMusic').textContent = Math.round(s.music * 100) + ' %'; $('oSfx').textContent = Math.round(s.sfx * 100) + ' %';
+    // thème et taille de l'interface (présentation uniquement)
+    const themes = () => { $('sTheme').innerHTML = themePickerHtml(this.settings.theme); };
+    themes();
+    $('sTheme').onclick = (e) => { const b = e.target.closest('[data-theme-id]'); if (!b) return; this.settings.theme = b.dataset.themeId; applyTheme(this.settings); this.saveSettings(); themes(); };
+    seg($('sUiScale'), UI_SIZES, Number(s.uiScale) || 1, (v) => { this.settings.uiScale = Number(v); applyTheme(this.settings); this.saveSettings(); });
     show('settings');
+    this.pauseForOverlay();            // réglages ouverts en partie : jeu en pause
   }
 
   _bindInput() {
@@ -821,7 +829,8 @@ class App {
         e.preventDefault();
         if (this.guide.isOpen()) { this.guide.close(); return; }
         if (this.recap.isOpen()) { this.recap.close(); return; }
-        for (const id of ['picker', 'saveWorldDialog', 'newCountry', 'worlds', 'loadGame', 'settings', 'edStart']) if (isShown(id)) { show(id, false); return; }
+        if (isShown('settings')) { show('settings', false); this.resumeAfterOverlay(); return; }
+        for (const id of ['picker', 'saveWorldDialog', 'newCountry', 'worlds', 'loadGame', 'edStart']) if (isShown(id)) { show(id, false); return; }
         if (isShown('warReport')) { this.warUI.closeReport(); return; }
         if (isShown('warsPanel')) { show('warsPanel', false); this.resumeAfterOverlay(); return; }
         if (isShown('worldHistoryPanel')) { show('worldHistoryPanel', false); this.resumeAfterOverlay(); return; }
