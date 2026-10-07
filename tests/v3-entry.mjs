@@ -37,3 +37,4 @@ export * from '../src/v3/sim/tuning.js';
 export * from '../src/v3/sim/military.js';
 export * from '../src/v3/sim/territorial.js';
 export * from '../src/v3/sim/territoryValue.js';
+export * from '../src/v3/sim/formables.js';

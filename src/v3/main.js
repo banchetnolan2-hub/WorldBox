@@ -41,6 +41,8 @@ import { GuideUI } from './ui/guide.js';
 import { RecapUI } from './ui/recap.js';
 import { TuningUI } from './ui/tuningUI.js';
 import { ForcesUI } from './ui/forcesUI.js';
+import { revertFormedIdentities } from './sim/formables.js';
+import { FormablesUI } from './ui/formablesUI.js';
 import { applyTheme, themePickerHtml, UI_SIZES } from './ui/themes.js';
 import { NOTIF_LEVELS, AUTO_PAUSE, defaultAutoPause } from './ui/notify.js';
 
@@ -95,6 +97,7 @@ class App {
     this.recap = new RecapUI(this);
     this.tuningUI = new TuningUI(this);
     this.forcesUI = new ForcesUI(this);
+    this.formablesUI = new FormablesUI(this);
     this.notice = notice;
     this.cmdHooks = commandHooks(this);
     this.screen = 'menu';
@@ -112,7 +115,7 @@ class App {
     this.session.onEvent = (e) => {
       // nouvel État créé en cours de partie (indépendance, séparation…) : le rendu doit connaître sa couleur
       if (e.newState >= 0 && this.entities()[e.newState]) { try { this.renderer.addEntity(this.entities()[e.newState]); this.refreshParams(); if (this.labels.invalidate) this.labels.invalidate(); } catch (err) { console.warn(err); } this.cellCountsDirty = true; }
-      this.hud.event(e, this.session.sim); this.nationUI.onEvent(e);
+      this.hud.event(e, this.session.sim); this.nationUI.onEvent(e); this.formablesUI.onEvent(e);
     };
     if (!this.settings.autoPause) this.settings.autoPause = defaultAutoPause();
     this.session.onEnd = (res) => this.onEnd(res);
@@ -244,6 +247,8 @@ class App {
   // ---------------- écrans ----------------
   hideAll() {
     for (const id of ['menu', 'creator', 'hud', 'results', 'pause', 'worlds', 'loadGame', 'settings', 'saveWorldDialog', 'picker', 'warEnded', 'warReport', 'warsPanel', 'worldHistoryPanel', 'nationPick', 'storyPick']) show(id, false);
+    const prev = this.session && this.session.sim;
+    if (prev && prev.formed && prev.formed.length) revertFormedIdentities(prev);   // nations formées : identité d'origine sur la carte
     this.nationUI.end();
     if (this.forcesUI) { this.forcesUI.cancelPick(); this.forcesUI.hideCard(); }
     if (this.gameNav) this.gameNav.showRail(false);
@@ -871,6 +876,7 @@ class App {
         if (this.guide.isOpen()) { this.guide.close(); return; }
         if (this.recap.isOpen()) { this.recap.close(); return; }
         if (this.tuningUI.isOpen()) { this.tuningUI.close(); return; }
+        if (this.formablesUI.isOpen()) { this.formablesUI.closeAll(); return; }
         if (this.forcesUI.pickMode) { this.forcesUI.cancelPick(); return; }
         if (isShown('floatCard')) { this.forcesUI.hideCard(); return; }
         if (isShown('settings')) { show('settings', false); this.resumeAfterOverlay(); return; }

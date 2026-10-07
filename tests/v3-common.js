@@ -26,7 +26,13 @@ function setupFor(player, opts = {}) {
     options: { seed: opts.seed || 'NATION', warStart: 'tensions', maxDuration: 1e9, peaceEnd: 1e9, maxWarsPerYear: 2, maxAgents: 1100, startDay: 365, rules: opts.rules || undefined, nation: { player: ents.findIndex((e) => e.id === player), scenario: opts.scenario || null }, ...(opts.options || {}) },
   };
 }
-function mk(player, opts = {}, restore = null) { const { m, grid, nav, world, geo, details } = load(); return new m.WorldSim(grid, nav, world, setupFor(player, opts), restore, { geo, details: opts.noDetails ? null : details }); }
+// chaque partie a sa propre copie des pays : plusieurs parties tournent en parallèle dans les tests, et une nation
+// formée (nom, couleur, drapeau) ou un État créé dans l'une ne doit pas modifier les autres
+function mk(player, opts = {}, restore = null) {
+  const { m, grid, nav, world, geo, details } = load();
+  const w = { ...world, entities: world.entities.map((e) => (e ? { ...e } : e)) };
+  return new m.WorldSim(grid, nav, w, setupFor(player, opts), restore, { geo, details: opts.noDetails ? null : details });
+}
 function run(sim, t) { while (!sim.finished && sim.time < t) { sim.step(); sim.captures.length = 0; sim.eventsOut.length = 0; } return sim; }
 function side(sim, name) { return sim.sides.findIndex((s) => s.name === name); }
 function summary(label) { console.log(`\n${label} : ${passes} réussi(s), ${fails} échec(s)`); }

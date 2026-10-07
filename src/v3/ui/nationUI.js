@@ -39,7 +39,7 @@ const TABS = [
   ['home', 'Mon pays', 'landmark'], ['advisor', 'Conseiller', 'lightbulb'],
   ['eco', 'Économie', 'coins'], ['pop', 'Population', 'users'], ['infra', 'Infrastructures', 'route'], ['tech', 'Technologie', 'cpu'],
   ['def', 'Défense', 'shield'], ['diplo', 'Diplomatie', 'handshake'], ['dev', 'Technologies', 'network'], ['time', 'Chronologie', 'history'],
-  ['id', 'Identité', 'flag'], ['goals', 'Objectifs', 'target'],
+  ['form', 'Nations formables', 'crown'], ['id', 'Identité', 'flag'], ['goals', 'Objectifs', 'target'],
 ];
 const SYMBOLS = ['crown', 'shield', 'landmark', 'anchor', 'sprout', 'zap', 'mountain', 'trees', 'waves', 'sparkles', 'globe', 'award'];
 const FLAG_LAYOUTS = [['h3', 'Horizontal ×3'], ['v3', 'Vertical ×3'], ['h2', 'Horizontal ×2'], ['v2', 'Vertical ×2'], ['cross', 'Croix'], ['diag', 'Diagonale'], ['circle', 'Disque'], ['star', 'Étoile'], ['solid', 'Uni']];
@@ -352,7 +352,7 @@ export class NationUI {
         seed: randomSeedString(), maxAgents: 1100, eventRate: (DIFFICULTY_BY_ID[this.difficulty] || DIFFICULTY_BY_ID.normal).eventRate, decisionRate: (DIFFICULTY_BY_ID[this.difficulty] || DIFFICULTY_BY_ID.normal).decisionRate, difficulty: this.difficulty, randomness: 0.5, maxDuration: 1e9, peaceEnd: 1e9, victoryRatio: 0.35, naval: true, speed: 1,
         start: 'world', neutralCapture: false, warStart: 'tensions', aiWars: true, maxWarsPerYear: 2, warEnd: { ...(this.warEnd || NATION_WAR_END) },
         startDay: this._startDay(), nation: { player, scenario: this.scenario ? this.scenario.id : null, scenarioSpec: this.scenarioSpec || null, realWorld: !app.world.terrain },
-        mode: this.scenario ? 'story' : 'nation', rules: { ...(this.rules || {}) }, tuning: this.tuning || profileTuning('balanced'), lockedRules: this.scenario ? { ...(this.scenario.rules || {}) } : {},
+        mode: this.scenario ? 'story' : 'nation', rules: { ...(this.rules || {}) }, tuning: this.tuning || profileTuning('balanced'), customFormables: app.formablesUI ? app.formablesUI.setupList() : [], lockedRules: this.scenario ? { ...(this.scenario.rules || {}) } : {},
       },
       label: this.scenario ? this.scenario.title : (this.identity && this.identity.e === sel ? this.identity.name : ent.name),
       mode: 'nation',
@@ -507,7 +507,7 @@ export class NationUI {
     const sim = this.sim;
     if (!sim || !sim.nv) return;
     const sc = body.scrollTop;
-    const f = { home: this._tHome, advisor: this._tAdvisor, eco: this._tEco, pop: this._tPop, infra: this._tInfra, tech: this._tTech, def: this._tDef, diplo: this._tDiplo, dev: this._tDev, time: this._tTime, id: this._tId, goals: this._tGoals }[this.tab];
+    const f = { form: (s2, n2) => this.app.formablesUI.html(s2, n2), home: this._tHome, advisor: this._tAdvisor, eco: this._tEco, pop: this._tPop, infra: this._tInfra, tech: this._tTech, def: this._tDef, diplo: this._tDiplo, dev: this._tDev, time: this._tTime, id: this._tId, goals: this._tGoals }[this.tab];
     if (!f) return;
     if (refresh && (this.tab === 'id')) return;
     if (refresh && this.tab === 'diplo' && document.activeElement && document.activeElement.id === 'dpSearch') return;
@@ -827,6 +827,7 @@ export class NationUI {
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
     if (this.tab === 'def') this.app.forcesUI.bind(body);
+    if (this.tab === 'form') this.app.formablesUI.bind(body);
     const rcb = body.querySelector('[data-recap]');
     if (rcb) rcb.addEventListener('click', () => this.app.recap.open(null, true));
     body.querySelectorAll('[data-dbgo]').forEach((b) => b.addEventListener('click', () => this._dbGo(b.dataset.dbgo)));

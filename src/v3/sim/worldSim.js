@@ -13,6 +13,7 @@
 // Pas de temps fixe (TICK) : la vitesse d'affichage ne change pas le résultat pour une seed donnée.
 
 import { RNG } from './rng.js';
+import { aiFormables, applyFormedIdentity } from './formables.js';
 import { tn, normalizeTuning } from './tuning.js';
 import { pickEvent, EVENTS_BY_ID } from './events.js';
 import { distKm, EARTH_R } from '../world/worldGrid.js';
@@ -2195,6 +2196,8 @@ export class WorldSim {
     if (this.regional && this.time >= this.regional.until) this.regional = null;
 
     if (this.tickCount % 10 === 5) this._integrate();
+    // nations formables : les IA qui remplissent les conditions peuvent proclamer une nation (une fois par an)
+    if (this.nation) { if (this._nextFormableAt == null) this._nextFormableAt = this.time + YEAR_SEC * 0.5; else if (this.time >= this._nextFormableAt) { this._nextFormableAt = this.time + YEAR_SEC; aiFormables(this); } }
     if (this.tickCount % 40 === 13) {
       const half = this.S > 40 ? 2 : 1, phase = Math.floor(this.tickCount / 40) % half;
       for (let k = 0; k < this.S; k++) if (!this.sides[k].eliminated) { this._rebuildSec(k); if (k % half === phase) this._deploy(k); }
@@ -2494,6 +2497,9 @@ export class WorldSim {
       warEnd: this.cfg.warEnd,               // réglages de fin des guerres (modifiables en partie)
       extraStates: this.extraStates || [],   // États créés en cours de partie
       tuning: this.tuning,                   // réglages avancés (modifiables en partie)
+      formed: this.formed || [],             // nations formées (proclamations)
+      customFormables: this.cfg.customFormables || [],   // nations formables créées dans l'éditeur
+      nextFormableAt: this._nextFormableAt ?? null,
       nation: this.nation ? this.nation.serialize() : null,
     };
   }
@@ -2540,6 +2546,10 @@ export class WorldSim {
     restoreCoalitions(this, st.coalitions);
     restoreCrises(this, st.crises);
     this.borderEdits = st.borderEdits || [];
+    this.formed = st.formed || [];
+    if (st.customFormables) this.cfg.customFormables = st.customFormables;
+    for (const rec of this.formed) applyFormedIdentity(this, rec);   // nom, couleur et drapeau des nations formées
+    this._nextFormableAt = st.nextFormableAt ?? null;
     this.intentional = st.intentional ? new Map(st.intentional.map((x) => (Array.isArray(x) ? x : [x, this.owner[x]]))) : null;
     if (st.occList) { this.occList = st.occList.slice(); this._occPass = st.occPass || 0; this._occStamp = new Int32Array(this.n); }
     for (const s of this.sides) { s.cells = 0; s.km2 = 0; }

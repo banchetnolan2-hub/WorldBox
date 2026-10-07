@@ -1710,3 +1710,27 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .dv-node.st-excluded { opacity: 0.42; filter: grayscale(0.6); }
 .dv-node.st-excluded .dv-alt { color: var(--bad-text); }
 .dv-dot.adv .ic { color: var(--gold); }
+
+/* ---- NATIONS FORMABLES ---- */
+.fm-row { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 8px 10px; margin-bottom: 6px; border-radius: var(--r); border: 1px solid var(--line); background: var(--panel-2); }
+.fm-row.formed { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.fm-flag { width: 52px; height: 34px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3); object-fit: cover; }
+.fm-flag.big { width: 72px; height: 48px; }
+.fm-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fm-main > b { font-size: 13.5px; }
+.fm-main small { color: var(--text-3); }
+.fm-prog { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-2); }
+.fm-prog .meter { position: relative; height: 6px; border-radius: 3px; background: rgba(var(--hl), 0.08); }
+.fm-prog .meter i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.fm-prog .meter em { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--gold); }
+.dialog.proclaim { width: min(520px, calc(100vw - 32px)); text-align: center; align-items: center; }
+.dialog.proclaim h2 { font-family: var(--display); font-size: 34px; }
+.pc-flag canvas { width: 240px; height: 160px; border-radius: 6px; box-shadow: var(--shadow); animation: rise 0.6s var(--ease) both; }
+.dialog.fm-editor { width: min(940px, calc(100vw - 32px)); }
+.fm-ed { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.fm-members { display: flex; flex-wrap: wrap; gap: 4px; }
+.fm-members .pill, .fm-saved .pill { cursor: pointer; }
+.fm-list { display: flex; flex-wrap: wrap; gap: 4px; max-height: 220px; overflow: auto; margin-top: 6px; }
+.fm-pick { padding: 3px 8px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text-2); font-size: 12px; }
+.fm-pick.on { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+@media (max-width: 800px) { .fm-ed { grid-template-columns: 1fr; } }

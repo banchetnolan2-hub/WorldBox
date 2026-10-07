@@ -232,9 +232,8 @@ const { m } = load();
   ok(!sim.sides[sim.S - 1].eliminated && sim.sides[sim.S - 1].eco.gdp > 0, `le nouvel État vit : PIB ${sim.sides[sim.S - 1].eco.gdp.toFixed(1)} Md$`);
   // sauvegarde / reprise : l'État créé est recréé à l'identique
   const snap = JSON.parse(JSON.stringify(sim.serialize()));
-  const ents = load().world.entities;
   const b = mk('FR', { seed: 'TERR' }, snap);
-  ok(b.S === sim.S && b.sides[b.S - 1].name === 'République corse' && ents[b.sides[b.S - 1].e], 'nouvel État restauré au chargement');
+  ok(b.S === sim.S && b.sides[b.S - 1].name === 'République corse' && b.entities[b.sides[b.S - 1].e], 'nouvel État restauré au chargement');
   for (let i = 0; i < 600; i++) { sim.step(); b.step(); }
   ok(m.stateHash(sim) === m.stateHash(b), 'reprise identique après la création de l\'État');
   // ordre multijoueur : même résultat sur deux machines
@@ -278,6 +277,56 @@ const { m } = load();
   for (const s2 of old.sides) if (s2.dev) { const a2 = {}; for (const [key, v] of Object.entries(s2.dev.active)) a2[m.TECH_BY_ID[v.id].line] = v; s2.dev.active = a2; }
   const b = mk('FR', { seed: 'TECHX' }, old);
   ok(b.sides.every((s2, i) => Object.keys(s2.dev.active).every((key) => key.split('#')[0] === m.TECH_BY_ID[s2.dev.active[key].id].branch)) && b.sides.reduce((t, s2) => t + Object.keys(s2.dev.active).length, 0) === sim.sides.reduce((t, s2) => t + Object.keys(s2.dev.active).length, 0), 'ancienne sauvegarde : projets en cours conservés et rangés par branche');
+}
+
+// §8 — nations formables : conquête, vote des États, union d'alliés, IA, proclamation, sauvegarde
+{
+  ok(m.FORMABLES.length >= 32 && new Set(m.FORMABLES.map((f) => f.id)).size === m.FORMABLES.length, `${m.FORMABLES.length} nations formables`);
+  const ents = load().world.entities;
+  const missing = [...new Set(m.FORMABLES.flatMap((f) => f.members))].filter((id) => !ents.some((e) => e && e.id === id));
+  ok(m.FORMABLES.every((f) => f.methods.length && f.members.length >= 2), `chaque nation a des membres et des méthodes de formation${missing.length ? ` (pays absents de la carte : ${missing.join(', ')})` : ''}`);
+  // conquête : la Corée du Sud contrôle la Corée du Nord
+  const sim = mk('KR', { seed: 'FORM' });
+  const k = sim.nation.player, kp = side(sim, 'Corée du Nord');
+  ok(!m.canForm(sim, 'korea', k, 'conquest').ok, `avant : ${m.canForm(sim, 'korea', k, 'conquest').why}`);
+  const kpe = sim.sides[kp].e;
+  for (let i = 0; i < sim.n; i++) if (sim.owner[i] === kpe) sim.flip(i, sim.sides[k].e, false);
+  ok(m.canForm(sim, 'korea', k, 'conquest').ok, 'territoire et capitale contrôlés : formation possible');
+  const evs = [];
+  const r = m.execCommand(sim, { op: 'n', a: k, m: 'formNationP', args: ['korea', 'conquest'] });
+  for (const e of sim.eventsOut) if (e.proclamation) evs.push(e);
+  ok(r && r.ok && sim.sides[k].name === 'Corée unifiée' && sim.entities[sim.sides[k].e].name === 'Corée unifiée' && evs.length === 1, `proclamation : ${sim.sides[k].name} (événement de proclamation : ${evs.length})`);
+  ok(!m.canForm(sim, 'korea', k, 'conquest').ok, 'une nation ne peut être formée qu\'une fois');
+  const snap = JSON.parse(JSON.stringify(sim.serialize()));
+  m.revertFormedIdentities(sim);
+  ok(sim.entities[sim.sides[k].e].name === 'Corée du Sud', 'fin de partie : identité d\'origine restaurée sur la carte du monde');
+  const b = mk('KR', { seed: 'FORM' }, snap);
+  ok(b.sides[k].name === 'Corée unifiée' && b.entities[b.sides[k].e].name === 'Corée unifiée' && b.formed.length === 1, 'chargement : la nation formée est restaurée');
+  m.revertFormedIdentities(b);
+  // vote des États membres : Benelux proposé par la Belgique
+  const v = mk('BE', { seed: 'VOTE' });
+  const kb = v.nation.player, nl = side(v, 'Pays-Bas'), lu = side(v, 'Luxembourg');
+  for (const o of [nl, lu]) { v.rel[o * v.S + kb] = v.rel[kb * v.S + o] = 90; v.allied[o * v.S + kb] = v.allied[kb * v.S + o] = 1; }
+  const t = v.nation.previewVote('benelux', 'vote');
+  ok(t.votes.length === 2 && t.votes.every((x) => x.factors.length), `vote : ${t.votes.map((x) => `${x.name} ${x.yes ? 'oui' : 'non'} (${x.score})`).join(', ')} → ${t.passed ? 'adopté' : 'rejeté'}`);
+  const cells0 = v.sides[kb].cells;
+  const rv = v.nation.formNationP('benelux', 'vote');
+  ok(rv.ok === t.passed && (!rv.ok || (v.sides[kb].cells > cells0 && v.sides[kb].name === 'Union du Benelux')), rv.ok ? `vote adopté : ${v.sides[kb].name}, ${v.sides[kb].cells - cells0} parcelles rejointes` : `vote rejeté : ${rv.text}`);
+  m.revertFormedIdentities(v);
+  // vote rejeté : pays hostile
+  const v2 = mk('BE', { seed: 'VOTE2' });
+  const b2 = v2.nation.player;
+  for (const o of [side(v2, 'Pays-Bas'), side(v2, 'Luxembourg')]) { v2.rel[o * v2.S + b2] = v2.rel[b2 * v2.S + o] = -60; v2.allied[o * v2.S + b2] = v2.allied[b2 * v2.S + o] = 0; }
+  const r2 = v2.nation.formNationP('benelux', 'vote');
+  ok(!r2.ok && /vote échoue/.test(r2.text), `vote rejeté par des voisins hostiles : « ${r2.text.slice(0, 80)}… »`);
+  // IA : la Tchéquie contrôle la Slovaquie -> proclame la Tchécoslovaquie
+  const ai = mk('FR', { seed: 'AIFORM' });
+  const cz = side(ai, 'Tchéquie'), sk = side(ai, 'Slovaquie');
+  const ske = ai.sides[sk].e;
+  for (let i = 0; i < ai.n; i++) if (ai.owner[i] === ske) ai.flip(i, ai.sides[cz].e, false);
+  run(ai, ai.time + 121.67 * 1.2);
+  ok(m.formedBy(ai, cz) && ai.sides[cz].name === 'Tchécoslovaquie', `l'IA forme aussi des nations : ${ai.sides[cz].name}`);
+  m.revertFormedIdentities(ai);
 }
 
 summary('Mécaniques du Mode Nation');

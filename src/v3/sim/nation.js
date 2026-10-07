@@ -11,6 +11,7 @@
 //  • des événements mondiaux liés aux statistiques ; la chronologie annuelle du pays ; les scénarios.
 // Tout est déterministe (générateur de la simulation) et sérialisable.
 import { PERSONALITIES, UNIT_COST } from './profile.js';
+import { formNation, canForm, tally, membersOf, allFormables } from './formables.js';
 import { evaluateDeal, applyDeal, checkDeal, describeDeal, TERRITORIAL_TYPES, regionOwners } from './territorial.js';
 import { applyComposition, applyGroups, normalizeGroups } from './military.js';
 import { tn } from './tuning.js';
@@ -671,6 +672,7 @@ export class Nation {
     if (type === 'demand' && R.wars === false) return false;
     if (type === 'coalition' && (R.alliances === false || R.coalitions === false)) return false;
     if (type === 'territory' && R.negotiations === false) return false;
+    if (type === 'formvote' && R.diplomacy === false) return false;
     return true;
   }
   offer(from, type, terms, text) {
@@ -690,6 +692,18 @@ export class Nation {
     const from = o.from, B = sim.sides[from];
     const mem = this.memOf(from);
     this.log(from, 'player', expired ? '(aucune réponse)' : accept ? 'Nous acceptons.' : 'Nous refusons.', 'proposal');
+    // vote d'un joueur sur la formation d'une nation
+    if (o.type === 'formvote') {
+      const fv = this.formVotes && this.formVotes[o.terms.formable];
+      if (!fv) return;
+      fv.votes[k] = !!accept && !expired;
+      if (fv.wait.every((h) => fv.votes[h] !== undefined)) {
+        delete this.formVotes[o.terms.formable];
+        const r = formNation(sim, o.terms.formable, fv.founder, fv.method, fv.votes);
+        this.at(fv.founder).log(k, 'ai', r.ok ? `Le vote est acquis : ${r.name} est proclamée.` : r.text, r.ok ? 'accept' : 'refuse');
+      }
+      return;
+    }
     // proposition territoriale d'un autre joueur : appliquée seulement avec l'accord de ce joueur
     if (o.type === 'territory') {
       const me = sim.sides[k];
@@ -796,6 +810,31 @@ export class Nation {
     this.milestone('diplo', `Indépendance accordée : ${sim.sides[s].name}.`);
     return { ok: true, side: s };
   }
+
+  // ---------------- nations formables ----------------
+  // le joueur proclame (conquête) ou propose (vote des États membres, union d'alliés) une nation formable ;
+  // les autres joueurs membres votent eux-mêmes (multijoueur)
+  formNationP(id, method) {
+    const sim = this.sim, k = this.player;
+    const c = canForm(sim, id, k, method);
+    if (!c.ok) return { ok: false, text: c.why };
+    const f = allFormables(sim).find((x) => x.id === id);
+    if (method !== 'conquest') {
+      const humans = membersOf(sim, f).filter((x) => x.alive && x.k !== k && this.isHuman(x.k) && (method !== 'union' || sim.allied[k * sim.S + x.k]));
+      if (humans.length) {
+        this.formVotes = this.formVotes || {};
+        this.formVotes[id] = { founder: k, method, votes: {}, wait: humans.map((x) => x.k) };
+        for (const h of humans) this.at(h).offer(k, 'formvote', { formable: id, method, human: true }, `${sim.sides[k].name} propose de former ${f.name} (${method === 'union' ? 'union d\'alliés' : 'vote des États membres'}). Votre pays la rejoindrait.`);
+        this.milestone('diplo', `Proposition de former ${f.name} : vote des autres joueurs en cours.`);
+        return { ok: true, pending: true, text: 'Vote transmis aux autres joueurs membres.' };
+      }
+    }
+    const r = formNation(sim, id, k, method);
+    if (!r.ok) this.milestone('diplo', `Échec de la formation de ${f.name} : ${r.text}`);
+    return r;
+  }
+  // aperçu du vote (lecture seule) pour l'interface
+  previewVote(id, method) { return tally(this.sim, id, this.player, method); }
 
   // ---------------- coalitions du joueur ----------------
   formCoalition(target, goal = 'contain') {

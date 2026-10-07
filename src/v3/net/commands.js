@@ -6,12 +6,13 @@ import { normalizeComposition, normalizeGroups, applyGroups, normalizeFleetOrder
 import { computeEdit, applyEdit } from '../sim/borderEdit.js';
 import { normalizeWarEnd } from '../sim/warEnd.js';
 import { normalizeTuning } from '../sim/tuning.js';
+import { normalizeFormable } from '../sim/formables.js';
 
 // méthodes de la Nation qu'un joueur peut déclencher (toujours dans son propre contexte)
 export const NATION_COMMANDS = new Set([
   'propose', 'answerOffer', 'acceptCounter', 'counterPeace', 'startProject', 'cancelProject', 'choose', 'declareWar',
   'formCoalition', 'inviteToCoalition', 'leaveCoalitionP', 'coalitionOffensive', 'setCoalitionGoal', 'setWarGoals', 'log', 'milestone',
-  'proposeTerritory', 'releaseRegions',
+  'proposeTerritory', 'releaseRegions', 'formNationP',
 ]);
 
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
@@ -89,6 +90,16 @@ export function execCommand(sim, cmd, hooks = {}) {
       if (!f || f.side !== a) return null;
       f.order = normalizeFleetOrder(cmd.order, sim.n);
       f.done = f.length;                     // nouvel itinéraire au pas suivant
+      return true;
+    }
+    case 'formable': {
+      // nation formable créée dans l'éditeur et ajoutée à la partie en cours (hôte)
+      if (n && a !== n.player) return null;
+      const f = normalizeFormable(cmd.f);
+      if (!f) return null;
+      const list = (sim.cfg.customFormables || []).filter((x) => x.id !== f.id);
+      list.push(f);
+      sim.cfg.customFormables = list;
       return true;
     }
     case 'tuning': {
