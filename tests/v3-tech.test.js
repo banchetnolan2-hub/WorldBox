@@ -16,8 +16,11 @@ const details = m.buildDetails(grid, world.owner, world.entities);
 
 // 1. structure des arbres
 {
-  const civ = m.TECH_BRANCHES.filter((b) => b.cat === 'civil'), mil = m.TECH_BRANCHES.filter((b) => b.cat === 'mil');
-  ok(civ.length >= 13 && mil.length >= 12, `branches : ${civ.length} civiles (${civ.map((b) => b.label).join(', ')}), ${mil.length} militaires`);
+  // Cahier des charges de reprise : 12 branches. Les 27 domaines d'origine (14 civils, 13 militaires) restent des
+  // LIGNES de ces branches : la vérification d'origine porte désormais sur les lignes.
+  const civ = m.TECH_LINES.filter((b) => b.cat === 'civil'), mil = m.TECH_LINES.filter((b) => b.cat === 'mil');
+  ok(civ.length >= 13 && mil.length >= 12, `lignes : ${civ.length} civiles (${civ.map((b) => b.label).join(', ')}), ${mil.length} militaires`);
+  ok(m.TECH_BRANCHES.length === 12 && m.TECH_LINES.every((l) => m.TECH_BRANCHES.some((b) => b.lines.includes(l.id))), `12 branches : ${m.TECH_BRANCHES.map((b) => b.label).join(', ')}`);
   ok(m.TECHS.length >= 140, `${m.TECHS.length} technologies (${m.TECHS.filter((t) => m.BRANCH_BY_ID[t.branch].cat === 'civil').length} civiles, ${m.TECHS.filter((t) => m.BRANCH_BY_ID[t.branch].cat === 'mil').length} militaires, ${m.TECHS.filter((t) => t.spec).length} propres à une spécialisation)`);
   const bad = m.TECHS.filter((t) => t.req.some((r) => !m.TECH_BY_ID[r]));
   ok(!bad.length, `prérequis valides${bad.length ? ' — ' + bad.map((t) => t.id).join(', ') : ''}`);

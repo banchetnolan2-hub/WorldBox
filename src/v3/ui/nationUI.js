@@ -11,7 +11,7 @@ import { relationStatus, REL_LABELS, DEFAULT_WAR_END } from '../sim/wars.js';
 import { landTotal } from '../sim/economy.js';
 import { fmtDate, YEAR_SEC, dateParts } from '../sim/calendar.js';
 import { DEV_TREE, DEV_BRANCHES, DEV_BY_ID, FX_LABELS, DIPLO_ACTIONS } from '../sim/nation.js';
-import { TECH_BRANCHES, BRANCH_BY_ID, SPECIALIZATIONS, CONS_TEXT, specsOf, affinity, techOpen } from '../sim/techTree.js';
+import { TECH_BRANCHES, BRANCH_BY_ID, SPECIALIZATIONS, CONS_TEXT, specsOf, affinity, techOpen, LINE_BY_ID, EXCLUSIVE, excludedBy, reqMet } from '../sim/techTree.js';
 import { SCENARIOS, findScenario } from '../sim/scenarios.js';
 import { describeTerms, makePeaceTerms, claimableRegions, cedeCapacity, demandShare } from '../sim/diplomacy.js';
 import { NATION_WAR_END, goalProgress, collapseRisk } from '../sim/warEnd.js';
@@ -608,9 +608,9 @@ export class NationUI {
     ]) + this._chart('tech') + `<div class="nm-cols"><div><h4>Technologie</h4>${this._branchList(n, sd, 'tech')}</div><div><h4>Éducation</h4>${this._branchList(n, sd, 'edu')}</div></div>
       <p class="hint">La technologie améliore la productivité (PIB), la qualité des armées et l'équipement. Orientez les investissements vers la recherche dans l'onglet Économie.</p>`;
   }
-  _branchList(n, sd, branch) {
-    return DEV_TREE.filter((x) => x.branch === branch).map((x) => {
-      const done = sd.dev.done.includes(x.id), act = sd.dev.active[branch] && sd.dev.active[branch].id === x.id ? sd.dev.active[branch] : null;
+  _branchList(n, sd, line) {
+    return DEV_TREE.filter((x) => x.line === line).map((x) => {
+      const done = sd.dev.done.includes(x.id), act = sd.dev.active[x.branch] && sd.dev.active[x.branch].id === x.id ? sd.dev.active[x.branch] : null;
       return `<div class="br-row ${done ? 'done' : act ? 'act' : n.canStart(n.player, x.id) ? 'avail' : 'locked'}">${icon(done ? 'circle-check' : act ? 'hourglass' : 'circle-dot')}<span>${esc(x.name)}</span><small>${done ? 'Achevé' : act ? `${Math.round(act.done / act.months * 100)} %` : n.canStart(n.player, x.id) ? 'Disponible' : 'Verrouillé'}</small></div>`;
     }).join('') + `<button class="btn ghost xs" data-goto="dev" data-cat="civil">${icon('network')}<span>Arbre technologique</span></button>`;
   }
@@ -670,50 +670,72 @@ export class NationUI {
     if (!this.devBranch || !branches.some((b) => b.id === this.devBranch)) this.devBranch = branches[0].id;
     const br = BRANCH_BY_ID[this.devBranch];
     const specs = specsOf(sim, k);
+    const advised = new Set(n.recommended(k, 6));
+    const actOf = (x) => { for (const a of Object.values(sd.dev.active)) if (a && a.id === x.id) return a; return null; };
     const stOf = (x) => {
-      const done = sd.dev.done.includes(x.id);
-      const act = sd.dev.active[x.branch] && sd.dev.active[x.branch].id === x.id ? sd.dev.active[x.branch] : null;
-      if (done) return ['done', null];
+      if (sd.dev.done.includes(x.id)) return ['done', null];
+      const act = actOf(x);
       if (act) return ['act', act];
       if (!techOpen(sim, k, x)) return ['closed', null];
+      if (excludedBy(sd, x.id)) return ['excluded', null];
       if (n.canStart(k, x.id)) return ['avail', null];
-      if (sd.dev.active[x.branch] && x.req.every((r) => sd.dev.done.includes(r))) return ['busy', null];
+      if (sd.dev.active[x.branch] && x.req.every((r) => reqMet(sd.dev.done, r))) return ['busy', null];
       return ['locked', null];
     };
     const fxTxt = (fx) => Object.entries(fx).map(([f, v]) => (FX_LABELS[f] ? FX_LABELS[f](v) : '')).filter(Boolean).join(' · ');
     const consTxt = (c) => (c ? Object.entries(c).map(([f, v]) => (CONS_TEXT[f] ? CONS_TEXT[f](v) : '')).filter(Boolean).join(' · ') : '');
-    const node = (x) => {
+    const q = (this.devQuery || '').trim().toLowerCase();
+    const node = (x, withBranch = false) => {
       const [st, act] = stOf(x);
       const c = n.costOf(k, x.id);
-      const req = x.req.filter((r) => DEV_BY_ID[r].branch !== x.branch).map((r) => `${DEV_BY_ID[r].name} (${BRANCH_BY_ID[DEV_BY_ID[r].branch].label.toLowerCase()})`);
+      const req = x.req.filter((r) => DEV_BY_ID[r].line !== x.line).map((r) => `${DEV_BY_ID[r].name}${EXCLUSIVE[r] ? ` ou ${DEV_BY_ID[EXCLUSIVE[r]].name}` : ''}`);
       const cons = consTxt(x.cons);
-      return `<button class="dv-node st-${st} ${x.spec ? 'spec' : ''}" data-dev="${x.id}">
+      const alt = EXCLUSIVE[x.id] !== undefined ? DEV_BY_ID[EXCLUSIVE[x.id]] : null;
+      const hit = q && (x.name.toLowerCase().includes(q) || x.desc.toLowerCase().includes(q));
+      return `<button class="dv-node st-${st} ${x.spec ? 'spec' : ''} ${advised.has(x.id) ? 'advised' : ''} ${hit ? 'hit' : ''} ${alt ? 'excl' : ''}" data-dev="${x.id}">
+        ${advised.has(x.id) ? `<span class="dv-adv" title="Conseillé pour votre situation">${icon('star')}Conseillé</span>` : ''}
         ${x.spec ? `<span class="dv-spec">${icon('award')}${esc(SPECIALIZATIONS[x.spec].label)}</span>` : ''}
+        ${withBranch ? `<small class="dv-where">${esc(BRANCH_BY_ID[x.branch].label)} · ${esc(LINE_BY_ID[x.line].label)} · palier ${x.tier}</small>` : ''}
         <b>${esc(x.name)}</b><small>${esc(x.desc)}</small>
         <span class="dv-fx">${esc(fxTxt(x.fx))}</span>
         ${cons ? `<span class="dv-cons">${icon('activity')}${esc(cons)}</span>` : ''}
+        ${alt ? `<span class="dv-alt">${icon(st === 'excluded' ? 'lock' : 'split')}${st === 'excluded' ? `Exclu : vous avez choisi « ${esc(alt.name)} »` : `Choix exclusif avec « ${esc(alt.name)} »`}</span>` : ''}
         ${req.length ? `<span class="dv-req">Requiert : ${esc(req.join(', '))}</span>` : ''}
-        <span class="dv-cost">${st === 'done' ? `${icon('circle-check')}Achevé` : st === 'closed' ? `${icon('lock')}Réservé à une spécialisation` : act ? `${icon('hourglass')}${Math.round(act.done / act.months * 100)} % · ${Math.max(0, act.months - act.done)} mois${act.stalled ? ' · suspendu' : ''}` : `${fmtBn(c.total)} · ${c.months} mois${c.aff > 1.01 ? ' <em class="dv-aff">spécialité</em>' : c.aff < 0.99 ? ' <em class="dv-aff bad">difficile</em>' : ''}`}</span>
+        <span class="dv-cost">${st === 'done' ? `${icon('circle-check')}Achevé` : st === 'closed' ? `${icon('lock')}Réservé à une spécialisation` : st === 'excluded' ? `${icon('lock')}Inaccessible` : act ? `${icon('hourglass')}${Math.round(act.done / act.months * 100)} % · ${Math.max(0, act.months - act.done)} mois${act.stalled ? ' · suspendu' : ''}` : `${fmtBn(c.total)} · ${c.months} mois${c.aff > 1.01 ? ' <em class="dv-aff">spécialité</em>' : c.aff < 0.99 ? ' <em class="dv-aff bad">difficile</em>' : ''}`}</span>
         ${act ? `<div class="meter"><i style="width:${(act.done / act.months * 100).toFixed(0)}%"></i></div>` : ''}</button>`;
     };
-    const list = DEV_TREE.filter((x) => x.branch === br.id);
-    const tiers = Math.max(...list.map((x) => x.tier));
     const progress = (b) => { const L = DEV_TREE.filter((x) => x.branch === b.id && techOpen(sim, k, x)); return [L.filter((x) => sd.dev.done.includes(x.id)).length, L.length]; };
     const allMine = TECH_BRANCHES.filter((b) => n.branchAllowed(b.id));
     const doneAll = allMine.reduce((a2, b) => a2 + progress(b)[0], 0), totAll = allMine.reduce((a2, b) => a2 + progress(b)[1], 0);
+    const zoom = this.devZoom || 1;
+    // vue : recherche textuelle ou filtre « Conseillé » (toutes branches), sinon la branche choisie (lignes × paliers)
+    let main;
+    if (q || this.devAdvised) {
+      const found = DEV_TREE.filter((x) => (!q || x.name.toLowerCase().includes(q) || x.desc.toLowerCase().includes(q) || fxTxt(x.fx).toLowerCase().includes(q)) && (!this.devAdvised || advised.has(x.id)) && n.branchAllowed(x.line));
+      main = `<div class="dv-bhead">${icon(this.devAdvised ? 'star' : 'search')}<b>${this.devAdvised ? 'Technologies conseillées' : 'Résultats de la recherche'}</b><small>${found.length} technologie(s)${this.devAdvised ? ' : choisies selon votre économie, votre stabilité, vos guerres et vos spécialisations' : ''}</small></div>
+        <div class="dv-results">${found.map((x) => node(x, true)).join('') || '<p class="hint">Aucune technologie.</p>'}</div>`;
+    } else {
+      const list = DEV_TREE.filter((x) => x.branch === br.id);
+      const tiers = Math.max(...list.map((x) => x.tier));
+      main = `<div class="dv-bhead">${icon(br.icon)}<b>${esc(br.label)}</b><small>${affinity(sim, k, br.id) > 1.01 ? 'Spécialité de votre pays : coûts et durées réduits. ' : ''}Une seule recherche à la fois dans cette branche.</small></div>
+        <div class="dv-zoomwrap" id="dvZoom"><div class="dv-grid" style="zoom:${zoom};grid-template-columns:120px repeat(${tiers}, minmax(165px, 1fr))">
+          <span></span>${Array.from({ length: tiers }, (_, t) => `<span class="dv-tl">Palier ${t + 1}</span>`).join('')}
+          ${br.lines.filter((l) => n.branchAllowed(l)).map((l) => `<span class="dv-line">${icon(LINE_BY_ID[l].icon)}${esc(LINE_BY_ID[l].label)}</span>${Array.from({ length: tiers }, (_, t) => `<div class="dv-cell">${list.filter((x) => x.line === l && x.tier === t + 1).map((x) => node(x)).join('')}</div>`).join('')}`).join('')}
+        </div></div>`;
+    }
     return `<div class="dv-top">
         <div class="seg" data-devcat>${[['civil', 'Arbre civil'], ['mil', 'Arbre militaire']].map(([v, l]) => `<button data-v="${v}" class="${cat === v ? 'on' : ''}">${l}</button>`).join('')}</div>
-        <div class="dv-specs">${specs.length ? specs.map((x) => `<span class="pill spec" title="${esc(SPECIALIZATIONS[x].desc)}">${icon('award')}${esc(SPECIALIZATIONS[x].label)}</span>`).join('') : '<span class="hint">Aucune spécialisation marquée</span>'}</div>
+        <div class="search grow"><i>${icon('search')}</i><input type="text" id="dvSearch" placeholder="Rechercher une technologie, un effet…" value="${esc(this.devQuery || '')}" spellcheck="false"></div>
+        <button class="btn ghost sm ${this.devAdvised ? 'on' : ''}" data-devadv>${icon('star')}<span>Conseillé</span></button>
+        <div class="dv-zoom"><button class="btn ghost sm icon" data-devzoom="-1" title="Dézoomer">${icon('zoom-out')}</button><span>${Math.round(zoom * 100)} %</span><button class="btn ghost sm icon" data-devzoom="1" title="Zoomer">${icon('zoom-in')}</button></div>
       </div>
+      <div class="dv-specs">${specs.length ? specs.map((x) => `<span class="pill spec" title="${esc(SPECIALIZATIONS[x].desc)}">${icon('award')}${esc(SPECIALIZATIONS[x].label)}</span>`).join('') : '<span class="hint">Aucune spécialisation marquée</span>'}</div>
       <div class="dv-sum">${this._kv('Engagements en cours', `${fmtBn(committed)} / an (${Math.round(committed / Math.max(0.01, sd.eco.income) * 100)} % des recettes)`)}${this._kv('Trésorerie disponible', fmtBn(sd.money))}${this._kv('Technologies acquises', `${doneAll} / ${totAll}`)}${sd.techUpkeep ? this._kv('Entretien des technologies', `${fmtBn(sd.techUpkeep * sd.eco.gdp)} / an`) : ''}</div>
       <div class="dv-layout">
-        <nav class="dv-branches">${branches.map((b) => { const [d0, t0] = progress(b); const act = sd.dev.active[b.id]; const aff = affinity(sim, k, b.id); return `<button data-devbranch="${b.id}" class="${b.id === br.id ? 'on' : ''}">${icon(b.icon)}<span>${esc(b.label)}</span>${act ? `<i class="dv-dot" title="Projet en cours">${icon('hourglass')}</i>` : ''}${aff > 1.01 ? `<i class="dv-dot spec" title="Spécialité du pays : coûts réduits">${icon('award')}</i>` : ''}<small>${d0}/${t0}</small><em style="width:${t0 ? (d0 / t0 * 100).toFixed(0) : 0}%"></em></button>`; }).join('')}</nav>
-        <div class="dv-main">
-          <div class="dv-bhead">${icon(br.icon)}<b>${esc(br.label)}</b><small>${affinity(sim, k, br.id) > 1.01 ? 'Spécialité de votre pays : coûts et durées réduits.' : affinity(sim, k, br.id) < 0.99 ? 'Domaine difficile pour votre pays : coûts et durées augmentés.' : 'Une seule recherche à la fois dans cette branche.'}</small></div>
-          <div class="dv-tiers" style="grid-template-columns:repeat(${tiers}, minmax(150px, 1fr))">${Array.from({ length: tiers }, (_, t) => `<div class="dv-tier"><span class="dv-tl">Palier ${t + 1}</span>${list.filter((x) => x.tier === t + 1).map(node).join('') || '<div class="dv-empty"></div>'}</div>`).join('')}</div>
-        </div>
+        <nav class="dv-branches">${branches.map((b) => { const [d0, t0] = progress(b); const act = sd.dev.active[b.id]; const aff = affinity(sim, k, b.id); const adv = DEV_TREE.some((x) => x.branch === b.id && advised.has(x.id)); return `<button data-devbranch="${b.id}" class="${b.id === br.id && !q && !this.devAdvised ? 'on' : ''}">${icon(b.icon)}<span>${esc(b.label)}</span>${act ? `<i class="dv-dot" title="Projet en cours">${icon('hourglass')}</i>` : ''}${adv ? `<i class="dv-dot adv" title="Contient une technologie conseillée">${icon('star')}</i>` : ''}${aff > 1.01 ? `<i class="dv-dot spec" title="Spécialité du pays : coûts réduits">${icon('award')}</i>` : ''}<small>${d0}/${t0}</small><em style="width:${t0 ? (d0 / t0 * 100).toFixed(0) : 0}%"></em></button>`; }).join('')}</nav>
+        <div class="dv-main">${main}</div>
       </div>
-      <p class="hint">Chaque projet est payé chaque mois pendant sa durée. Les spécialisations de votre pays (géographie, économie, culture militaire) réduisent les coûts dans leurs domaines et ouvrent des technologies propres. Certaines technologies ont des conséquences : entretien permanent, inquiétude des voisins, tensions sociales.</p>`;
+      <p class="hint">${DEV_TREE.length} technologies en ${TECH_BRANCHES.length} branches. Les choix exclusifs (${icon('split')}) s'opposent deux à deux : lancer l'une rend l'autre inaccessible. Chaque projet est payé chaque mois pendant sa durée ; les spécialisations de votre pays réduisent les coûts dans leurs domaines. Molette + Ctrl pour zoomer, glisser pour parcourir.</p>`;
   }
   _tTime(sim, n, sd) {
     const tl = n.timeline;
@@ -786,7 +808,22 @@ export class NationUI {
     body.querySelectorAll('[data-dev]').forEach((b) => b.addEventListener('click', () => this._devClick(b.dataset.dev)));
     const dc = body.querySelector('[data-devcat]');
     if (dc) dc.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { this.devCat = b.dataset.v; this.devBranch = null; this._renderTab(false); }));
-    body.querySelectorAll('[data-devbranch]').forEach((b) => b.addEventListener('click', () => { this.devBranch = b.dataset.devbranch; this._renderTab(false); }));
+    body.querySelectorAll('[data-devbranch]').forEach((b) => b.addEventListener('click', () => { this.devBranch = b.dataset.devbranch; this.devQuery = ''; this.devAdvised = false; this._renderTab(false); }));
+    const dvs = body.querySelector('#dvSearch');
+    if (dvs) dvs.addEventListener('input', () => { this.devQuery = dvs.value; const pos = dvs.selectionStart; this._renderTab(false); const nd = $('dvSearch'); if (nd) { nd.focus(); nd.setSelectionRange(pos, pos); } });
+    const dva = body.querySelector('[data-devadv]');
+    if (dva) dva.addEventListener('click', () => { this.devAdvised = !this.devAdvised; this._renderTab(false); });
+    const zoomBy = (d) => { this.devZoom = Math.round(Math.max(0.6, Math.min(1.5, (this.devZoom || 1) + d * 0.1)) * 10) / 10; this._renderTab(true); };
+    body.querySelectorAll('[data-devzoom]').forEach((b) => b.addEventListener('click', () => zoomBy(Number(b.dataset.devzoom))));
+    const zw = body.querySelector('#dvZoom');
+    if (zw) {
+      zw.addEventListener('wheel', (e) => { if (!e.ctrlKey) return; e.preventDefault(); zoomBy(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+      let drag = null;
+      zw.addEventListener('pointerdown', (e) => { if (e.target.closest('.dv-node')) return; drag = { x: e.clientX, y: e.clientY, sl: zw.scrollLeft, st: zw.scrollTop }; zw.classList.add('dragging'); });
+      zw.addEventListener('pointermove', (e) => { if (!drag) return; zw.scrollLeft = drag.sl - (e.clientX - drag.x); zw.scrollTop = drag.st - (e.clientY - drag.y); });
+      const end = () => { drag = null; zw.classList.remove('dragging'); };
+      zw.addEventListener('pointerup', end); zw.addEventListener('pointerleave', end);
+    }
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
     if (this.tab === 'def') this.app.forcesUI.bind(body);
@@ -807,6 +844,9 @@ export class NationUI {
     const sim = this.sim, n = sim.nv, k = n.player, sd = sim.sides[k];
     const x = DEV_BY_ID[id];
     const act = sd.dev.active[x.branch];
+    const excl = excludedBy(sd, id);
+    if (excl && !(act && act.id === id)) { notice(`${x.name} est inaccessible : vous avez choisi « ${DEV_BY_ID[excl].name} » (choix exclusif).`); return; }
+    if (EXCLUSIVE[id] !== undefined && n.canStart(k, id) && !window.confirm(`« ${x.name} » et « ${DEV_BY_ID[EXCLUSIVE[id]].name} » s'excluent : lancer ce projet rendra l'autre inaccessible. Continuer ?`)) return;
     if (act && act.id === id) {
       if (window.confirm(`Abandonner le projet « ${x.name} » ? Les ${fmtBn(act.paid)} déjà dépensés sont perdus.`)) { n.cancelProject(k, x.branch); n.milestone('project', `Projet abandonné : ${x.name}.`); }
     } else if (n.canStart(k, id)) {

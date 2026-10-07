@@ -192,7 +192,7 @@ const { m } = load();
   ok(v1 > 0.005 && v1 < 0.5 && v2 > 0.3, `valeur : capitale ${(v1 * 100).toFixed(1)} % pour une seule parcelle ; intérieur ${(v2 * 100).toFixed(0)} %`);
   const none = m.evaluatePeace(sim, w, pl, { ...big, reparations: sim.sides[pl].eco.gdp * 0.5, payer: pl });
   ok(none.result === 'refuse' ? /Aucune condition/.test(none.why) : true, `refus expliqué : « ${(none.why || '').slice(0, 110)}… »`);
-  const r = sim.nation.propose(pl, 'peace', { terms: { terms: big } });
+  const r = sim.nation.propose(pl, 'peace', { terms: big });
   ok(r.result !== 'accept' && r.text.length > 20, `réponse affichée au joueur : « ${r.text.slice(0, 90)}… »`);
   void held;
 }
@@ -243,6 +243,41 @@ const { m } = load();
   for (const x of [h, c]) { x.rel[side(x, 'Belgique') * x.S + x.nation.player] = 90; m.execCommand(x, { op: 'n', a: x.nation.player, m: 'proposeTerritory', args: [side(x, 'Belgique'), { type: 'purchase', take: [regB.id], price: 500 }] }); }
   for (let i = 0; i < 300; i++) { h.step(); c.step(); }
   ok(m.stateHash(h) === m.stateHash(c), 'accord territorial par ordre multijoueur : simulations identiques');
+}
+
+// §7 — technologies : 181 en 12 branches, 24 paires exclusives, IA cohérente, conseils
+{
+  ok(m.TECHS.length === 181 && m.TECH_BRANCHES.length === 12 && Object.keys(m.EXCLUSIVE).length === 48, `${m.TECHS.length} technologies, ${m.TECH_BRANCHES.length} branches, ${Object.keys(m.EXCLUSIVE).length / 2} paires exclusives`);
+  ok(Object.entries(m.EXCLUSIVE).every(([a, b]) => m.EXCLUSIVE[b] === a && m.TECH_BY_ID[a].tier === m.TECH_BY_ID[b].tier && m.TECH_BY_ID[a].branch === m.TECH_BY_ID[b].branch), 'paires symétriques, même palier et même branche');
+  const sim = mk('FR', { seed: 'TECHX' });
+  const n = sim.nation, k = n.player, sd = sim.sides[k];
+  // amener le joueur juste avant le choix « nucléaire civil / gaz et charbon »
+  const need = (id) => { const t = m.TECH_BY_ID[id]; for (const r of t.req) need(r); if (!sd.dev.done.includes(id)) sd.dev.done.push(id); };
+  for (const r of m.TECH_BY_ID.energy4.req) need(r);
+  ok(n.canStart(k, 'energy4') && n.canStart(k, 'energy4x'), 'les deux options du choix sont proposées');
+  n.startProject(k, 'energy4x');
+  ok(!n.canStart(k, 'energy4') && m.excludedBy(sd, 'energy4') === 'energy4x', 'choisir « Gaz et charbon » rend « Nucléaire civil » inaccessible');
+  n.cancelProject(k, m.TECH_BY_ID.energy4x.branch);
+  ok(m.excludedBy(sd, 'energy4') === null, 'projet abandonné : le choix redevient possible');
+  sd.dev.done.push('energy4x');
+  const next = m.TECHS.find((t) => t.req.includes('energy4'));
+  ok(!next || next.req.every((r) => m.reqMet(sd.dev.done, r) || !sd.dev.done.includes('energy4x') || r !== 'energy4'), `l'alternative satisfait les prérequis suivants${next ? ` (${next.name})` : ''}`);
+  // conseillé : seulement des technologies disponibles, déterministe
+  const rec = n.recommended(k, 6);
+  ok(rec.length > 0 && rec.every((id) => n.canStart(k, id)) && JSON.stringify(rec) === JSON.stringify(n.recommended(k, 6)), `conseillées : ${rec.map((id) => m.TECH_BY_ID[id].name).join(', ')}`);
+  // IA : orientation cohérente avec la situation (pays riche en énergie -> gaz ; pays en guerre -> armes)
+  const ru = side(sim, 'Russie'), ch = side(sim, 'Suisse');
+  const fake = (k2) => ({ ...m.TECH_BY_ID.energy4x });
+  ok(m.aiTechPref(sim, ru, fake(ru)) > m.aiTechPref(sim, ch, fake(ch)), `IA : « Gaz et charbon » préféré par la Russie (${m.aiTechPref(sim, ru, fake(ru)).toFixed(2)}) plutôt que par la Suisse (${m.aiTechPref(sim, ch, fake(ch)).toFixed(2)})`);
+  run(sim, 121.67 * 6);
+  const aiExcl = sim.sides.filter((s, i) => !s.player && s.dev.done.some((id) => m.EXCLUSIVE[id] !== undefined)).length;
+  const both = sim.sides.filter((s) => Object.entries(m.EXCLUSIVE).some(([a, b]) => a < b && s.dev.done.includes(a) && s.dev.done.includes(b))).length;
+  ok(aiExcl > 5 && both === 0, `les IA font des choix exclusifs (${aiExcl} pays) et ne prennent jamais les deux options`);
+  // migration : projets d'anciennes sauvegardes rangés par domaine
+  const old = JSON.parse(JSON.stringify(sim.serialize()));
+  for (const s2 of old.sides) if (s2.dev) { const a2 = {}; for (const [key, v] of Object.entries(s2.dev.active)) a2[m.TECH_BY_ID[v.id].line] = v; s2.dev.active = a2; }
+  const b = mk('FR', { seed: 'TECHX' }, old);
+  ok(b.sides.every((s2, i) => Object.keys(s2.dev.active).every((key) => key.split('#')[0] === m.TECH_BY_ID[s2.dev.active[key].id].branch)) && b.sides.reduce((t, s2) => t + Object.keys(s2.dev.active).length, 0) === sim.sides.reduce((t, s2) => t + Object.keys(s2.dev.active).length, 0), 'ancienne sauvegarde : projets en cours conservés et rangés par branche');
 }
 
 summary('Mécaniques du Mode Nation');

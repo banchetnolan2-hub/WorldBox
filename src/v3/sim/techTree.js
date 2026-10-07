@@ -9,7 +9,9 @@
 // options : cons (conséquences), spec (réservée à une spécialisation)
 const T = (id, branch, tier, name, desc, cost, years, fx, req = [], o = {}) => ({ id, branch, tier, name, desc, cost, years, fx, req, cons: o.cons || null, spec: o.spec || null });
 
-export const TECH_BRANCHES = [
+// Les 27 domaines d'origine sont devenus des LIGNES regroupées en 12 BRANCHES (une recherche à la fois par branche).
+// Les identifiants des lignes et des technologies sont inchangés : les sauvegardes restent valides.
+export const TECH_LINES = [
   // ---- civil ----
   { id: 'eco', cat: 'civil', label: 'Économie', icon: 'coins', rule: 'ecoTech' },
   { id: 'ind', cat: 'civil', label: 'Industrie', icon: 'factory', rule: 'ecoTech' },
@@ -40,6 +42,22 @@ export const TECH_BRANCHES = [
   { id: 'mtr', cat: 'mil', label: 'Transport militaire', icon: 'ship', rule: 'milTech' },
   { id: 'mtech', cat: 'mil', label: 'Technologie militaire', icon: 'atom', rule: 'milTech' },
 ];
+export const LINE_BY_ID = Object.fromEntries(TECH_LINES.map((b) => [b.id, b]));
+export const TECH_BRANCHES = [
+  { id: 'b_eco', cat: 'civil', label: 'Économie et commerce', icon: 'coins', lines: ['eco', 'com'] },
+  { id: 'b_ind', cat: 'civil', label: 'Industrie et énergie', icon: 'factory', lines: ['ind', 'energy'] },
+  { id: 'b_agri', cat: 'civil', label: 'Agriculture et ressources', icon: 'wheat', lines: ['agri'] },
+  { id: 'b_sci', cat: 'civil', label: 'Sciences et espace', icon: 'atom', lines: ['tech', 'comp', 'space'] },
+  { id: 'b_infra', cat: 'civil', label: 'Infrastructures et transports', icon: 'route', lines: ['infra', 'transp'] },
+  { id: 'b_soc', cat: 'civil', label: 'Société et santé', icon: 'graduation-cap', lines: ['edu', 'med', 'soc'] },
+  { id: 'b_dip', cat: 'civil', label: 'Diplomatie et renseignement', icon: 'handshake', lines: ['diplo', 'intel'] },
+  { id: 'b_land', cat: 'mil', label: 'Armée de terre', icon: 'users', lines: ['inf', 'arm', 'art'] },
+  { id: 'b_air', cat: 'mil', label: 'Air et défense aérienne', icon: 'plane', lines: ['avi', 'aad'] },
+  { id: 'b_sea', cat: 'mil', label: 'Marine et projection', icon: 'anchor', lines: ['nav', 'mtr'] },
+  { id: 'b_doc', cat: 'mil', label: 'Défense, doctrine et logistique', icon: 'shield', lines: ['def', 'doc', 'log'] },
+  { id: 'b_mtech', cat: 'mil', label: 'Technologie militaire et forces spéciales', icon: 'crosshair', lines: ['mtech', 'sof'] },
+];
+for (const b of TECH_BRANCHES) for (const l of b.lines) LINE_BY_ID[l].branch = b.id;
 export const BRANCH_BY_ID = Object.fromEntries(TECH_BRANCHES.map((b) => [b.id, b]));
 
 export const TECHS = [
@@ -231,7 +249,55 @@ export const TECHS = [
   T('sp_agri', 'agri', 4, 'Grenier du monde', 'Exportations agricoles massives et sécurité alimentaire.', 0.012, 2, { food: 2, trade: 5, relAll: 2 }, ['agri3'], { spec: 'agrarian' }),
   T('sp_trade', 'com', 4, 'Plaque tournante commerciale', 'Ports, finance et logistique au carrefour des routes mondiales.', 0.014, 2, { trade: 8, income: 0.02, ports: 6 }, ['com2'], { spec: 'trader' }),
 ];
+// ---- 24 CHOIX EXCLUSIFS : chaque alternative s'oppose à une technologie existante du même palier ----
+// Choisir l'une rend l'autre inaccessible (tant que le projet n'est pas abandonné). Un prérequis est satisfait
+// par l'une ou l'autre technologie d'une paire. ai : préférence de l'IA selon sa situation (multiplicateur).
+const X = (id, of, name, desc, cost, years, fx, o = {}) => ({ id, of, name, desc, cost, years, fx, cons: o.cons || null, ai: o.ai || null });
+const ALTERNATIVES = [
+  X('energy4x', 'energy4', 'Gaz et charbon bon marché', 'Énergie abondante et peu chère issue des centrales fossiles.', 0.012, 2, { gdp: 0.03, production: 8, energy: 4 }, { cons: { stability: -1, tension: 1 }, ai: 'resource' }),
+  X('agri5x', 'agri5', 'Agriculture biologique', 'Rendements plus modestes, mais santé et campagnes préservées.', 0.014, 3, { food: 2, health: 2, stability: 2 }, { ai: 'stable' }),
+  X('com5x', 'com5', 'Protectionnisme stratégique', 'Industries nationales protégées, résistance aux blocus et aux sanctions.', 0.02, 3, { production: 8, blockadeRes: 0.25, income: 0.02 }, { cons: { tension: 2 }, ai: 'closed' }),
+  X('soc3x', 'soc3', 'État minimal', 'Dépenses publiques réduites : impôts plus efficaces et croissance, mais moins de cohésion.', 0.008, 2, { income: 0.05, growth: 0.004 }, { cons: { stability: -3 }, ai: 'rich' }),
+  X('comp5x', 'comp5', 'Souveraineté numérique', 'Réseaux et données sous contrôle national : cyberdéfense et renseignement.', 0.024, 3, { intel: 0.12, stability: 2, tech: 1 }, { ai: 'closed' }),
+  X('ind4x', 'ind4', 'Industrie de main-d\'œuvre', 'Grandes usines employant massivement : emplois et production, efficacité moindre.', 0.014, 2, { production: 12, stability: 2, gdp: 0.02 }, { ai: 'poor' }),
+  X('edu4x', 'edu4', 'Formation technique de masse', 'Ingénieurs et techniciens formés en nombre pour l\'industrie.', 0.014, 2, { production: 6, efficiency: 6, tech: 1 }, { ai: 'industrial' }),
+  X('diplo5x', 'diplo5', 'Non-alignement', 'Une diplomatie équilibrée entre les blocs : relations apaisées, alliances moins naturelles.', 0.016, 3, { relAll: 6, def: 0.04 }, { ai: 'peaceful' }),
+  X('transp5x', 'transp5', 'Fret ferroviaire lourd', 'Réseau de fret dense : ravitaillement et production plutôt que vitesse.', 0.02, 3, { supply: 0.12, production: 6, speed: 0.04 }, { ai: 'war' }),
+  X('med5x', 'med5', 'Santé privée compétitive', 'Un système de santé tourné vers l\'innovation et l\'économie.', 0.016, 3, { gdp: 0.03, health: 1, research: 0.05 }, { cons: { stability: -1 }, ai: 'rich' }),
+  X('space5x', 'space5', 'Constellations militaires', 'Satellites de surveillance et de communication pour les armées.', 0.03, 4, { intel: 0.12, airDef: 0.08, atk: 0.03 }, { cons: { tension: 3, upkeep: 0.001 }, ai: 'war' }),
+  X('infra5x', 'infra5', 'Aménagement rural', 'Routes, réseaux et services dans les campagnes.', 0.018, 3, { infra: 5, food: 2, stability: 3 }, { ai: 'poor' }),
+  X('arm3x', 'arm3', 'Blindés légers rapides', 'Véhicules moins protégés mais rapides et économiques.', 0.014, 2, { speed: 0.06, atkTerr: { plains: 0.08, desert: 0.08 }, casualties: 0.03 }, { ai: 'poor' }),
+  X('art4x', 'art4', 'Artillerie de masse', 'Des milliers de tubes : écrase les fortifications, au prix de lourdes pertes.', 0.016, 2, { artillery: 0.16, atk: 0.04 }, { cons: { stability: -1 }, ai: 'war' }),
+  X('avi4x', 'avi4', 'Appui aérien rapproché', 'Avions d\'attaque au service des troupes au sol.', 0.02, 3, { atk: 0.07, air: 0.08 }, { ai: 'war' }),
+  X('nav4x', 'nav4', 'Flotte sous-marine', 'Sous-marins d\'attaque : blocus redoutable à moindre coût.', 0.022, 3, { navy: 0.18, blockade: 0.3 }, { cons: { tension: 2 }, ai: 'resource' }),
+  X('aad5x', 'aad5', 'Défense aérienne mobile', 'Batteries mobiles qui suivent les troupes : moins chères qu\'un bouclier antimissile.', 0.02, 3, { airDef: 0.12, def: 0.03 }, { ai: 'poor' }),
+  X('intel4x', 'intel4', 'Réseau d\'agents', 'Renseignement humain et opérations clandestines.', 0.016, 2, { intel: 0.1, sof: 0.06 }, { cons: { tension: 2 }, ai: 'war' }),
+  X('log4x', 'log4', 'Vivre sur le terrain', 'Ravitaillement réquisitionné sur place : rapide, mais impopulaire.', 0.008, 2, { supply: 0.12 }, { cons: { stability: -2, tension: 2 }, ai: 'poor' }),
+  X('doc2x', 'doc2', 'Guerre de position', 'Lignes fortifiées et défense méthodique.', 0.008, 1.5, { fort: 0.35, def: 0.06 }, { ai: 'defensive' }),
+  X('doc4x', 'doc4', 'Masse et attrition', 'Le nombre et l\'endurance plutôt que la technologie.', 0.012, 2, { mobilization: 0.25, morale: 0.05 }, { cons: { stability: -1 }, ai: 'poor' }),
+  X('sof3x', 'sof3', 'Contre-insurrection', 'Tenir les territoires occupés : forces spéciales contre les partisans.', 0.014, 2, { sof: 0.08, stability: 1, supply: 0.04 }, { ai: 'occupier' }),
+  X('mtech4x', 'mtech4', 'Essaims de drones', 'Des milliers de drones bon marché saturent les défenses.', 0.02, 2, { atk: 0.06, airDef: 0.04 }, { ai: 'war' }),
+  X('inf4x', 'inf4', 'Conscription de masse', 'Une armée nombreuse et motivée, moins bien équipée.', 0.01, 1.5, { mobilization: 0.3, morale: 0.06, recruit: 0.2 }, { cons: { stability: -2 }, ai: 'war' }),
+];
+export const EXCLUSIVE = {};
+for (const a of ALTERNATIVES) {
+  const base = TECHS.find((t) => t.id === a.of);
+  TECHS.push({ id: a.id, branch: base.branch, tier: base.tier, name: a.name, desc: a.desc, cost: a.cost, years: a.years, fx: a.fx, req: base.req.slice(), cons: a.cons, spec: base.spec, ai: a.ai, alt: a.of });
+  EXCLUSIVE[a.id] = a.of; EXCLUSIVE[a.of] = a.id;
+}
+// chaque technologie : sa ligne (domaine d'origine) et sa branche (12 branches)
+for (const t of TECHS) { t.line = t.branch; t.branch = LINE_BY_ID[t.line].branch; }
 export const TECH_BY_ID = Object.fromEntries(TECHS.map((t) => [t.id, t]));
+// un prérequis est satisfait par la technologie ou par son alternative exclusive
+export const reqMet = (done, r) => done.includes(r) || (EXCLUSIVE[r] !== undefined && done.includes(EXCLUSIVE[r]));
+// technologie fermée par un choix exclusif (alternative achevée ou en cours)
+export function excludedBy(sd, id) {
+  const o = EXCLUSIVE[id];
+  if (o === undefined) return null;
+  if (sd.dev.done.includes(o)) return o;
+  for (const a of Object.values(sd.dev.active)) if (a && a.id === o) return o;
+  return null;
+}
 
 export const SPECIALIZATIONS = {
   maritime: { label: 'Puissance maritime', desc: 'Littoral étendu ou insulaire : marine, débarquements et commerce maritime.', aff: { nav: 1.35, mtr: 1.35, transp: 1.15, com: 1.1 } },
@@ -292,6 +358,7 @@ export function specsOf(sim, k) {
 }
 // affinité d'un pays pour une branche (coûts et durées divisés, préférences de l'IA)
 export function affinity(sim, k, branch) {
+  if (BRANCH_BY_ID[branch]) return Math.max(...BRANCH_BY_ID[branch].lines.map((l) => affinity(sim, k, l)));
   let a = 1;
   for (const s of specsOf(sim, k)) { const v = SPECIALIZATIONS[s].aff[branch]; if (v) a = Math.max(a, v); }
   // pays sans ports : marine et transport maritime très chers

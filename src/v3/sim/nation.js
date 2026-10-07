@@ -21,7 +21,7 @@ import { refreshCombat, landTotal } from './economy.js';
 import { de } from './fr.js';
 import { SCENARIOS, findScenario } from './scenarios.js';
 import { evaluatePeace, makePeaceTerms, applyPeace, describeTerms, noteProposal, canPropose, dnote, trustOf, warContext, regionCells } from './diplomacy.js';
-import { TECHS, TECH_BY_ID, TECH_BRANCHES, BRANCH_BY_ID, FX_TEXT, affinity, techOpen, TERR_INDEX } from './techTree.js';
+import { TECHS, TECH_BY_ID, TECH_BRANCHES, BRANCH_BY_ID, FX_TEXT, affinity, techOpen, TERR_INDEX, TECH_LINES, LINE_BY_ID, reqMet, excludedBy, EXCLUSIVE } from './techTree.js';
 import { setStance } from './crises.js';
 import { acceptSurrender, setPlayerGoals } from './warEnd.js';
 import { yearExtras } from './insights.js';
@@ -90,6 +90,7 @@ export class Nation {
       }
       this.sim = sim;
       for (const k of this.humanList()) if (sim.sides[k]) sim.sides[k].player = true;
+      migrateActive(sim);
       return;
     }
     this.deals = {};          // "a-b" -> { trade: true, nap: date de fin, since }
@@ -229,14 +230,16 @@ export class Nation {
     const sd = this.sim.sides[k];
     const n = DEV_BY_ID[id];
     if (!n || sd.dev.done.includes(id) || sd.dev.active[n.branch]) return false;
-    if (!this.branchAllowed(n.branch) || !techOpen(this.sim, k, n)) return false;
-    return n.req.every((r) => sd.dev.done.includes(r));
+    if (!this.branchAllowed(n.line) || !techOpen(this.sim, k, n)) return false;
+    if (excludedBy(sd, id)) return false;                       // choix exclusif : l'alternative a été choisie
+    return n.req.every((r) => reqMet(sd.dev.done, r));
   }
   // branches de l'arbre autorisées par les règles de la partie
   branchAllowed(b) {
     const R = this.sim.rules;
     if (R.techTree === false) return false;
-    const br = BRANCH_BY_ID[b];
+    if (BRANCH_BY_ID[b]) return BRANCH_BY_ID[b].lines.some((l) => this.branchAllowed(l));   // branche : au moins une ligne autorisée
+    const br = LINE_BY_ID[b];
     if (!br) return false;
     if (br.cat === 'mil') return R.milTech !== false;
     if (br.rule === 'ecoTech') return R.ecoTech !== false;
@@ -248,7 +251,7 @@ export class Nation {
   // coût et durée : réduits dans les domaines où le pays est spécialisé
   costOf(k, id) {
     const sd = this.sim.sides[k]; const n = DEV_BY_ID[id];
-    const aff = affinity(this.sim, k, n.branch);
+    const aff = affinity(this.sim, k, n.line);
     return { total: n.cost * Math.max(0.5, sd.eco.gdp) / aff * tn(this.sim, 'techCost'), months: Math.max(6, Math.round(n.years * 12 / Math.sqrt(aff) * tn(this.sim, 'techTime'))), aff };
   }
   startProject(k, id) {
@@ -259,6 +262,28 @@ export class Nation {
     sd.dev.active[n.branch] = { id, done: 0, months: c.months, monthly: c.total / c.months, paid: 0, total: c.total, stalled: false };
     if (this.isHuman(k)) { this.at(k).milestone('project', `Lancement du projet « ${n.name} ».`); this.sim.hist(k, 'reform', `Projet lancé : ${n.name}.`); }
     return true;
+  }
+  // technologies conseillées au joueur selon sa situation (filtre « Conseillé ») — lecture seule, sans tirage
+  recommended(k, max = 6) {
+    const sim = this.sim, sd = sim.sides[k];
+    const war = sim.isAtWar(k);
+    const gdp = Math.max(0.1, sd.eco.gdp);
+    const W = {};
+    for (const l of TECH_LINES) W[l.id] = l.cat === 'mil' ? (war ? 1.3 : 0.55) : 0.9;
+    if (-sd.eco.balance / gdp > 0.02 || sd.crisis) { W.eco = 1.8; W.com = 1.5; W.ind = 1.3; }
+    if (sd.stability < 0.5) { W.soc = 1.7; W.med = 1.3; }
+    if ((sd.unemp || 0) > 10) { W.ind = Math.max(W.ind, 1.5); W.edu = 1.3; }
+    if (war) { W.log = 1.6; W.doc = 1.5; W.def = 1.4; }
+    if ((sd.occupiedCells || 0) > 30) W.sof = 1.6;
+    if ((sd.p.res && sd.p.res.food) < 35) W.agri = 1.6;
+    if ((sd.p.infra.roads || 0) < 45) { W.infra = 1.5; W.transp = 1.3; }
+    const out = [];
+    for (const t of TECHS) {
+      if (!this.canStart(k, t.id)) continue;
+      const v = (W[t.line] || 0.8) * affinity(sim, k, t.line) * aiTechPref(sim, k, t) * (1.25 - t.tier * 0.08);
+      out.push([v, t.id]);
+    }
+    return out.sort((a, b) => b[0] - a[0] || (a[1] < b[1] ? -1 : 1)).slice(0, max).map((x) => x[1]);
   }
   cancelProject(k, branch) { const sd = this.sim.sides[k]; delete sd.dev.active[branch]; }
   _projects(k) {
@@ -301,11 +326,11 @@ export class Nation {
       space: P.tech * 0.6, soc: 0.6 + P.econ * 0.2,
     };
     const milW = P.mil * (war ? 1.7 : 0.75);
-    for (const b of TECH_BRANCHES) if (b.cat === 'mil') W[b.id] = milW * ({ nav: P.naval || 1, mtr: (P.naval || 1) * 0.8, doc: 1.1, def: 1.1, aad: P.fort * 0.7 + 0.3 }[b.id] || 1);
+    for (const b of TECH_LINES) if (b.cat === 'mil') W[b.id] = milW * ({ nav: P.naval || 1, mtr: (P.naval || 1) * 0.8, doc: 1.1, def: 1.1, aad: P.fort * 0.7 + 0.3 }[b.id] || 1);
     let best = null, bv = 0;
     for (const n of DEV_TREE) {
       if (!this.canStart(k, n.id)) continue;
-      const v = (W[n.branch] || 0.6) * affinity(sim, k, n.branch) ** 2 * (1.25 - n.tier * 0.11) * (n.spec ? 1.3 : 1) * (0.6 + sim.rng.next() * 0.8);
+      const v = (W[n.line] || 0.6) * affinity(sim, k, n.line) ** 2 * (1.25 - n.tier * 0.11) * (n.spec ? 1.3 : 1) * aiTechPref(sim, k, n) * (0.6 + sim.rng.next() * 0.8);
       if (v > bv) { bv = v; best = n; }
     }
     // nombre de projets simultanés selon la richesse du pays
@@ -1002,6 +1027,42 @@ export class Nation {
       this.milestone('objective', `Fin du scénario « ${sc.title} » : ${st.ending.title}.`);
       this.sim._emit({ icon: '🏁', title: 'FIN DU SCÉNARIO', tone: ratio >= 0.66 ? 'good' : 'bad', side: this.player, text: st.ending.title, nation: true, scenarioEnd: true });
     }
+  }
+}
+
+// ---------------- technologies : choix cohérents des IA, migration des sauvegardes ----------------
+// préférence d'une IA pour une technologie selon sa situation (économie, stratégie, politique, guerres)
+export function aiTechPref(sim, k, t) {
+  const sd = sim.sides[k];
+  const war = sim.isAtWar(k), P = (sd.ai && PERSONALITIES[sd.ai.personality]) || {};
+  let m = 1;
+  if (war && BRANCH_BY_ID[t.branch] && BRANCH_BY_ID[t.branch].cat === 'mil') m *= 1.25;
+  if (sd.crisis && (t.line === 'eco' || t.line === 'com')) m *= 1.4;
+  if (sd.stability < 0.45 && (t.line === 'soc' || t.line === 'med')) m *= 1.35;
+  const pref = t.ai || (EXCLUSIVE[t.id] !== undefined ? 'base' : null);
+  if (!pref) return m;
+  // alternative d'une paire exclusive : orientation cohérente avec la situation du pays
+  const gdpPc = sd.pc || 0, res = (sd.p.res && sd.p.res.energy) || 50;
+  const fit = {
+    base: 1,
+    resource: res > 60 ? 1.6 : 0.7, stable: sd.stability > 0.6 ? 1.3 : 0.8, closed: (P.expand || 1) > 1.1 || (sd.sanctionLoss || 0) > 0 ? 1.5 : 0.75,
+    rich: gdpPc > 0.03 ? 1.4 : 0.6, poor: gdpPc < 0.012 ? 1.6 : 0.7, industrial: (sd.p.production || 0) > 60 ? 1.4 : 0.8,
+    peaceful: (P.peace || 1) > 1.1 ? 1.6 : 0.6, war: war ? 1.6 : 0.7, defensive: (P.fort || 1) > 1.1 || sd.stance === 'defensive' ? 1.6 : 0.7,
+    occupier: (sd.occupiedCells || 0) > 30 ? 1.8 : 0.6,
+  }[pref] || 1;
+  return m * fit;
+}
+// anciennes sauvegardes : projets en cours rangés par domaine -> rangés par branche (même progression)
+export function migrateActive(sim) {
+  for (const sd of sim.sides) {
+    if (!sd.dev || !sd.dev.active) continue;
+    const out = {};
+    for (const [key, a] of Object.entries(sd.dev.active)) {
+      const t = a && TECH_BY_ID[a.id];
+      const b = t ? t.branch : key;
+      out[out[b] ? `${b}#${key}` : b] = a;
+    }
+    sd.dev.active = out;
   }
 }
 

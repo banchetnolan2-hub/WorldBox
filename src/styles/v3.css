@@ -805,7 +805,7 @@ body.nation-on #nationGoals:not(.hidden) ~ #hud #journal { bottom: 80px; }
 .dv-node .meter { height: 3px; }
 .dv-node .meter i { background: var(--gold); }
 .dv-node.st-avail { border-color: rgba(110, 168, 255, 0.55); box-shadow: 0 0 0 1px rgba(110, 168, 255, 0.15), 0 6px 18px rgba(63, 125, 243, 0.12); }
-.dv-node.st-avail:hover { transform: translateY(-2px); background: #131b2a; }
+.dv-node.st-avail:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--card) 88%, var(--sea)); }
 .dv-node.st-act { border-color: rgba(240, 195, 90, 0.6); background: linear-gradient(180deg, rgba(240, 195, 90, 0.1), var(--card)); }
 .dv-node.st-done { border-color: rgba(76, 208, 138, 0.45); background: linear-gradient(180deg, rgba(76, 208, 138, 0.1), var(--card)); }
 .dv-node.st-done .dv-cost { color: var(--good); }
@@ -1686,3 +1686,27 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .terr-form .pf-list { max-height: 170px; }
 .terr-eval { margin: 8px 0; padding: 8px 10px; border-radius: var(--r); background: var(--panel-2); border: 1px solid var(--line); }
 .terr-eval .factors { margin: 6px 0 0; }
+
+/* ---- ARBRE TECHNOLOGIQUE : 12 branches, lignes × paliers, zoom, recherche, conseillé, choix exclusifs ---- */
+.dv-top .search { min-width: 220px; }
+.dv-top .btn.on { border-color: var(--accent); color: var(--accent); }
+.dv-zoom { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--text-3); }
+.dv-zoomwrap { overflow: auto; max-height: calc(100vh - 360px); min-height: 260px; padding: 2px 6px 10px 2px; cursor: grab; border-radius: var(--r); }
+.dv-zoomwrap.dragging { cursor: grabbing; user-select: none; }
+.dv-grid { display: grid; gap: 8px; align-items: stretch; }
+.dv-line { display: flex; align-self: start; align-items: center; padding-top: 10px; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); position: sticky; left: 0; background: var(--panel-solid); z-index: 2; padding-right: 6px; }
+.dv-line .ic { color: var(--accent); }
+.dv-cell { display: flex; flex-direction: column; gap: 6px; }
+.dv-tl { text-align: center; font-size: 11px; color: var(--text-3); }
+.dv-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.dv-node .dv-where { color: var(--accent) !important; font-size: 10px !important; }
+.dv-node .dv-adv { display: inline-flex; align-items: center; gap: 3px; align-self: flex-start; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; color: var(--gold-text); background: rgba(var(--ac), 0.16); }
+.dv-node .dv-adv .ic { width: 11px; height: 11px; }
+.dv-node.advised { box-shadow: 0 0 0 1px rgba(var(--ac), 0.55), 0 6px 18px rgba(0, 0, 0, 0.25); }
+.dv-node.hit { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dv-node .dv-alt { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--sea); }
+.dv-node .dv-alt .ic { width: 12px; height: 12px; }
+.dv-node.excl { border-style: dashed; }
+.dv-node.st-excluded { opacity: 0.42; filter: grayscale(0.6); }
+.dv-node.st-excluded .dv-alt { color: var(--bad-text); }
+.dv-dot.adv .ic { color: var(--gold); }
