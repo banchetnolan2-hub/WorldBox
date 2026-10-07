@@ -32,3 +32,4 @@ export * from '../src/v3/sim/warEnd.js';
 export { NetGame, stateHash, NET_VERSION, HASH_EVERY } from '../src/v3/net/netGame.js';
 export { memoryPair } from '../src/v3/net/transport.js';
 export { execCommand, commandView } from '../src/v3/net/commands.js';
+export * from '../src/v3/sim/insights.js';

@@ -1483,3 +1483,54 @@ body.be-on .map-legend { display: none; }
 #navRail [data-nav].badge { position: relative; }
 #navRail [data-nav].badge::after { content: ''; position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 .dialog.mp .bad, #mpPanel .bad, .mp .bad { color: #ff8a7a; }
+
+/* ---- TABLEAU DE BORD « MON PAYS » et CONSEILLER ---- */
+.db { display: flex; flex-direction: column; gap: 12px; }
+.db-alerts { display: flex; flex-direction: column; gap: 5px; }
+.db-alert { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; padding: 7px 10px; border-radius: var(--r); border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); }
+.db-alert span { flex: 1; }
+.db-alert .ic:last-child { opacity: 0.5; }
+.db-alert.bad { border-color: color-mix(in srgb, var(--bad) 55%, transparent); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.db-alert.bad > .ic:first-child { color: var(--bad); }
+.db-alert.warn { border-color: color-mix(in srgb, var(--gold) 45%, transparent); background: color-mix(in srgb, var(--gold) 9%, transparent); }
+.db-alert.warn > .ic:first-child { color: var(--gold); }
+.db-alert.info > .ic:first-child { color: var(--sea); }
+.db-alert.ok > .ic:first-child { color: var(--good); }
+button.db-alert:hover { border-color: var(--line-3); }
+.db-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 8px; }
+.db-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 10px 11px; border-radius: 9px; border: 1px solid var(--line); border-left: 3px solid var(--good); background: var(--panel-2); color: var(--text); min-width: 0; transition: border-color 0.15s, transform 0.15s var(--ease); }
+.db-card:hover { border-color: var(--line-3); transform: translateY(-1px); }
+.db-card.warn { border-left-color: var(--gold); }
+.db-card.bad { border-left-color: var(--bad); }
+.db-card-h { display: flex; align-items: center; gap: 7px; }
+.db-card-h b { flex: 1; font-size: 12.5px; }
+.db-card-h .ic { color: var(--text-2); }
+.db-state { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.db-card.warn .db-state { background: var(--gold); }
+.db-card.bad .db-state { background: var(--bad); }
+.db-rows > div { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; font-size: 12px; }
+.db-rows span { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.db-rows b { font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+.db-foot { color: var(--text-3); font-size: 11px; }
+.db-bottom { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+.db-bottom h4 { margin-top: 2px !important; }
+.db-recent { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.db-recent li { display: grid; grid-template-columns: 74px 1fr; gap: 8px; font-size: 12px; }
+.db-recent small { color: var(--text-3); }
+.db-adv { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.db-adv li { display: flex; flex-direction: column; padding-left: 8px; border-left: 2px solid var(--gold); font-size: 12px; }
+.db-adv li.bad { border-left-color: var(--bad); }
+.db-adv li span { color: var(--text-2); }
+.adv { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.adv-topic { padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line); border-left: 3px solid var(--good); background: var(--panel-2); }
+.adv-topic.warn { border-left-color: var(--gold); } .adv-topic.bad { border-left-color: var(--bad); }
+.adv-topic header { display: flex; align-items: center; gap: 8px; }
+.adv-topic header b { flex: 1; font-size: 13.5px; }
+.adv-state { font-size: 11px; color: var(--text-3); }
+.adv-topic p { margin: 6px 0; color: var(--text-2); }
+.adv-topic h5 { margin: 8px 0 4px; font-size: 11px; font-weight: 600; color: var(--text-3); }
+.adv-topic ul { margin: 0; padding-left: 18px; }
+.adv-topic li { margin: 2px 0; }
+.adv-recs { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.adv-recs .btn { text-align: left; white-space: normal; height: auto; padding-top: 5px; padding-bottom: 5px; }
+@media (max-width: 1100px) { .db-bottom { grid-template-columns: 1fr; } }

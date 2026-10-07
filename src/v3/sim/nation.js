@@ -21,6 +21,7 @@ import { evaluatePeace, makePeaceTerms, applyPeace, describeTerms, noteProposal,
 import { TECHS, TECH_BY_ID, TECH_BRANCHES, BRANCH_BY_ID, FX_TEXT, affinity, techOpen, TERR_INDEX } from './techTree.js';
 import { setStance } from './crises.js';
 import { acceptSurrender, setPlayerGoals } from './warEnd.js';
+import { yearExtras } from './insights.js';
 import { createCoalition, coalitionById, evaluateJoin, joinCoalition, leaveCoalition, launchOffensive, memberOf, GOALS } from './coalitions.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -900,6 +901,7 @@ export class Nation {
       money: Math.round(sd.money * 10) / 10, debt: Math.round(sd.debt * 10) / 10, tech: Math.round(sd.p.tech * 10) / 10, stability: Math.round(sd.stability * 100),
       soldiers: Math.round(landTotal(sd) * 1000), power: Math.round(powerOf(sd) * 10) / 10, powerRank: ranked.findIndex((x) => x.k === this.player) + 1, gdpRank: gRank,
       allies, projects: sd.dev.done.length, unemp: Math.round((sd.unemp || 0) * 10) / 10, living: sd.living || 0,
+      ...yearExtras(sim, this.player),   // technologies, pertes, guerres (récapitulatif annuel)
     });
   }
 

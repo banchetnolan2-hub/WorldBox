@@ -125,6 +125,29 @@ import i_wheat from 'lucide-static/icons/wheat.svg';
 import i_cloud_lightning from 'lucide-static/icons/cloud-lightning.svg';
 import i_snowflake from 'lucide-static/icons/snowflake.svg';
 import i_biohazard from 'lucide-static/icons/biohazard.svg';
+import i_gem from 'lucide-static/icons/gem.svg';
+import i_lightbulb from 'lucide-static/icons/lightbulb.svg';
+import i_triangle_alert from 'lucide-static/icons/triangle-alert.svg';
+import i_circle_alert from 'lucide-static/icons/circle-alert.svg';
+import i_truck from 'lucide-static/icons/truck.svg';
+import i_palette from 'lucide-static/icons/palette.svg';
+import i_calendar_check from 'lucide-static/icons/calendar-check.svg';
+import i_sun from 'lucide-static/icons/sun.svg';
+import i_moon from 'lucide-static/icons/moon.svg';
+import i_contrast from 'lucide-static/icons/contrast.svg';
+import i_filter from 'lucide-static/icons/filter.svg';
+import i_star from 'lucide-static/icons/star.svg';
+import i_lock_open from 'lucide-static/icons/lock-open.svg';
+import i_vote from 'lucide-static/icons/vote.svg';
+import i_merge from 'lucide-static/icons/merge.svg';
+import i_navigation from 'lucide-static/icons/navigation.svg';
+import i_hexagon from 'lucide-static/icons/hexagon.svg';
+import i_square from 'lucide-static/icons/square.svg';
+import i_diamond from 'lucide-static/icons/diamond.svg';
+import i_circle from 'lucide-static/icons/circle.svg';
+import i_circle_help from 'lucide-static/icons/circle-help.svg';
+import i_party_popper from 'lucide-static/icons/party-popper.svg';
+import i_milestone from 'lucide-static/icons/milestone.svg';
 const ICONS = {
   'scroll-text': i_scroll_text,
   'handshake': i_handshake,
@@ -251,6 +274,32 @@ const ICONS = {
   'banknote': i_banknote,
   'cpu': i_cpu,
   'graduation-cap': i_graduation_cap,
+  'gem': i_gem,
+  'lightbulb': i_lightbulb,
+  'triangle-alert': i_triangle_alert,
+  'circle-alert': i_circle_alert,
+  'truck': i_truck,
+  'palette': i_palette,
+  'calendar-check': i_calendar_check,
+  'sun': i_sun,
+  'moon': i_moon,
+  'contrast': i_contrast,
+  'filter': i_filter,
+  'star': i_star,
+  'lock-open': i_lock_open,
+  'vote': i_vote,
+  'merge': i_merge,
+  'navigation': i_navigation,
+  'hexagon': i_hexagon,
+  'square': i_square,
+  'diamond': i_diamond,
+  'circle': i_circle,
+  'circle-help': i_circle_help,
+  'party-popper': i_party_popper,
+  'milestone': i_milestone,
+  'alert-triangle': i_triangle_alert,
+  'alert-circle': i_circle_alert,
+  'unlock': i_lock_open,
 };
 
 export function icon(name, cls = '') {

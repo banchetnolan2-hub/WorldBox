@@ -69,7 +69,7 @@ export class GameNav {
     if (k === 'history') { app.warUI.openHistory(); return; }
     if (nation && ['mine', 'diplo', 'eco', 'tech', 'mil'].includes(k)) {
       this.closePanel();
-      nui.openPanel({ mine: 'eco', diplo: 'diplo', eco: 'eco', tech: sim.rules.techTree === false ? 'tech' : 'dev', mil: 'def' }[k]);
+      nui.openPanel({ mine: 'home', diplo: 'diplo', eco: 'eco', tech: sim.rules.techTree === false ? 'tech' : 'dev', mil: 'def' }[k]);
       this.setActive(k);
       return;
     }

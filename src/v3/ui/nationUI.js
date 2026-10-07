@@ -23,6 +23,7 @@ import { blocsOf, rivalsOf, friendsOf } from '../sim/geopolitics.js';
 import { randomSeedString } from '../sim/rng.js';
 import { drawCustomFlag } from '../globe/flagAtlas.js';
 import { MAP_PALETTE } from '../globe/mapColors.js';
+import { dashboardHtml, advisorHtml } from './dashboard.js';
 
 export const NATION_SPEEDS = [1, 2, 5, 10];
 const NONE = 65535;
@@ -31,6 +32,7 @@ const num = (v, d = 1) => (Math.round(v * 10 ** d) / 10 ** d).toLocaleString('fr
 const usd = (v) => `${Math.round(v).toLocaleString('fr-FR')} $`;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const TABS = [
+  ['home', 'Mon pays', 'landmark'], ['advisor', 'Conseiller', 'lightbulb'],
   ['eco', 'Économie', 'coins'], ['pop', 'Population', 'users'], ['infra', 'Infrastructures', 'route'], ['tech', 'Technologie', 'cpu'],
   ['def', 'Défense', 'shield'], ['diplo', 'Diplomatie', 'handshake'], ['dev', 'Technologies', 'network'], ['time', 'Chronologie', 'history'],
   ['id', 'Identité', 'flag'], ['goals', 'Objectifs', 'target'],
@@ -46,7 +48,7 @@ export class NationUI {
     this.sel = -1;
     this.scenario = null;
     this.identity = null;
-    this.tab = 'eco';
+    this.tab = 'home';
     this.autoPause = true;
     this.active = false;
     this.backup = null;
@@ -409,12 +411,12 @@ export class NationUI {
         <div class="nb-date"><small>Année</small><b id="nbYear"></b><span id="nbDate"></span></div>
         <div class="nb-kpis" id="nbKpis"></div>
         <div class="nb-btns">
-          <button class="btn ghost sm" data-open="eco" title="Gestion du pays (P)">${icon('sliders-horizontal')}<span>Gérer le pays</span></button>
+          <button class="btn ghost sm" data-open="home" title="Tableau de bord du pays (P)">${icon('sliders-horizontal')}<span>Gérer le pays</span></button>
           <button class="btn ghost sm icon nb-badge" id="nbOffers" title="Propositions diplomatiques">${icon('message-square')}<i></i></button>
           <button class="btn ghost sm icon nb-badge" id="nbDecision" title="Décision en attente">${icon('scale')}<i></i></button>
           <button class="btn ghost sm icon ${this.autoPause ? 'on' : ''}" id="nbAuto" title="Pause automatique sur les décisions et propositions">${icon('pause')}</button>
         </div>`;
-      $('nbId').onclick = () => this.openPanel('eco');
+      $('nbId').onclick = () => this.openPanel('home');
       el.querySelectorAll('[data-open]').forEach((b) => { b.onclick = () => this.openPanel(b.dataset.open); });
       $('nbOffers').onclick = () => this.openOffers();
       $('nbDecision').onclick = () => this.openDecision();
@@ -462,7 +464,7 @@ export class NationUI {
     const n = this.sim.nv;
     const R = this.sim.rules;
     const tabs = TABS.filter(([k]) => (k !== 'goals' || n.scenario) && (k !== 'dev' || R.techTree !== false));
-    if (!tabs.some(([k]) => k === tab)) tab = this.tab = 'eco';
+    if (!tabs.some(([k]) => k === tab)) tab = this.tab = 'home';
     $('nmTabs').innerHTML = tabs.map(([k, l, ic]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${icon(ic)}<span>${l}</span></button>`).join('');
     const sd = this.sim.sides[n.player], ent = this.ent(sd.e);
     $('nmTitle').innerHTML = `${flagImg(ent, 'flag md')}<div><small class="eyebrow">Gestion du pays</small><b>${esc(ent.name)}</b></div>`;
@@ -477,7 +479,7 @@ export class NationUI {
     const sim = this.sim;
     if (!sim || !sim.nv) return;
     const sc = body.scrollTop;
-    const f = { eco: this._tEco, pop: this._tPop, infra: this._tInfra, tech: this._tTech, def: this._tDef, diplo: this._tDiplo, dev: this._tDev, time: this._tTime, id: this._tId, goals: this._tGoals }[this.tab];
+    const f = { home: this._tHome, advisor: this._tAdvisor, eco: this._tEco, pop: this._tPop, infra: this._tInfra, tech: this._tTech, def: this._tDef, diplo: this._tDiplo, dev: this._tDev, time: this._tTime, id: this._tId, goals: this._tGoals }[this.tab];
     if (!f) return;
     if (refresh && (this.tab === 'id')) return;
     if (refresh && this.tab === 'diplo' && document.activeElement && document.activeElement.id === 'dpSearch') return;
@@ -493,6 +495,8 @@ export class NationUI {
   }
   _chart(id, h = 120) { return `<canvas class="nm-chart" data-chart="${id}" height="${h}"></canvas>`; }
 
+  _tHome(sim, n, sd) { return dashboardHtml(this, sim, n, sd); }
+  _tAdvisor(sim, n) { return advisorHtml(this, sim, n); }
   _tEco(sim, n, sd) {
     const e = sd.eco, p = sd.p, pol = n.policy;
     const tot = Math.max(1e-6, (e.civil || 0) + e.upkeep + (e.interest || 0) + (e.ops || 0) + (e.research || 0) + (e.infra || 0) + (e.econ || 0));
@@ -757,7 +761,16 @@ export class NationUI {
     if (bb) bb.addEventListener('click', () => this.app.borderEditor.open());
     const idb = body.querySelector('#nmIdBox');
     if (idb) this._identityForm(idb, this.identity, () => { this._applyIdentity(this.identity); this._bar(true); this.openPanel('id'); notice('Identité mise à jour.'); });
+    body.querySelectorAll('[data-dbgo]').forEach((b) => b.addEventListener('click', () => this._dbGo(b.dataset.dbgo)));
     body.querySelectorAll('[data-chart]').forEach((cv) => this._drawChart(cv, cv.dataset.chart));
+  }
+  // tableau de bord / conseiller : ouvre le panneau où agir
+  _dbGo(target) {
+    if (target === 'offers') { this.openOffers(); return; }
+    if (target === 'decision') { this.openDecision(); return; }
+    if (target === 'mil') { this.closePanel(); this.app.warUI.openWars(); return; }
+    if (target === 'dev' && this.sim.rules.techTree === false) target = 'tech';
+    this.openPanel(target);
   }
   _devClick(id) {
     const sim = this.sim, n = sim.nv, k = n.player, sd = sim.sides[k];
