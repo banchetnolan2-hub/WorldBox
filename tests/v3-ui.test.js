@@ -4,7 +4,7 @@
 const path = require('path'); const fs = require('fs');
 const out = path.join(__dirname, '.ui-bundle.cjs');
 require('esbuild').buildSync({
-  stdin: { contents: "export * from './src/v3/ui/guide.js'; export * from './src/v3/ui/themes.js';", resolveDir: path.join(__dirname, '..'), loader: 'js' },
+  stdin: { contents: "export * from './src/v3/ui/guide.js'; export * from './src/v3/ui/themes.js'; export * from './src/v3/ui/notify.js';", resolveDir: path.join(__dirname, '..'), loader: 'js' },
   bundle: true, platform: 'node', format: 'cjs', outfile: out, logLevel: 'error', loader: { '.svg': 'text', '.json': 'json' },
 });
 const m = require(out);
@@ -36,6 +36,31 @@ ok(m.UI_SIZES.some((s) => s.value === 1) && m.UI_SIZES.every((s) => s.value >= 0
 for (const f of ['themes.js', 'guide.js', 'recap.js', 'dashboard.js']) {
   const src = fs.readFileSync(path.join(__dirname, '..', 'src/v3/ui', f), 'utf8');
   ok(!/\.rng\b|\bact\(|execCommand|\.step\(/.test(src), `${f} : aucun tirage aléatoire ni ordre de simulation`);
+}
+// vitesses : ×10 au maximum (plus de ×50), demandes réseau bornées
+{
+  const nui = fs.readFileSync(path.join(__dirname, '..', 'src/v3/ui/nationUI.js'), 'utf8');
+  const sp = JSON.parse(nui.match(/NATION_SPEEDS = (\[[^\]]*\])/)[1]);
+  ok(sp.join() === '1,2,3,5,10', `vitesses du Mode Nation : ${sp.map((x) => '×' + x).join(' ')}`);
+  const ses = fs.readFileSync(path.join(__dirname, '..', 'src/v3/game/session.js'), 'utf8');
+  ok(/MAX_SPEED = 10\b/.test(ses) && /s = clampSpeed\(s\)/.test(ses), 'vitesse bornée à ×10 dans la session (y compris les demandes d\'un invité)');
+  const hud = fs.readFileSync(path.join(__dirname, '..', 'src/v3/ui/hud.js'), 'utf8');
+  const all = [...hud.matchAll(/SPEEDS = (\[[^\]]*\])/g)].flatMap((x) => JSON.parse(x[1]));
+  ok(all.every((v) => v <= 10), `aucune vitesse au-delà de ×10 (Sandbox : ${all.join(', ')})`);
+}
+// notifications : niveau, vitesse, regroupement
+{
+  const war = { title: 'DÉCLARATION DE GUERRE', side: 3 }, info = { title: 'BATAILLE', side: 7 };
+  ok(m.severity(war, null) === 3 && m.severity(info, null) === 1, 'gravité : déclaration de guerre critique, bataille simple information');
+  ok(m.shouldToast('all', 1, 1, 50) && !m.shouldToast('important', 1, 1, 50) && !m.shouldToast('critical', 2, 1, 50) && m.shouldToast('critical', 3, 10, 50), 'niveau de notifications respecté');
+  ok(!m.shouldToast('all', 1, 5, 50) && !m.shouldToast('all', 1, 10, 50) && m.shouldToast('all', 2, 10, 50), 'à vitesse élevée, seules les notifications importantes restent');
+  const g = new m.Grouper(4000);
+  const el = { isConnected: true };
+  const r1 = g.push(info, 0); g.attach(info, el);
+  const r2 = g.push(info, 1000), r3 = g.push(info, 2000), r4 = g.push(info, 9000);
+  ok(!r1.merge && r2.merge === el && r3.count === 3 && !r4.merge, 'notifications semblables regroupées (×3), puis nouvelle notification après la fenêtre');
+  const d = m.defaultAutoPause();
+  ok(['war', 'decision', 'offer', 'warEnd', 'recap'].every((k) => k in d), `pause automatique configurable : ${m.AUTO_PAUSE.length} types d'événements`);
 }
 console.log(`\nInterface : ${passes} réussi(s), ${fails} échec(s)`);
 fs.unlinkSync(out);

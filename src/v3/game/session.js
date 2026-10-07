@@ -1,6 +1,10 @@
 // GAME LOGIC V3 — une session : monde + simulation + rendu + caméra automatique.
 // La simulation avance par pas fixes, indépendamment de l'affichage (voir WorldSim).
 import { WorldSim, TICK } from '../sim/worldSim.js';
+
+// vitesse de simulation bornée (×10 au maximum, y compris les demandes reçues en multijoueur)
+export const MAX_SPEED = 10;
+export const clampSpeed = (s) => { const v = Number(s); return Number.isFinite(v) && v > 0 ? Math.min(MAX_SPEED, Math.max(0.25, v)) : 1; };
 import { audio } from '../audio/audio.js';
 
 const DEG = 180 / Math.PI;
@@ -94,7 +98,7 @@ export class Session {
 
   // multijoueur : un invité ne commande pas le temps lui-même, il le demande à l'hôte
   get _guest() { return !!(this.net && this.net.active && !this.net.isHost); }
-  setSpeed(s) { if (this._guest) { this.net.request('speed', s); return; } this.speed = s; if (this.net && this.net.active) this.net._frame(true); }
+  setSpeed(s) { s = clampSpeed(s); if (this._guest) { this.net.request('speed', s); return; } this.speed = s; if (this.net && this.net.active) this.net._frame(true); }
   pause() { if (this._guest) { this.net.request('pause'); return; } if (this.state === 'running') this.state = 'paused'; if (this.net && this.net.active) this.net._frame(true); }
   resume() { if (this._guest) { this.net.request('resume'); return; } if (this.state === 'paused') this.state = 'running'; if (this.net && this.net.active) this.net._frame(true); }
   toggle() { if (this.state === 'running') this.pause(); else if (this.state === 'paused') this.resume(); }

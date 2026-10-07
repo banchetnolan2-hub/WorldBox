@@ -40,6 +40,7 @@ import { execCommand } from './net/commands.js';
 import { GuideUI } from './ui/guide.js';
 import { RecapUI } from './ui/recap.js';
 import { applyTheme, themePickerHtml, UI_SIZES } from './ui/themes.js';
+import { NOTIF_LEVELS, AUTO_PAUSE, defaultAutoPause } from './ui/notify.js';
 
 const DEG = 180 / Math.PI;
 // vitesse des transitions de frontière (durée en secondes)
@@ -104,6 +105,7 @@ class App {
     }
     this.setWorld(this.world, true);
     this.session.onEvent = (e) => { this.hud.event(e, this.session.sim); this.nationUI.onEvent(e); };
+    if (!this.settings.autoPause) this.settings.autoPause = defaultAutoPause();
     this.session.onEnd = (res) => this.onEnd(res);
     this.session.onWarEnded = (id) => this.onWarEnded(id);
     this._bindMenu();
@@ -386,9 +388,15 @@ class App {
     const members = [...w.a, ...w.b].map((k) => sim.sides[k].e);
     const km2 = w.treaty ? w.treaty.transfers.reduce((t, x) => t + x.km2, 0) : 0;
     const mine = sim.nv && members.includes(sim.sides[sim.nv.player].e);
+    if (mine && !this.wantsAutoPause('warEnd')) { this.hud.warToast(w, () => this.warUI.openReport(this.warUI.liveWar(id))); return; }
     const major = mine || (!sim.nv && (sim.sides.length <= 10 || km2 > 250000)) || members.includes(this.renderer.selected) || members.some((e) => this.hud.selected === e);
     if (major && !this.spectator && !this.warUI.isOpen()) setTimeout(() => { if (this.session.sim === sim) this.warUI.showEnded(id); }, 900);
     else this.hud.warToast(w, () => this.warUI.openReport(this.warUI.liveWar(id)));
+  }
+  // pause automatique choisie par le joueur pour un type d'événement (Mode Nation)
+  wantsAutoPause(kind) {
+    const ap = { ...defaultAutoPause(), ...(this.settings.autoPause || {}) };
+    return ap[kind] !== false;
   }
   pauseForOverlay() {
     if (this.session.net && this.session.net.active) return;      // partie partagée : un panneau ne met pas tout le monde en pause
@@ -662,7 +670,11 @@ class App {
     $('markersBtn').onclick = () => { this.settings.markers = !this.settings.markers; this.applyDisplaySettings(); this.saveSettings(); };
     $('labelsBtn').onclick = () => { this.settings.labels = !this.settings.labels; this.applyDisplaySettings(); this.saveSettings(); };
     $('audioBtn').onclick = () => { this.settings.mute = !this.settings.mute; audio.setSettings(this.settings); this.applyDisplaySettings(); this.saveSettings(); };
-    $('restartBtn').onclick = () => this.restart(false);
+    $('restartBtn').onclick = () => {
+      if (this.session.net && this.session.net.active) { notice('Impossible de recommencer une partie multijoueur.'); return; }
+      if (this.nationUI.active && !window.confirm('Recommencer une nouvelle partie ? La partie en cours sera perdue si elle n\'est pas sauvegardée.')) return;
+      this.restart(false);
+    };
     $('menuBtn').onclick = () => this.openPause();
     $('warsBtn').onclick = () => this.warUI.openWars();
   }
@@ -720,6 +732,11 @@ class App {
     const themes = () => { $('sTheme').innerHTML = themePickerHtml(this.settings.theme); };
     themes();
     $('sTheme').onclick = (e) => { const b = e.target.closest('[data-theme-id]'); if (!b) return; this.settings.theme = b.dataset.themeId; applyTheme(this.settings); this.saveSettings(); themes(); };
+    // notifications : niveau et pause automatique
+    seg($('sNotif'), NOTIF_LEVELS, s.notifLevel || 'all', (v) => { this.settings.notifLevel = v; this.saveSettings(); });
+    const ap = { ...defaultAutoPause(), ...(s.autoPause || {}) };
+    $('sAutoPause').innerHTML = AUTO_PAUSE.map(([k, l]) => `<label class="check"><input type="checkbox" data-ap="${k}" ${ap[k] ? 'checked' : ''}><span>${l}</span></label>`).join('');
+    $('sAutoPause').onchange = (e) => { const c = e.target.closest('[data-ap]'); if (!c) return; this.settings.autoPause = { ...ap, ...(this.settings.autoPause || {}), [c.dataset.ap]: c.checked }; this.saveSettings(); };
     seg($('sUiScale'), UI_SIZES, Number(s.uiScale) || 1, (v) => { this.settings.uiScale = Number(v); applyTheme(this.settings); this.saveSettings(); });
     show('settings');
     this.pauseForOverlay();            // réglages ouverts en partie : jeu en pause
@@ -866,7 +883,7 @@ class App {
       if (!inSim) { if (k === 'Enter' && this.screen === 'creator') this.creator.launch(); return; }
       const low = k.toLowerCase();
       if (k === ' ') { e.preventDefault(); if (isShown('pause')) { show('pause', false); this.session.resume(); } else this.session.toggle(); this.hud.setPaused(this.session.state === 'paused'); }
-      else if (low === 'r') this.restart(false);
+      else if (low === 'r') { if (!this.nationUI.active && !(this.session.net && this.session.net.active)) this.restart(false); }   // Nation / multijoueur : pas de relance accidentelle
       else if (low === 'c') { const m = this.session.camMode === 'auto' ? 'libre' : 'auto'; this.session.setCamMode(m); this.hud.setCam(m); }
       else if (low === 'n') { this.session.pause(); this.session.step(); this.hud.setPaused(true); }
       else if (low === 'm') $('markersBtn').click();
@@ -876,7 +893,7 @@ class App {
       else if (low === 'k' && inSim) this.worldViews.nextMap();
       else if (low === 'g') this.warUI.openWars();
       else if (low === 'h') this.warUI.openHistory();
-      else if (this.nationUI.active && ['1', '2', '3', '4'].includes(k)) this.setSpeed(NATION_SPEEDS[Number(k) - 1]);
+      else if (this.nationUI.active && ['1', '2', '3', '4', '5'].includes(k)) this.setSpeed(NATION_SPEEDS[Number(k) - 1]);
       else if (low === 'p' && this.nationUI.active) this.nationUI.openPanel();
       else if (low === 'd' && this.nationUI.active) this.nationUI.openPanel('diplo');
       else if (['1', '2', '3', '4', '5'].includes(k)) this.setSpeed(SPEEDS[Number(k) - 1]);

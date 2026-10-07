@@ -25,7 +25,7 @@ import { drawCustomFlag } from '../globe/flagAtlas.js';
 import { MAP_PALETTE } from '../globe/mapColors.js';
 import { dashboardHtml, advisorHtml } from './dashboard.js';
 
-export const NATION_SPEEDS = [1, 2, 5, 10];
+export const NATION_SPEEDS = [1, 2, 3, 5, 10];       // vitesse maximale : ×10
 const NONE = 65535;
 const pctS = (v, d = 1) => `${(v * 100).toFixed(d).replace('.', ',')} %`;
 const num = (v, d = 1) => (Math.round(v * 10 ** d) / 10 ** d).toLocaleString('fr-FR');
@@ -389,10 +389,28 @@ export class NationUI {
   }
   // événements de la simulation (décisions, propositions, fin de scénario)
   onEvent(e) {
-    if (!this.active || !e.nation) return;
-    if (e.decision && this.autoPause) { this.app.pauseForOverlay(); this.openDecision(); }
-    else if (e.offer && this.autoPause && e.urgent && !isShown('diploDialog')) { this.app.pauseForOverlay(); this.openOffers(); }
-    else if (e.scenarioEnd) { this.app.pauseForOverlay(); this.openScenarioEnd(); }
+    if (!this.active) return;
+    if (!e.nation) { this._worldEvent(e); return; }
+    const app = this.app, sim = this.sim;
+    // seuls les événements de MON pays ouvrent une fenêtre (multijoueur : chacun les siens)
+    const mine = !sim || !sim.nv || e.side === undefined || e.side === sim.nv.player || e.decision || e.offer;
+    if (e.decision && mine && app.wantsAutoPause('decision')) { app.pauseForOverlay(); this.openDecision(); }
+    else if (e.offer && e.urgent && !isShown('diploDialog') && app.wantsAutoPause('offer')) { app.pauseForOverlay(); this.openOffers(); }
+    else if (e.scenarioEnd) { app.pauseForOverlay(); this.openScenarioEnd(); }
+  }
+  // événements du monde qui peuvent mettre en pause : guerre déclarée contre moi ou un allié, capitale prise
+  _worldEvent(e) {
+    const sim = this.sim, n = sim && sim.nv;
+    if (!n) return;
+    const me = n.player, S = sim.S;
+    if (e.war && /^DÉCLARATION DE GUERRE/.test(e.title || '')) {
+      const w = sim.wars.find((x) => x.id === e.war);
+      const touches = w && [...w.a, ...w.b].some((x) => x === me || sim.allied[me * S + x]);
+      if (touches && this.app.wantsAutoPause('war')) { this.app.pauseForOverlay(); this.app.hud.setPaused(true); }
+    } else if (/^CAPITALE PRISE/.test(e.title || '') && this.app.wantsAutoPause('capital')) {
+      const k = e.side;
+      if (k === me || (k >= 0 && sim.atWar[me * S + k])) { this.app.pauseForOverlay(); this.app.hud.setPaused(true); }
+    }
   }
   update(sim) {
     if (!this.active || !sim.nv) return;
@@ -418,13 +436,13 @@ export class NationUI {
           <button class="btn ghost sm" data-open="home" title="Tableau de bord du pays (P)">${icon('sliders-horizontal')}<span>Gérer le pays</span></button>
           <button class="btn ghost sm icon nb-badge" id="nbOffers" title="Propositions diplomatiques">${icon('message-square')}<i></i></button>
           <button class="btn ghost sm icon nb-badge" id="nbDecision" title="Décision en attente">${icon('scale')}<i></i></button>
-          <button class="btn ghost sm icon ${this.autoPause ? 'on' : ''}" id="nbAuto" title="Pause automatique sur les décisions et propositions">${icon('pause')}</button>
+          <button class="btn ghost sm icon" id="nbAuto" title="Notifications et pause automatique">${icon('pause')}</button>
         </div>`;
       $('nbId').onclick = () => this.openPanel('home');
       el.querySelectorAll('[data-open]').forEach((b) => { b.onclick = () => this.openPanel(b.dataset.open); });
       $('nbOffers').onclick = () => this.openOffers();
       $('nbDecision').onclick = () => this.openDecision();
-      $('nbAuto').onclick = () => { this.autoPause = !this.autoPause; $('nbAuto').classList.toggle('on', this.autoPause); notice(this.autoPause ? 'Pause automatique activée pour les décisions et propositions.' : 'Pause automatique désactivée.'); };
+      $('nbAuto').onclick = () => this.app.openSettings();
     }
     const dp = dateParts(sim.time, sim.cfg.startDay);
     $('nbName').innerHTML = `${ent.symbol ? icon(ent.symbol) : ''}${esc(ent.name)}`;

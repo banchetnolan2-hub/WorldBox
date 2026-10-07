@@ -2,6 +2,7 @@
 // notifications, contrôles. Toutes les valeurs affichées évoluent progressivement (interpolation),
 // jamais par sauts : pourcentages, unités, puissance, barres, positions dans le classement.
 import { $, show, esc, fmtTime, fmtInt, flagImg } from './util.js';
+import { severity, shouldToast, Grouper } from './notify.js';
 import { participantProfile } from '../sim/worldSim.js';
 import { landTotal } from '../sim/economy.js';
 import { regionResources } from '../world/details.js';
@@ -433,9 +434,20 @@ export class Hud {
     const side = e.side >= 0 && sim.sides[e.side] ? sim.sides[e.side] : null;
     const color = side ? this.app.renderer.colors[side.e] : '#f2c14e';
     const speed = this.app.session.speed;
-    const important = e.manual || (e.nation && sim.nv && e.side === sim.nv.player) || ['CAPITALE PRISE', 'PAYS ÉLIMINÉ', 'ÉQUIPE VAINCUE', 'ÉVÉNEMENT RÉGIONAL', 'INTÉGRATION OFFICIELLE'].includes(e.title);
     const title = e.title.charAt(0) + e.title.slice(1).toLowerCase();
-    if (important || speed <= 2 || sim.sides.length <= 6) {
+    // niveau de notifications, quantité réduite à vitesse élevée, regroupement des notifications semblables
+    const sev = severity(e, sim);
+    if (!this.grouper) this.grouper = new Grouper(4000);
+    const g = shouldToast(this.app.settings.notifLevel || 'all', sev, speed, sim.sides.length) ? this.grouper.push(e, performance.now()) : null;
+    if (g && g.merge) {
+      const el = g.merge;
+      el.querySelector('.t-text').textContent = e.text;
+      let c = el.querySelector('.t-count'); if (!c) { c = document.createElement('span'); c.className = 't-count'; el.querySelector('.t-title').appendChild(c); }
+      c.textContent = ` ×${g.count}`;
+      clearTimeout(el._t1); clearTimeout(el._t2); el.classList.remove('out');
+      const life = speed >= 4 ? 2600 : 3600;
+      el._t1 = setTimeout(() => el.classList.add('out'), life); el._t2 = setTimeout(() => el.remove(), life + 450);
+    } else if (g) {
       const el = document.createElement('div');
       el.className = `toast ${e.tone || 'neutral'}`;
       el.style.setProperty('--c', color);
@@ -443,8 +455,9 @@ export class Hud {
       $('toasts').prepend(el);
       while ($('toasts').children.length > 2) $('toasts').lastChild.remove();
       const life = speed >= 4 ? 2200 : 3400;
-      setTimeout(() => el.classList.add('out'), life);
-      setTimeout(() => el.remove(), life + 450);
+      el._t1 = setTimeout(() => el.classList.add('out'), life);
+      el._t2 = setTimeout(() => el.remove(), life + 450);
+      this.grouper.attach(e, el);
     }
     const li = document.createElement('li');
     li.style.setProperty('--c', color);

@@ -121,7 +121,7 @@ export class NetGame {
       case 'req':
         if (m.what === 'pause') this.ad.setPaused(true);
         else if (m.what === 'resume') this.ad.setPaused(false);
-        else if (m.what === 'speed') this.ad.setSpeed(Number(m.v) || 1);
+        else if (m.what === 'speed') this.ad.setSpeed(Math.min(10, Math.max(0.25, Number(m.v) || 1)));   // ×10 au maximum
         this.ad.event('req', { name: p.name, text: `${p.name} : ${m.what === 'pause' ? 'pause' : m.what === 'resume' ? 'reprise' : `vitesse ×${m.v}`}.` });
         this._frame(true);
         return;
