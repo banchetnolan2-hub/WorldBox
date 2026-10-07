@@ -8,6 +8,7 @@
 //    réponse : accepter, refuser ou contre-proposer. Les conditions sont appliquées au traité.
 import { coalitionPeaceFactor } from './coalitions.js';
 import { tn } from './tuning.js';
+import { valueShare } from './territoryValue.js';
 import { PERSONALITIES } from './profile.js';
 import { addRel } from './wars.js';
 import { YEAR_SEC } from './calendar.js';
@@ -240,6 +241,42 @@ export function makePeaceTerms(sim, w, s, strategy = 'normal') {
   t.truceYears = t.kind === 'ceasefire' ? 2 : 4;
   return t;
 }
+// ---------------- paix proportionnée ----------------
+// Ce que le pays r peut raisonnablement céder (part de la valeur de son territoire) : territoire réellement
+// perdu, situation sur le terrain, rapport de force, durée de la guerre, alliés, stabilité, lassitude.
+// Une petite victoire militaire ne permet pas d'obtenir la moitié d'un pays.
+export function cedeCapacity(sim, w, r) {
+  const c = warContext(sim, w, r);
+  const rd = sim.sides[r];
+  const enemyE = new Set((w.a.includes(r) ? w.b : w.a).map((k) => sim.sides[k].e));
+  const lost = valueShare(sim, r, (i) => enemyE.has(sim.owner[i]) && w.changes.has(i));
+  const f = [];
+  const add = (label, v) => { if (Math.abs(v) >= 0.005) f.push({ label, v: r2(v) }); };
+  add('Territoire réellement perdu', lost);
+  add('Situation sur le terrain', clamp(-c.adv, 0, 1) * 0.15);
+  add('Rapport de force défavorable', c.ratio < 0.5 ? 0.06 : c.ratio < 0.8 ? 0.03 : 0);
+  add('Durée de la guerre', Math.min(0.05, c.dur / YEAR_SEC * 0.02));
+  add('Instabilité intérieure', c.stab < 0.35 ? 0.04 : 0);
+  add('Lassitude de la guerre', c.exh > 0.6 ? 0.04 : 0);
+  const friends = (w.a.includes(r) ? w.a : w.b).filter((k) => k !== r && !sim.sides[k].eliminated);
+  add('Soutien de ses alliés', friends.length && c.ratio > 0.8 ? -0.04 : 0);
+  let cap = 0.02;
+  for (const x of f) cap += x.v;
+  cap = clamp(cap * tn(sim, 'maxDemand'), 0.02, 0.75);
+  cap = Math.max(cap, Math.min(0.95, lost + 0.01));   // ce qui est déjà perdu peut toujours être concédé (lignes actuelles)
+  void rd;
+  return { cap: r2(cap), lost: r2(lost), factors: f };
+}
+// part de la valeur du territoire de r qui passerait à l'adversaire avec ces conditions
+export function demandShare(sim, w, r, terms) {
+  const enemyE = new Set((w.a.includes(r) ? w.b : w.a).map((k) => sim.sides[k].e));
+  const e = sim.sides[r].e;
+  if (terms.territory === 'restore') return 0;
+  let final = null;
+  if (terms.territory === 'custom') { final = new Map(); for (const [c, to] of claimTransfers(sim, w, terms)) final.set(c, to); }
+  return valueShare(sim, r, (i) => { const o = final && final.has(i) ? final.get(i) : sim.owner[i]; return enemyE.has(o) && (sim.owner[i] === e || w.changes.has(i)); });
+}
+
 // évaluation des conditions par le pays r (IA)
 export function evaluatePeace(sim, w, r, terms) {
   const rd = sim.sides[r];
@@ -262,6 +299,18 @@ export function evaluatePeace(sim, w, r, terms) {
   terr = clamp(terr, -1.6, 1.2);
   if (Math.abs(terr) >= 0.03) f.push({ label: claimLabel || (terms.territory === 'keep' ? 'Lignes actuelles (territoires conservés)' : 'Retour aux frontières d\'avant-guerre'), v: r2(terr) });
   score += terr;
+  // exigences territoriales comparées à ce que le pays peut céder (valeur, pas seulement superficie)
+  let excess = 0, capInfo = null, demand = 0;
+  if (terms.territory !== 'restore' && w.a.concat(w.b).includes(terms.proposer) && !(w.a.includes(r) && w.a.includes(terms.proposer)) && !(w.b.includes(r) && w.b.includes(terms.proposer))) {
+    demand = demandShare(sim, w, r, terms);
+    capInfo = cedeCapacity(sim, w, r);
+    excess = demand - capInfo.cap;
+    if (excess > 0.005) {
+      const v = -Math.min(3, 0.5 + excess * 5);
+      f.push({ label: `Exigences disproportionnées : ${Math.round(demand * 100)} % de la valeur du pays (acceptable au plus ${Math.round(capInfo.cap * 100)} %)`, v: r2(v) });
+      score += v;
+    }
+  }
   if (terms.reparations > 0) {
     const v = clamp(terms.reparations / Math.max(0.5, rd.eco.gdp) * 9, 0, 1) * (terms.payer === r ? -1 : 1);
     f.push({ label: terms.payer === r ? 'Réparations à payer' : 'Réparations reçues', v: r2(v) });
@@ -271,7 +320,7 @@ export function evaluatePeace(sim, w, r, terms) {
   if (Math.abs(trust) >= 0.03) { f.push({ label: 'Confiance (historique)', v: r2(trust * 0.5) }); score += trust * 0.5; }
   if (terms.kind === 'ceasefire') { f.push({ label: 'Simple cessez-le-feu', v: -0.05 }); score -= 0.05; }
   let counter = null;
-  if (score <= 0.15 && score > -0.45 && sim.rules.negotiations !== false) {
+  if (score <= 0.15 && (score > -0.45 || (excess > 0.005 && score - Math.max(-3, -(0.5 + excess * 5)) > -0.45)) && sim.rules.negotiations !== false) {
     // contre-proposition : ce qui rendrait la paix acceptable pour r
     const c = { ...terms, proposer: r, counterOf: terms.proposer };
     if (terms.territory === 'custom' && terms.claimant !== r && (terms.claims || []).length) {
@@ -279,6 +328,12 @@ export function evaluatePeace(sim, w, r, terms) {
       const regs = new Map(claimableRegions(sim, w, terms.claimant).map((x) => [x.id, x]));
       const won = terms.claims.filter((id) => regs.get(id) && regs.get(id).occupied >= 0.5);
       c.claims = won.length < terms.claims.length ? won : won.slice(0, Math.floor(won.length / 2));
+      // exigences ramenées à ce que le pays peut céder : régions les mieux tenues d'abord
+      if (capInfo) {
+        const order = [...c.claims].sort((x, y) => (regs.get(y).occupied - regs.get(x).occupied) || (regs.get(x).km2 - regs.get(y).km2));
+        while (order.length && demandShare(sim, w, r, { ...c, claims: order }) > capInfo.cap) order.pop();
+        c.claims = order;
+      }
     } else if (terms.territory === 'keep' && lost > held * 1.2) c.territory = 'restore';
     else if (terms.territory === 'restore' && held > lost * 1.2) c.territory = 'keep';
     else if (terms.payer === r) { c.reparations = Math.round(terms.reparations * 0.4 * 10) / 10; if (c.reparations < 0.1) { c.reparations = 0; c.payer = -1; } }
@@ -287,7 +342,16 @@ export function evaluatePeace(sim, w, r, terms) {
     if (JSON.stringify({ ...c, proposer: 0, counterOf: 0 }) !== JSON.stringify({ ...terms, proposer: 0, counterOf: 0 })) counter = c;
   }
   const result = score > 0.15 ? 'accept' : counter ? 'counter' : 'refuse';
-  return { result, score: r2(score), factors: f.sort((x, y) => Math.abs(y.v) - Math.abs(x.v)), counter };
+  const factors = f.sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
+  // aucune proposition acceptable : explication claire
+  let why = '';
+  if (result === 'refuse') {
+    const neg = factors.filter((x) => x.v < 0).slice(0, 3).map((x) => x.label.toLowerCase());
+    why = `Aucune condition n'est acceptable pour ${rd.name} pour le moment${neg.length ? ` : ${neg.join(' ; ')}` : ''}.`
+      + (capInfo ? ` Il pourrait céder au plus ${Math.round(capInfo.cap * 100)} % de la valeur de son territoire (il en a perdu ${Math.round(capInfo.lost * 100)} %).` : '')
+      + ' Ce qui peut changer sa position : des gains militaires, une guerre plus longue, des exigences réduites ou une proposition de cessez-le-feu.';
+  }
+  return { result, score: r2(score), factors, counter, why, demand: r2(demand), cap: capInfo ? capInfo.cap : null };
 }
 
 // texte lisible des conditions, du point de vue du pays « viewer »

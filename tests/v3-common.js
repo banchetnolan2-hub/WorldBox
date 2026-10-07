@@ -13,7 +13,8 @@ function load() {
   const world = m.createOriginalWorld(grid, data);
   const cells = new Map(); for (let i = 0; i < grid.n; i++) cells.set(world.owner[i], (cells.get(world.owner[i]) || 0) + 1);
   const ents = world.entities.filter((e) => e.kind !== 'neutral' && cells.get(e.index) > 0);
-  cache = { m, grid, geo, data, nav, world, ents };
+  const details = m.buildDetails(grid, world.owner, world.entities);
+  cache = { m, grid, geo, data, nav, world, ents, details };
   return cache;
 }
 let fails = 0, passes = 0;
@@ -25,7 +26,7 @@ function setupFor(player, opts = {}) {
     options: { seed: opts.seed || 'NATION', warStart: 'tensions', maxDuration: 1e9, peaceEnd: 1e9, maxWarsPerYear: 2, maxAgents: 1100, startDay: 365, rules: opts.rules || undefined, nation: { player: ents.findIndex((e) => e.id === player), scenario: opts.scenario || null }, ...(opts.options || {}) },
   };
 }
-function mk(player, opts = {}, restore = null) { const { m, grid, nav, world, geo } = load(); return new m.WorldSim(grid, nav, world, setupFor(player, opts), restore, { geo }); }
+function mk(player, opts = {}, restore = null) { const { m, grid, nav, world, geo, details } = load(); return new m.WorldSim(grid, nav, world, setupFor(player, opts), restore, { geo, details: opts.noDetails ? null : details }); }
 function run(sim, t) { while (!sim.finished && sim.time < t) { sim.step(); sim.captures.length = 0; sim.eventsOut.length = 0; } return sim; }
 function side(sim, name) { return sim.sides.findIndex((s) => s.name === name); }
 function summary(label) { console.log(`\n${label} : ${passes} réussi(s), ${fails} échec(s)`); }

@@ -172,4 +172,77 @@ const { m } = load();
   ok(b.fleets.find((x) => x.id === f.id).order.type === 'port', 'ordres des flottes sauvegardés');
 }
 
+// §18 — paix proportionnée : valeur des territoires, capacité à céder, explication des refus
+{
+  const sim = mk('DE', { seed: 'PEACE' });
+  const k = sim.nation.player, pl = side(sim, 'Pologne');
+  const w = m.startWar(sim, [k], [pl], 'declaration');
+  run(sim, sim.time + 40);
+  const regs = m.claimableRegions(sim, w, k);
+  const held = regs.filter((x) => x.occupied >= 0.5).map((x) => x.id);
+  const all = regs.map((x) => x.id);
+  const cap = m.cedeCapacity(sim, w, pl);
+  const big = { ...m.makePeaceTerms(sim, w, k), territory: 'custom', claimant: k, claims: all, proposer: k, kind: 'treaty' };
+  const dBig = m.demandShare(sim, w, pl, big);
+  const ev = m.evaluatePeace(sim, w, pl, big);
+  ok(dBig > cap.cap + 0.1 && ev.result !== 'accept' && ev.factors.some((f) => /disproportionnées/.test(f.label)), `petite avancée (${Math.round(cap.lost * 100)} % perdu) : exiger ${Math.round(dBig * 100)} % de la Pologne est refusé (acceptable au plus ${Math.round(cap.cap * 100)} %)`);
+  ok(!ev.counter || m.demandShare(sim, w, pl, ev.counter) <= cap.cap + 1e-9, `contre-offre ramenée à ce qui est acceptable${ev.counter ? ` (${ev.counter.claims.length} région(s))` : ''}`);
+  const v1 = m.valueShare(sim, pl, (i) => i === sim.sides[pl].capital);
+  const v2 = m.valueShare(sim, pl, (i) => sim.owner[i] === sim.sides[pl].e && !sim.grid.coastal[i] && i !== sim.sides[pl].capital && sim.geo.km2[i] > 0);
+  ok(v1 > 0.005 && v1 < 0.5 && v2 > 0.3, `valeur : capitale ${(v1 * 100).toFixed(1)} % pour une seule parcelle ; intérieur ${(v2 * 100).toFixed(0)} %`);
+  const none = m.evaluatePeace(sim, w, pl, { ...big, reparations: sim.sides[pl].eco.gdp * 0.5, payer: pl });
+  ok(none.result === 'refuse' ? /Aucune condition/.test(none.why) : true, `refus expliqué : « ${(none.why || '').slice(0, 110)}… »`);
+  const r = sim.nation.propose(pl, 'peace', { terms: { terms: big } });
+  ok(r.result !== 'accept' && r.text.length > 20, `réponse affichée au joueur : « ${r.text.slice(0, 90)}… »`);
+  void held;
+}
+
+// §19 — diplomatie territoriale : accord du pays concerné, régions voisines, application, nouvel État
+{
+  const sim = mk('FR', { seed: 'TERR' });
+  const k = sim.nation.player, be = side(sim, 'Belgique'), es = side(sim, 'Espagne');
+  const theirs = m.tradableRegions(sim, be, k, true);
+  const far = m.tradableRegions(sim, es, k, false).filter((x) => !x.adjacent);
+  ok(theirs.length > 0 && theirs.every((x) => x.adjacent), `régions belges voisines de la France : ${theirs.slice(0, 4).map((x) => x.name).join(', ')}`);
+  const errFar = m.checkDeal(sim, k, es, { type: 'purchase', take: [far[0].id], price: 50 });
+  ok(/voisines/.test(errFar || ''), `région non voisine refusée : ${errFar}`);
+  const capReg = m.tradableRegions(sim, be, k, false).find((x) => x.capital);
+  ok(capReg && /capitale/.test(m.checkDeal(sim, k, be, { type: 'cession', take: [capReg.id] }) || ''), 'la capitale ne peut jamais être cédée');
+  // achat : prix généreux + bonnes relations -> accord ; parcelles transférées officiellement
+  const reg = theirs.find((x) => !x.capital);
+  sim.rel[be * sim.S + k] = sim.rel[k * sim.S + be] = 80;
+  const tc0 = m.load ? 0 : 0; void tc0;
+  const fair = m.fairPrice(sim, be, (m.regionCells(sim).get(reg.id) || []).filter((c) => sim.owner[c] === sim.sides[be].e));
+  const cession = sim.nation.proposeTerritory(be, { type: 'cession', take: [reg.id] });
+  ok(cession.result !== 'accept', `cession sans contrepartie : ${cession.result} (${cession.text.slice(0, 80)})`);
+  const before = sim.sides[k].cells, moneyBE = sim.sides[be].money;
+  const buy = sim.nation.proposeTerritory(be, { type: 'purchase', take: [reg.id], price: Math.round(fair * 2 * 10) / 10 + 1 });
+  ok(buy.result === 'accept' && sim.sides[k].cells > before && sim.sides[be].money > moneyBE, `achat de « ${reg.name} » pour ${Math.round(fair * 2) + 1} Md$ (valeur ${fair} Md$) : ${buy.result}, ${sim.sides[k].cells - before} parcelles`);
+  const moved = (m.regionCells(sim).get(reg.id) || []).filter((c) => sim.owner[c] === sim.sides[k].e);
+  ok(moved.length && moved.every((c) => !sim.occupied[c]), 'territoire acheté officiellement français (pas une occupation)');
+  // annexion consentie : refusée par un pays souverain de taille moyenne, avec explication
+  const ann = sim.nation.proposeTerritory(be, { type: 'annexation' });
+  ok(ann.result === 'refuse' && /souveraineté/.test(ann.text + ann.factors.map((f) => f.label).join(' ')), 'annexion consentie refusée (souveraineté)');
+  // indépendance accordée à une région française : nouvel État
+  const own = m.tradableRegions(sim, k, es, false).filter((x) => !x.capital && /Corse/.test(x.name));
+  const S0 = sim.S;
+  const ind = sim.nation.releaseRegions(own.map((x) => x.id), 'République corse', '#7a4fb3');
+  ok(ind.ok && sim.S === S0 + 1 && sim.sides[sim.S - 1].cells > 0 && sim.sides[sim.S - 1].name === 'République corse', `indépendance de la Corse : nouvel État (${sim.sides[sim.S - 1].cells} parcelles), ${sim.S} pays`);
+  run(sim, sim.time + 30);
+  ok(!sim.sides[sim.S - 1].eliminated && sim.sides[sim.S - 1].eco.gdp > 0, `le nouvel État vit : PIB ${sim.sides[sim.S - 1].eco.gdp.toFixed(1)} Md$`);
+  // sauvegarde / reprise : l'État créé est recréé à l'identique
+  const snap = JSON.parse(JSON.stringify(sim.serialize()));
+  const ents = load().world.entities;
+  const b = mk('FR', { seed: 'TERR' }, snap);
+  ok(b.S === sim.S && b.sides[b.S - 1].name === 'République corse' && ents[b.sides[b.S - 1].e], 'nouvel État restauré au chargement');
+  for (let i = 0; i < 600; i++) { sim.step(); b.step(); }
+  ok(m.stateHash(sim) === m.stateHash(b), 'reprise identique après la création de l\'État');
+  // ordre multijoueur : même résultat sur deux machines
+  const h = mk('FR', { seed: 'TERR2' }), c = mk('FR', { seed: 'TERR2' });
+  const regB = m.tradableRegions(h, side(h, 'Belgique'), h.nation.player, true).find((x) => !x.capital);
+  for (const x of [h, c]) { x.rel[side(x, 'Belgique') * x.S + x.nation.player] = 90; m.execCommand(x, { op: 'n', a: x.nation.player, m: 'proposeTerritory', args: [side(x, 'Belgique'), { type: 'purchase', take: [regB.id], price: 500 }] }); }
+  for (let i = 0; i < 300; i++) { h.step(); c.step(); }
+  ok(m.stateHash(h) === m.stateHash(c), 'accord territorial par ordre multijoueur : simulations identiques');
+}
+
 summary('Mécaniques du Mode Nation');

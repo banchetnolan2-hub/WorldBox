@@ -11,6 +11,7 @@
 //  • des événements mondiaux liés aux statistiques ; la chronologie annuelle du pays ; les scénarios.
 // Tout est déterministe (générateur de la simulation) et sérialisable.
 import { PERSONALITIES, UNIT_COST } from './profile.js';
+import { evaluateDeal, applyDeal, checkDeal, describeDeal, TERRITORIAL_TYPES, regionOwners } from './territorial.js';
 import { applyComposition, applyGroups, normalizeGroups } from './military.js';
 import { tn } from './tuning.js';
 import { MONTH_SEC, YEAR_SEC, fmtDate, dateParts } from './calendar.js';
@@ -19,7 +20,7 @@ import { powerOf, aiLog } from './ai.js';
 import { refreshCombat, landTotal } from './economy.js';
 import { de } from './fr.js';
 import { SCENARIOS, findScenario } from './scenarios.js';
-import { evaluatePeace, makePeaceTerms, applyPeace, describeTerms, noteProposal, canPropose, dnote, trustOf, warContext } from './diplomacy.js';
+import { evaluatePeace, makePeaceTerms, applyPeace, describeTerms, noteProposal, canPropose, dnote, trustOf, warContext, regionCells } from './diplomacy.js';
 import { TECHS, TECH_BY_ID, TECH_BRANCHES, BRANCH_BY_ID, FX_TEXT, affinity, techOpen, TERR_INDEX } from './techTree.js';
 import { setStance } from './crises.js';
 import { acceptSurrender, setPlayerGoals } from './warEnd.js';
@@ -59,6 +60,7 @@ export const DIPLO_ACTIONS = {
   coalInvite: { label: 'Inviter dans votre coalition', icon: 'users' },
   coalForm: { label: 'Former une coalition contre ce pays', icon: 'shield' },
   sanction: { label: 'Imposer des sanctions', icon: 'x-circle' },
+  territory: { label: 'Diplomatie territoriale', icon: 'route' },
   unsanction: { label: 'Lever les sanctions', icon: 'check' },
 };
 
@@ -443,7 +445,7 @@ export class Nation {
       if (!w) return { result: 'refuse', score: -9, factors: [{ label: 'Pas de guerre en cours', v: 0 }] };
       const t = { ...makePeaceTerms(sim, w, from), ...(terms.terms || {}), proposer: from, war: w.id };
       const ev = evaluatePeace(sim, w, to, t);
-      return { result: ev.result, score: ev.score, factors: ev.factors, counter: ev.counter ? { type: 'peace', terms: { terms: ev.counter }, text: this._peaceText(w, ev.counter, from) } : null, peace: t };
+      return { result: ev.result, score: ev.score, factors: ev.factors, counter: ev.counter ? { type: 'peace', terms: { terms: ev.counter }, text: this._peaceText(w, ev.counter, from) } : null, peace: t, why: ev.why };
     }
     if (R.negotiations === false) counter = null;
     const result = score > 0.6 ? 'accept' : counter ? 'counter' : 'refuse';
@@ -495,7 +497,7 @@ export class Nation {
       out = { ...ev, text: '' };
       if (ev.result === 'accept') { this._apply(k, to, type, type === 'peace' ? { terms: ev.peace } : terms); out.text = this._acceptText(type, terms); }
       else if (ev.result === 'counter') out.text = ev.counter.text;
-      else { out.text = this._refuseText(type, ev); mem.declined++; }
+      else { out.text = ev.why || this._refuseText(type, ev); mem.declined++; }
     }
     return this._reply(to, out, type, terms);
   }
@@ -532,6 +534,11 @@ export class Nation {
     if (fee) { A.money -= fee; sim.sides[to].money += fee; }
     this.log(to, 'player', 'Nous acceptons votre contre-proposition.', 'proposal');
     if (counter.type === 'aid') { this._apply(k, to, 'aid', t); return this._reply(to, { result: 'accept', text: `Aide de ${t.amount} Md$ versée.`, factors: [] }); }
+    if (counter.type === 'territory') {
+      const r = applyDeal(sim, k, to, t.deal);
+      if (r.ok) this.milestone('diplo', `Accord territorial avec ${sim.sides[to].name} : ${describeDeal(sim, t.deal, k, to)}.`);
+      return this._reply(to, { result: r.ok ? 'accept' : 'refuse', text: r.ok ? 'Accord territorial conclu.' : r.text, factors: [] });
+    }
     this._apply(k, to, counter.type, t);
     return this._reply(to, { result: 'accept', text: this._acceptText(counter.type, t), factors: [] });
   }
@@ -638,6 +645,7 @@ export class Nation {
     if ((type === 'peace' || type === 'surrender') && (R.peace === false || (this.sim.cfg.warEnd && this.sim.cfg.warEnd.peace === false))) return false;
     if (type === 'demand' && R.wars === false) return false;
     if (type === 'coalition' && (R.alliances === false || R.coalitions === false)) return false;
+    if (type === 'territory' && R.negotiations === false) return false;
     return true;
   }
   offer(from, type, terms, text) {
@@ -657,6 +665,15 @@ export class Nation {
     const from = o.from, B = sim.sides[from];
     const mem = this.memOf(from);
     this.log(from, 'player', expired ? '(aucune réponse)' : accept ? 'Nous acceptons.' : 'Nous refusons.', 'proposal');
+    // proposition territoriale d'un autre joueur : appliquée seulement avec l'accord de ce joueur
+    if (o.type === 'territory') {
+      const me = sim.sides[k];
+      if (!accept) { this.at(from).log(k, 'ai', expired ? `${me.name} n'a pas répondu.` : `${me.name} refuse votre proposition territoriale.`, 'refuse'); return; }
+      const r = applyDeal(sim, from, k, o.terms.deal);
+      this.at(from).log(k, 'ai', r.ok ? `${me.name} accepte l'accord territorial.` : r.text, r.ok ? 'accept' : 'refuse');
+      if (r.ok) this.milestone('diplo', `Accord territorial avec ${B.name}.`);
+      return;
+    }
     // proposition d'un autre joueur humain : appliquée du point de vue de celui qui l'a faite
     if (o.terms && o.terms.human && HUMAN_DEALS.includes(o.type)) {
       const me = sim.sides[k];
@@ -711,6 +728,50 @@ export class Nation {
     } else this._apply(k, from, o.type, o.terms);
     this.log(from, 'ai', o.type === 'peace' ? 'La paix est acceptée. Les négociations du traité commencent.' : 'Merci. Notre accord est en vigueur.', 'accept');
   }
+  // ---------------- diplomatie territoriale ----------------
+  // proposition territoriale du joueur à un autre pays (accord obligatoire du pays concerné)
+  proposeTerritory(to, deal) {
+    const sim = this.sim, k = this.player;
+    const d = { ...deal };
+    const T = TERRITORIAL_TYPES[d.type];
+    if (!T) return { result: 'refuse', text: 'Proposition invalide.', factors: [] };
+    this.log(to, 'player', `Proposition territoriale : ${describeDeal(sim, d, k, to)}.`, 'proposal');
+    const err = checkDeal(sim, k, to, d);
+    if (err) return this._reply(to, { result: 'refuse', text: err, factors: [] }, 'territory', d);
+    if (this.isHuman(to) && to !== k) {
+      if (this.at(to).offers.some((o) => o.from === k && o.type === 'territory')) return this._reply(to, { result: 'info', text: 'Une proposition territoriale attend déjà sa réponse.', factors: [] }, 'territory', d);
+      this.at(to).offer(k, 'territory', { deal: d, human: true }, `${sim.sides[k].name} (${(this.humans[k] && this.humans[k].pname) || 'joueur'}) : ${describeDeal(sim, d, k, to)}.`);
+      return this._reply(to, { result: 'info', text: 'Proposition transmise. En attente de la réponse du joueur.', factors: [] }, 'territory', d);
+    }
+    const ev = evaluateDeal(sim, k, to, d);
+    noteProposal(sim, k, to, 'territory', ev.result);
+    if (ev.result === 'accept') {
+      const r = applyDeal(sim, k, to, d);
+      if (r.ok) this.milestone('diplo', `Accord territorial avec ${sim.sides[to].name} : ${describeDeal(sim, d, k, to)}.`);
+      return this._reply(to, { result: r.ok ? 'accept' : 'refuse', text: r.ok ? 'Nous acceptons cet accord territorial. Les nouvelles frontières entrent en vigueur.' : r.text, factors: ev.factors }, 'territory', d);
+    }
+    if (ev.result === 'counter') return this._reply(to, { result: 'counter', text: `Contre-proposition : ${describeDeal(sim, ev.counter, k, to)}.`, factors: ev.factors, counter: { type: 'territory', terms: { deal: ev.counter }, text: '' } }, 'territory', d);
+    this.memOf(to).declined++;
+    return this._reply(to, { result: 'refuse', text: ev.why, factors: ev.factors }, 'territory', d);
+  }
+  // indépendance accordée par le joueur à certaines de ses régions (décision souveraine, sans accord extérieur)
+  releaseRegions(rids, name, color = null) {
+    const sim = this.sim, k = this.player, sd = sim.sides[k];
+    if (!sim.details || !Array.isArray(rids) || !rids.length || !String(name || '').trim()) return { ok: false, text: 'Choisissez des régions et un nom.' };
+    const own = regionOwners(sim);
+    const ids = rids.filter((r) => own.get(r) === sd.e);
+    const rc = regionCells(sim);
+    const cells = [];
+    for (const r of ids) for (const c of rc.get(r) || []) if (sim.owner[c] === sd.e) cells.push(c);
+    if (!cells.length) return { ok: false, text: 'Ces régions ne vous appartiennent pas.' };
+    if (cells.includes(sd.capital)) return { ok: false, text: 'Votre capitale ne peut pas devenir indépendante.' };
+    if (cells.length >= sd.cells * 0.9) return { ok: false, text: 'Vous devez conserver l\'essentiel de votre territoire.' };
+    const s = sim.addState({ name: String(name).slice(0, 40), color, parent: k, cells });
+    if (s < 0) return { ok: false, text: 'Création impossible.' };
+    this.milestone('diplo', `Indépendance accordée : ${sim.sides[s].name}.`);
+    return { ok: true, side: s };
+  }
+
   // ---------------- coalitions du joueur ----------------
   formCoalition(target, goal = 'contain') {
     const sim = this.sim, k = this.player;
@@ -800,7 +861,7 @@ export class Nation {
       return this._reply(o.from, { result: 'accept', text: 'Nous acceptons vos conditions. La paix est signée.', factors: ev.factors });
     }
     addRel(sim, k, o.from, -1);
-    return this._reply(o.from, { result: ev.result === 'counter' ? 'counter' : 'refuse', text: ev.result === 'counter' ? this._peaceText(w, ev.counter, o.from) : 'Ces conditions sont inacceptables. Les combats continuent.', factors: ev.factors, counter: ev.counter ? { type: 'peace', terms: { terms: ev.counter }, text: '' } : null }, 'peace', {});
+    return this._reply(o.from, { result: ev.result === 'counter' ? 'counter' : 'refuse', text: ev.result === 'counter' ? this._peaceText(w, ev.counter, o.from) : (ev.why || 'Ces conditions sont inacceptables. Les combats continuent.'), factors: ev.factors, counter: ev.counter ? { type: 'peace', terms: { terms: ev.counter }, text: '' } : null }, 'peace', {});
   }
 
   // ---------------- décisions du joueur ----------------

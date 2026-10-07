@@ -11,6 +11,7 @@ import { normalizeTuning } from '../sim/tuning.js';
 export const NATION_COMMANDS = new Set([
   'propose', 'answerOffer', 'acceptCounter', 'counterPeace', 'startProject', 'cancelProject', 'choose', 'declareWar',
   'formCoalition', 'inviteToCoalition', 'leaveCoalitionP', 'coalitionOffensive', 'setCoalitionGoal', 'setWarGoals', 'log', 'milestone',
+  'proposeTerritory', 'releaseRegions',
 ]);
 
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));

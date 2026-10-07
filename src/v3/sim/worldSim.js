@@ -193,7 +193,12 @@ export class WorldSim {
     this.peaceSince = null;
 
     // ----- pays participants -----
-    this.sides = setup.participants.map((p, k) => this._makeSide(p, k));
+    // États créés en cours de partie (indépendance, séparation, nouvel État) : rejoués au chargement
+    this.extraStates = restore && restore.extraStates ? JSON.parse(JSON.stringify(restore.extraStates)) : [];
+    for (const x of this.extraStates) if (!this.entities[x.e]) { while (this.entities.length < x.e) this.entities.push(null); this.entities[x.e] = { ...x.entity }; }
+    const parts = [...setup.participants, ...this.extraStates.map((x) => x.p)];
+    for (const x of this.extraStates) this.teams.push({ ...x.team });
+    this.sides = parts.map((p, k) => this._makeSide(p, k));
     const S = this.S = this.sides.length;
     this.sides.forEach((s, k) => { this.sideOf[s.e] = k; });
     for (let i = 0; i < n; i++) { const s = this.sideOf[this.owner[i]]; if (s >= 0) this.sides[s].cells++; }
@@ -203,8 +208,8 @@ export class WorldSim {
     for (let i = 0; i < n; i++) { const s = this.sideOf[this.owner[i]]; if (s >= 0) this.sides[s].km2 += this.geo.km2[i]; }
     this.sides.forEach((s, k) => {
       const ent = this.entities[s.e];
-      const prof = participantProfile(ent, setup.participants[k], { coastShare: Math.min(1, coast[k] / Math.max(1, s.cells) * 4) });
-      const p = setup.participants[k];
+      const prof = participantProfile(ent, parts[k], { coastShare: Math.min(1, coast[k] / Math.max(1, s.cells) * 4) });
+      const p = parts[k];
       initSideEconomy(s, prof, p.popMult || 1, p.powerMult || 1, p.resMult || 1);
       s.population = s.pop;
       s.baseStability = 0.45 + prof.politics.stability / 200;
@@ -1967,6 +1972,70 @@ export class WorldSim {
     return [null, { id: 'semi', label: 'Semi-occupé' }, { id: 'occupied', label: 'Occupé' }, { id: 'contested', label: 'Contesté' }][Math.min(3, lvl)];
   }
 
+  // ---------------- création d'un État en cours de partie ----------------
+  // Indépendance, séparation, création d'un nouvel État : un nouveau pays (entité + camp) reçoit des parcelles.
+  // spec : { name, color, parent (camp d'origine), cells: [...], capital (parcelle) }. Déterministe ; l'État est
+  // enregistré dans la sauvegarde (extraStates) et recréé à l'identique au chargement.
+  addState(spec) {
+    const parent = this.sides[spec.parent];
+    const cells = (spec.cells || []).filter((c) => c >= 0 && c < this.n);
+    if (!parent || !cells.length) return -1;
+    const pe = this.entities[parent.e];
+    const index = this.entities.length;
+    if (index >= 65000) return -1;
+    const g = this.grid;
+    const cap = spec.capital >= 0 && cells.includes(spec.capital) ? spec.capital : cells[(cells.length / 2) | 0];
+    const share = cells.length / Math.max(1, parent.cells);
+    const ent = {
+      index, id: 'X' + index, kind: 'custom', runtime: true, name: String(spec.name || 'Nouvel État').slice(0, 40), color: spec.color || '#9a7bd0', color2: spec.color2 || '#f0e6c8',
+      flag: null, continent: pe.continent, parentId: pe.id, alive: true,
+      capital: { lat: g.lat[cap], lon: g.lon[cap], name: spec.capitalName || `${String(spec.name || 'Nouvel État').slice(0, 30)}` },
+      population: Math.max(1e4, (parent.pop || pe.population || 1e6) * share), stats: { ...pe.stats },
+    };
+    const S = this.S, S1 = S + 1;
+    const p = { e: index, team: this.teams.length };
+    const team = { name: ent.name, color: ent.color };
+    this.entities.push(ent);
+    this.teams.push({ ...team });
+    // matrices diplomatiques agrandies (relations du nouvel État héritées en partie de son pays d'origine)
+    const grow = (arr, Type, init) => { const out = new Type(S1 * S1); for (let a = 0; a < S; a++) for (let b = 0; b < S; b++) out[a * S1 + b] = arr[a * S + b]; for (let o = 0; o < S1; o++) { out[S * S1 + o] = init(o, true); out[o * S1 + S] = init(o, false); } return out; };
+    const kp = spec.parent;
+    this.rel = grow(this.rel, Float32Array, (o) => (o === S ? 0 : o === kp ? 25 : this.rel[kp * S + o] * 0.5));
+    this.allied = grow(this.allied, Uint8Array, () => 0);
+    this.truce = grow(this.truce, Float32Array, (o) => (o === kp ? this.time + 365 : 0));
+    this.atWar = grow(this.atWar, Uint8Array, () => 0);
+    this.contact = grow(this.contact, Uint16Array, () => 0);
+    this.nearCap = grow(this.nearCap, Uint8Array, () => 0);
+    this.trade = grow(this.trade, Uint8Array, (o) => (o === kp ? 1 : 0));
+    this.contactCell = null;
+    const side = this._makeSide(p, S);
+    this.sides.push(side);
+    this.sideOf[index] = S;
+    this.S = S1;
+    for (const c of cells) this.flip(c, index, false);
+    side.initial = Math.max(1, side.cells); side.peak = side.cells;
+    const prof = participantProfile(ent, p, { coastShare: 0.3 });
+    initSideEconomy(side, prof, 1, 1, 1);
+    side.population = side.pop;
+    side.baseStability = 0.45 + prof.politics.stability / 200; side.stability = side.baseStability;
+    side.supplyLvl = prof.derived.supply; side.speedK = prof.derived.speed;
+    side.nextMonth = this.time + MONTH_SEC * 0.5;
+    side.capital = this.owner[cap] === index ? cap : this._findCapital(side);
+    side.dev = { done: [], active: {} };
+    parent.pop = Math.max(1e4, parent.pop - side.pop);
+    initAI(this, S);
+    this.landContact = this.sides.map((s) => s.border.length > 0);
+    this._computeContact(); this._computeNearCap(); this._computeIsolation();
+    const n = this._agentCount(side);
+    for (let k = 0; k < n; k++) this._spawnAgent(side, k * 0.3);
+    this._regionCells = null;
+    this.extraStates.push({ e: index, p, team, entity: JSON.parse(JSON.stringify(ent)) });
+    this.chron('creation', `Naissance d'un nouvel État : ${ent.name} (issu ${de(parent.name)}).`, { e: [ent.index, parent.e] });
+    this.hist(spec.parent, 'creation', `${ent.name} devient un État indépendant.`);
+    this._emit({ icon: '🏳️', title: 'NOUVEL ÉTAT', tone: 'neutral', side: S, text: `${ent.name} proclame son indépendance.`, newState: index, cell: side.capital });
+    return S;
+  }
+
   officialCells(s) { const sd = this.sides[s]; return sd.cells - sd.occupiedCells; }
 
   _emit(evt) {
@@ -2423,6 +2492,7 @@ export class WorldSim {
       crises: serializeCrises(this),
       borderEdits: this.borderEdits || [],   // [parcelle, propriétaire voulu]
       warEnd: this.cfg.warEnd,               // réglages de fin des guerres (modifiables en partie)
+      extraStates: this.extraStates || [],   // États créés en cours de partie
       tuning: this.tuning,                   // réglages avancés (modifiables en partie)
       nation: this.nation ? this.nation.serialize() : null,
     };

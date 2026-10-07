@@ -109,7 +109,11 @@ class App {
       try { await this.worldsUI.load(this.settings.lastWorld, true); } catch (_) { /* monde supprimé */ }
     }
     this.setWorld(this.world, true);
-    this.session.onEvent = (e) => { this.hud.event(e, this.session.sim); this.nationUI.onEvent(e); };
+    this.session.onEvent = (e) => {
+      // nouvel État créé en cours de partie (indépendance, séparation…) : le rendu doit connaître sa couleur
+      if (e.newState >= 0 && this.entities()[e.newState]) { try { this.renderer.addEntity(this.entities()[e.newState]); this.refreshParams(); if (this.labels.invalidate) this.labels.invalidate(); } catch (err) { console.warn(err); } this.cellCountsDirty = true; }
+      this.hud.event(e, this.session.sim); this.nationUI.onEvent(e);
+    };
     if (!this.settings.autoPause) this.settings.autoPause = defaultAutoPause();
     this.session.onEnd = (res) => this.onEnd(res);
     this.session.onWarEnded = (id) => this.onWarEnded(id);

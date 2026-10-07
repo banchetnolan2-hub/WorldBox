@@ -1676,3 +1676,13 @@ body > :not(#globe):not(#labels):not(canvas):not(script) { zoom: var(--ui-zoom);
 .fc-acts .btn.on { border-color: var(--accent); color: var(--accent); }
 #pickBanner { position: fixed; z-index: 46; top: 100px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid var(--accent); }
 #pickBanner > .ic { color: var(--accent); }
+.pf-demand { margin: 8px 0; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--line-2); background: var(--panel-2); }
+.pf-demand.over { border-color: color-mix(in srgb, var(--bad) 55%, transparent); }
+.pf-demand .meter { position: relative; height: 6px; margin: 6px 0; border-radius: 3px; background: rgba(var(--hl), 0.08); }
+.pf-demand .meter i { display: block; height: 100%; border-radius: 3px; background: var(--good); }
+.pf-demand.over .meter i { background: var(--bad); }
+.pf-demand .meter em { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--gold); }
+.terr-form select[data-tf=type] { width: 100%; margin: 4px 0; }
+.terr-form .pf-list { max-height: 170px; }
+.terr-eval { margin: 8px 0; padding: 8px 10px; border-radius: var(--r); background: var(--panel-2); border: 1px solid var(--line); }
+.terr-eval .factors { margin: 6px 0 0; }

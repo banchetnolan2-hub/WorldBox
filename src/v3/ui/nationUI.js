@@ -13,7 +13,7 @@ import { fmtDate, YEAR_SEC, dateParts } from '../sim/calendar.js';
 import { DEV_TREE, DEV_BRANCHES, DEV_BY_ID, FX_LABELS, DIPLO_ACTIONS } from '../sim/nation.js';
 import { TECH_BRANCHES, BRANCH_BY_ID, SPECIALIZATIONS, CONS_TEXT, specsOf, affinity, techOpen } from '../sim/techTree.js';
 import { SCENARIOS, findScenario } from '../sim/scenarios.js';
-import { describeTerms, makePeaceTerms, claimableRegions } from '../sim/diplomacy.js';
+import { describeTerms, makePeaceTerms, claimableRegions, cedeCapacity, demandShare } from '../sim/diplomacy.js';
 import { NATION_WAR_END, goalProgress, collapseRisk } from '../sim/warEnd.js';
 import { coalitionsOf, coalitionsAgainst, memberOf } from '../sim/coalitions.js';
 import { sanction, liftSanction, isSanctioning, sanctionsOn } from '../sim/crises.js';
@@ -25,6 +25,8 @@ import { drawCustomFlag } from '../globe/flagAtlas.js';
 import { MAP_PALETTE } from '../globe/mapColors.js';
 import { dashboardHtml, advisorHtml } from './dashboard.js';
 import { tuningBadge } from './tuningUI.js';
+import { TERRITORIAL_TYPES, tradableRegions, evaluateDeal, fairPrice, describeDeal } from '../sim/territorial.js';
+import { regionCells } from '../sim/diplomacy.js';
 import { profileTuning } from '../sim/tuning.js';
 
 export const NATION_SPEEDS = [1, 2, 3, 5, 10];       // vitesse maximale : ×10
@@ -902,6 +904,7 @@ export class NationUI {
       if (R.relations !== false) acts.push('gift');
       if (rel < 40 && R.relations !== false && R.negotiations !== false) acts.push('detente');
       if (allied || deal.trade || deal.nap > sim.time) acts.push('cancel');
+      if (sim.details && R.negotiations !== false) acts.push('territory');
       if (R.wars !== false) acts.push('war');
     }
     // coalitions : inviter ce pays dans une de vos coalitions, ou en former une contre lui
@@ -946,6 +949,7 @@ export class NationUI {
       if (a === 'cancel' && !window.confirm(`Rompre les accords avec ${B.name} ? Ce pays s'en souviendra.`)) return;
       if (a === 'peace') { this._peaceForm(k); return; }
       if (a === 'warGoals') { this._goalsForm(k); return; }
+      if (a === 'territory') { this._territoryForm(k); return; }
       if (a === 'coalForm') { const r = n.formCoalition(k, atWar ? 'defeat' : 'contain'); if (r && r.pending) { notice('Ordre transmis : formation de la coalition.'); return; } if (!r.ok) { notice(r.text); return; } n.log(k, 'player', `Nous formons « ${r.coalition.name} » face à vous.`, 'proposal'); this.closeDiplo(); this.app.gameNav.openPanel('coal'); this.app.coalitionUI.open.add(r.coalition.id); this.app.gameNav.renderTab(false); return; }
       if (a === 'sanction') { if (!window.confirm(`Imposer des sanctions économiques à ${B.name} ? Les échanges seront coupés ; ses partenaires et ses alliés le prendront mal.`)) return; this.app.act({ op: 'sanction', to: k }); this._diplo(); return; }
       if (a === 'unsanction') { this.app.act({ op: 'unsanction', to: k }); this._diplo(); return; }
@@ -956,6 +960,62 @@ export class NationUI {
       this._bar();
     }));
     void last;
+  }
+  // DIPLOMATIE TERRITORIALE : échange, cession, achat, vente, restitution, indépendance, annexion consentie, fusion…
+  // Réponse probable du pays affichée en direct (analyse en lecture seule) ; l'envoi passe par un ordre.
+  _territoryForm(k) {
+    const sim = this.sim, n = sim.nv, p = n.player;
+    const d = this._tDeal && this._tDeal.k === k ? this._tDeal : (this._tDeal = { k, type: 'swap', give: [], take: [], price: 0, stateName: '', stateColor: '#7a4fb3' });
+    const box = document.createElement('div');
+    box.className = 'peace-form terr-form';
+    const render = () => {
+      const T = TERRITORIAL_TYPES[d.type];
+      const deal = { type: d.type, give: T.give ? d.give : [], take: T.take ? d.take : [], price: T.price ? d.price : 0, stateName: d.stateName, stateColor: d.stateColor };
+      const mine = T.give ? tradableRegions(sim, p, k, !T.state).filter((x) => !T.origin || x.origin === sim.sides[k].e) : [];
+      const theirs = T.take ? tradableRegions(sim, k, p, !T.state).filter((x) => !T.origin || x.origin === sim.sides[p].e) : [];
+      const unilateral = d.type === 'independence' && !deal.take.length && deal.give.length;
+      const ev = unilateral ? null : evaluateDeal(sim, p, k, deal);
+      const fair = deal.type === 'purchase' && deal.take.length ? fairPrice(sim, k, deal.take.flatMap((r) => (regionCells(sim).get(r) || []).filter((c) => sim.owner[c] === sim.sides[k].e))) : null;
+      const list = (regs, key, sel) => (regs.length ? `<div class="pf-list">${regs.map((x) => `<label class="cl-row ${sel.includes(x.id) ? 'on' : ''}"><input type="checkbox" data-tr="${key}" data-id="${x.id}" ${sel.includes(x.id) ? 'checked' : ''} ${x.capital ? 'disabled' : ''}><span>${esc(x.name)}</span>${x.capital ? '<em class="cl-no">capitale</em>' : ''}<small>${x.km2.toLocaleString('fr-FR')} km²${x.adjacent ? '' : ' · non voisine'}</small></label>`).join('')}</div>` : '<p class="hint">Aucune région possible pour ce type d\'accord.</p>');
+      box.innerHTML = `<h4>Diplomatie territoriale avec ${esc(sim.sides[k].name)}</h4>
+        <select data-tf="type">${Object.entries(TERRITORIAL_TYPES).map(([id, t]) => `<option value="${id}" ${d.type === id ? 'selected' : ''}>${t.label}</option>`).join('')}</select>
+        <p class="hint">${esc(T.desc)} ${T.state ? '' : 'Les régions doivent toucher le pays qui les reçoit.'}</p>
+        ${T.give ? `<b>${T.state ? 'Vos régions qui formeront le nouvel État' : 'Régions que vous cédez'}</b>${list(mine, 'give', d.give)}` : ''}
+        ${T.take ? `<b>${T.state ? `Régions de ${esc(sim.sides[k].name)} qui formeront le nouvel État` : `Régions que vous demandez à ${esc(sim.sides[k].name)}`}</b>${list(theirs, 'take', d.take)}` : ''}
+        ${T.price ? `<div class="pf-rep"><span>Prix</span><input type="number" min="0" step="1" value="${d.price || ''}" data-tf="price"><span>Md$ ${d.type === 'purchase' ? 'payés par vous' : 'payés par ce pays'}${fair !== null ? ` · valeur estimée ${fair} Md$` : ''}</span></div>` : ''}
+        ${T.state ? `<div class="pf-rep"><span>Nom du nouvel État</span><input type="text" maxlength="40" value="${esc(d.stateName)}" data-tf="name" placeholder="République de…"><input type="color" value="${d.stateColor}" data-tf="color"></div>` : ''}
+        ${T.all ? `<p class="hint warn">${d.type === 'merger' ? 'Fusion : tout le territoire de ce pays rejoint le vôtre.' : 'Annexion consentie : ce pays disparaît et rejoint le vôtre.'} Un État souverain n'y consent que très rarement.</p>` : ''}
+        <div class="terr-eval">${unilateral ? `<span class="pill ok">DÉCISION SOUVERAINE</span><span class="hint">L'indépendance de vos propres régions ne demande l'accord de personne.</span>` : `<span class="hint">Réponse probable :</span> ${{ accept: '<span class="pill ok">ACCEPTÉ</span>', refuse: '<span class="pill no">REFUSÉ</span>', counter: '<span class="pill co">CONTRE-PROPOSITION</span>' }[ev.result]}
+          <ul class="factors">${ev.factors.slice(0, 5).map((x) => `<li><span>${esc(x.label)}</span><b class="${x.v > 0 ? 'up' : x.v < 0 ? 'down' : ''}">${x.v > 0 ? '+' : ''}${String(x.v).replace('.', ',')}</b></li>`).join('')}</ul>`}</div>
+        <div class="row"><span class="grow"></span><button class="btn ghost sm" data-tf="cancel">Fermer</button><button class="btn primary sm" data-tf="send">${icon('send')}<span>${unilateral ? 'Proclamer l\'indépendance' : 'Proposer'}</span></button></div>`;
+      box.querySelector('[data-tf=type]').onchange = (e) => { d.type = e.target.value; d.give = []; d.take = []; render(); };
+      box.querySelectorAll('[data-tr]').forEach((cb) => { cb.onchange = () => { const arr = d[cb.dataset.tr], id = Number(cb.dataset.id); d[cb.dataset.tr] = cb.checked ? [...new Set([...arr, id])] : arr.filter((x) => x !== id); const sc = box.querySelector('.pf-list') ? [...box.querySelectorAll('.pf-list')].map((l) => l.scrollTop) : []; render(); [...box.querySelectorAll('.pf-list')].forEach((l, i) => { l.scrollTop = sc[i] || 0; }); }; });
+      const pr = box.querySelector('[data-tf=price]'); if (pr) { pr.addEventListener('keydown', (e) => e.stopPropagation()); pr.onchange = () => { d.price = Math.max(0, Number(pr.value) || 0); render(); }; }
+      const nm = box.querySelector('[data-tf=name]'); if (nm) { nm.addEventListener('keydown', (e) => e.stopPropagation()); nm.onchange = () => { d.stateName = nm.value.trim(); render(); }; }
+      const co = box.querySelector('[data-tf=color]'); if (co) co.onchange = () => { d.stateColor = co.value; };
+      box.querySelector('[data-tf=cancel]').onclick = () => box.remove();
+      box.querySelector('[data-tf=send]').onclick = () => {
+        if (unilateral) {
+          if (!d.stateName) { notice('Donnez un nom au nouvel État.'); return; }
+          if (!window.confirm(`Accorder l'indépendance à ${deal.give.length} région(s) sous le nom « ${d.stateName} » ? Cette décision est définitive.`)) return;
+          const r = n.releaseRegions(deal.give, d.stateName, d.stateColor);
+          if (r && r.ok === false) { notice(r.text); return; }
+          notice(`${d.stateName} proclame son indépendance.`);
+        } else {
+          if (T.all && !window.confirm(`${T.label} avec ${sim.sides[k].name} : confirmer la proposition ?`)) return;
+          n.proposeTerritory(k, deal);
+        }
+        this._tDeal = null;
+        this._diplo(); this._bar();
+      };
+    };
+    render();
+    const host = $('diploBox').querySelector('.dp-chat');
+    if (!host) return;
+    const old = host.querySelector('.peace-form'); if (old) old.remove();
+    host.appendChild(box);
+    box.scrollIntoView({ block: 'nearest' });
+    void describeDeal;
   }
   // formulaire de paix : lignes actuelles ou frontières d'avant-guerre, réparations, type d'accord
   _peaceForm(k, offerId = null, base = null) {
@@ -978,6 +1038,7 @@ export class NationUI {
         ${t.territory === 'custom' ? this._claimsHtml(sim, w, t) + this._cedesHtml(sim, w, t, k) : ''}
         <div class="pf-rep"><span>Réparations</span><input type="number" min="0" step="0.5" value="${t.reparations || 0}" data-pf="rep"><span>Md$ versés par</span>
           <div class="seg" data-pf="payer"><button data-v="${p}" class="${t.payer === p ? 'on' : ''}">vous</button><button data-v="${k}" class="${t.payer === k ? 'on' : ''}">${esc(sim.sides[k].name)}</button></div></div>
+        ${this._demandHtml(sim, w, t, k)}
         ${this._termsHtml(d)}
         <div class="row"><span class="grow"></span><button class="btn ghost sm" data-pf="cancel">Annuler</button><button class="btn primary sm" data-pf="send">${icon('send')}<span>Envoyer</span></button></div>`;
       box.querySelectorAll('[data-pf=kind] button').forEach((b) => b.onclick = () => { t.kind = b.dataset.v; render(); });
@@ -1024,6 +1085,17 @@ export class NationUI {
     const old = host.querySelector('.peace-form'); if (old) old.remove();
     host.appendChild(box);
     box.scrollIntoView({ block: 'nearest' });
+  }
+  // jauge des exigences : part de la valeur du pays adverse demandée / ce qu'il peut céder (paix proportionnée)
+  _demandHtml(sim, w, t, k) {
+    if (t.territory === 'restore') return '';
+    const d = demandShare(sim, w, k, { ...t, proposer: sim.nv.player });
+    const c = cedeCapacity(sim, w, k);
+    const over = d > c.cap + 0.005;
+    const pct = (v) => `${Math.round(v * 100)} %`;
+    return `<div class="pf-demand ${over ? 'over' : 'ok'}"><div class="row"><b>Exigences territoriales</b><span class="grow"></span><span>${pct(d)} de la valeur de ${esc(sim.sides[k].name)}</span></div>
+      <div class="meter"><i style="width:${Math.min(100, d * 100 / 0.75 * 100 / 100).toFixed(1)}%"></i><em style="left:${Math.min(100, c.cap * 100 / 0.75).toFixed(1)}%" title="Acceptable au plus"></em></div>
+      <small class="hint">${over ? `Disproportionné : ${esc(sim.sides[k].name)} peut céder au plus ${pct(c.cap)} selon la situation (territoire perdu ${pct(c.lost)}${c.factors.filter((x) => x.label !== 'Territoire réellement perdu').slice(0, 2).map((x) => `, ${x.label.toLowerCase()}`).join('')}). Réduisez les régions demandées.` : `Acceptable au plus : ${pct(c.cap)} (territoire réellement perdu ${pct(c.lost)}). La valeur tient compte de la superficie, de la population, des ports, des ressources, de la capitale et de l'intérêt stratégique.`}</small></div>`;
   }
   // vos régions occupées : cochées = cédées à l'adversaire, décochées = restitution demandée
   _cedesHtml(sim, w, t, k) {
